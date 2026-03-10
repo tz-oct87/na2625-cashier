@@ -1,4 +1,4 @@
-const API_URL = "YOUR_APPS_SCRIPT_WEBAPP_URL"; // ganti dengan Web App Apps Script kamu
+const API_URL = "https://script.google.com/macros/s/AKfycbyCSc_a6Yky01nHBAZXTBTM0fkfZN4Pj6a3JQh8P6tv4RtF515cPirEwIhhKXZ2Drp1/exec"; // ganti dengan Web App Apps Script kamu
 
 // --- Login ---
 async function handleLogin() {
@@ -79,4 +79,5 @@ async function loadTransactions() {
     `).join("");
   } else listEl.textContent = data.message;
 }
+
 if (document.getElementById("transactions-list")) loadTransactions();
