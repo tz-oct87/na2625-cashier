@@ -24,7 +24,6 @@
 <!-- DASHBOARD -->
 <div id="dashboard">
   <h1 class="text-2xl mb-4">Dashboard</h1>
-
   <div class="grid grid-cols-4 gap-4">
     <div class="card">Revenue<br><b id="rev"></b></div>
     <div class="card">Profit<br><b id="prof"></b></div>
@@ -35,7 +34,7 @@
 
 <!-- PRODUCTS -->
 <div id="products" class="hidden">
-  <h1 class="text-2xl mb-4">Product Management</h1>
+  <h1 class="text-2xl mb-4">Products</h1>
 
   <div class="card grid grid-cols-5 gap-2">
     <input id="name" placeholder="Name" class="input">
@@ -61,11 +60,11 @@
 
 <!-- STOCK -->
 <div id="stock" class="hidden">
-  <h1 class="text-2xl mb-4">Stock Management</h1>
+  <h1 class="text-2xl mb-4">Stock</h1>
 
   <div class="card flex gap-3">
     <select id="stockProduct" class="input flex-1"></select>
-    <input id="qty" type="number" placeholder="Qty" class="input">
+    <input id="qty" type="number" class="input">
     <button onclick="addStock()" class="btn">Update</button>
   </div>
 </div>
@@ -74,12 +73,15 @@
 <div id="billing" class="hidden">
   <h1 class="text-2xl mb-4">Cashier</h1>
 
+  <!-- SEARCH -->
+  <input id="searchProduct" placeholder="Search product..."
+    class="input w-full mb-2">
+
+  <div id="searchResults" class="bg-[#1e293b] rounded mb-3"></div>
+
   <!-- SCAN -->
   <input id="barcodeScan" placeholder="Scan barcode..."
     class="input w-full mb-4">
-
-  <!-- PRODUCT QUICK ADD -->
-  <div class="card mb-4 grid grid-cols-4 gap-2 max-h-40 overflow-y-auto" id="productButtons"></div>
 
   <!-- CART -->
   <div class="card">
@@ -97,21 +99,8 @@
       Profit: <b id="profit">0</b>
     </div>
 
-    <button onclick="checkout()" class="btn mt-4 w-full">
-      Checkout
-    </button>
+    <button onclick="checkout()" class="btn mt-4 w-full">Checkout</button>
   </div>
-
-  <!-- RECEIPT -->
-  <div id="receipt" class="hidden bg-white text-black p-4 mt-4 w-80 rounded">
-    <div class="text-center font-bold text-lg">NA2625 STORE</div>
-    <hr>
-    <div id="rItems"></div>
-    <hr>
-    Total: <b id="rTotal"></b>
-    <div id="rDate"></div>
-  </div>
-
 </div>
 
 <!-- ANALYTICS -->
@@ -137,6 +126,8 @@
 .card{background:#1e293b;padding:16px;border-radius:12px}
 .input{padding:10px;border-radius:8px;color:black;width:100%}
 .btn{background:#22c55e;padding:10px;border-radius:10px}
+.result-item{padding:8px;cursor:pointer}
+.result-item:hover{background:#334155}
 </style>
 
 <script>
@@ -158,12 +149,15 @@ async function loadProducts(){
   let data=await res.json();
 
   products=data.slice(1).map(p=>({
-    name:p[0], sell:+p[1], cost:+p[2], stock:+p[3], barcode:p[4]
+    name:(p[0]||"").trim(),
+    sell:+p[1],
+    cost:+p[2],
+    stock:+p[3],
+    barcode:p[4]
   }));
 
   prodCount.innerText=products.length;
 
-  // TABLE
   productList.innerHTML=products.map(p=>`
     <tr>
       <td>${p.name}</td>
@@ -174,52 +168,50 @@ async function loadProducts(){
     </tr>
   `).join("");
 
-  // STOCK SELECT
   stockProduct.innerHTML=products.map(p=>`<option>${p.name}</option>`).join("");
-
-  // QUICK BUTTONS
-  productButtons.innerHTML=products.map(p=>`
-    <button onclick="addToCart('${p.name}')"
-      class="bg-blue-500 rounded p-2 text-sm">
-      ${p.name}<br>${p.sell}
-    </button>
-  `).join("");
 }
 
-// ADD PRODUCT
+// ADD PRODUCT (FIXED)
 async function addProduct(){
+  const productName = name.value.trim();
+
+  if(!productName) return alert("Name required");
+
   await fetch(API,{
     method:"POST",
     body:JSON.stringify({
       type:"addProduct",
-      name:name.value,
-      sell:sell.value,
-      cost:cost.value,
-      stock:stockVal.value,
-      barcode:barcode.value
+      name:productName,
+      sell:Number(sell.value),
+      cost:Number(cost.value),
+      stock:Number(stockVal.value),
+      barcode:barcode.value.trim()
     })
   });
+
+  name.value=""; sell.value=""; cost.value=""; stockVal.value=""; barcode.value="";
   loadProducts();
 }
 
-// STOCK
-async function addStock(){
-  await fetch(API,{
-    method:"POST",
-    body:JSON.stringify({
-      type:"updateStock",
-      name:stockProduct.value,
-      qty:+qty.value,
-      action:"ADD"
-    })
-  });
-  loadProducts();
-}
+// SEARCH (NEW 🔥)
+searchProduct.addEventListener("input",()=>{
+  let val=searchProduct.value.toLowerCase();
 
-// ADD CART (MANUAL)
+  let results=products.filter(p=>p.name.toLowerCase().includes(val)).slice(0,5);
+
+  searchResults.innerHTML=results.map(p=>`
+    <div class="result-item" onclick="addToCart('${p.name}')">
+      ${p.name} - ${p.sell}
+    </div>
+  `).join("");
+});
+
+// ADD CART
 function addToCart(name){
   let p=products.find(x=>x.name===name);
   processCart(p);
+  searchResults.innerHTML="";
+  searchProduct.value="";
 }
 
 // SCAN
@@ -245,7 +237,7 @@ function processCart(p){
   renderCart();
 }
 
-// RENDER CART
+// RENDER
 function renderCart(){
   let t=0,pr=0;
 
@@ -266,15 +258,6 @@ function renderCart(){
 // CHECKOUT
 async function checkout(){
 
-  rItems.innerHTML=cart.map(i=>`
-    <div>${i.name} x${i.qty} = ${i.total}</div>
-  `).join("");
-
-  rTotal.innerText=total.innerText;
-  rDate.innerText=new Date().toLocaleString();
-
-  receipt.classList.remove("hidden");
-
   await fetch(API,{
     method:"POST",
     body:JSON.stringify({
@@ -286,6 +269,7 @@ async function checkout(){
     })
   });
 
+  alert("Transaction saved!");
   cart=[];
   renderCart();
   loadAnalytics();
@@ -297,18 +281,6 @@ async function loadAnalytics(){
   let data=await res.json();
   data=data.slice(1);
 
-  let now=new Date();
-  let f=filter.value;
-
-  data=data.filter(d=>{
-    let t=new Date(d[0]);
-    if(f==="day") return t.toDateString()===now.toDateString();
-    if(f==="week") return (now-t)/(1000*60*60*24)<=7;
-    if(f==="month") return t.getMonth()===now.getMonth();
-    if(f==="year") return t.getFullYear()===now.getFullYear();
-    return true;
-  });
-
   let rev=0,prof=0;
   data.forEach(d=>{rev+=+d[2];prof+=+d[3]});
 
@@ -318,9 +290,9 @@ async function loadAnalytics(){
     Transactions: ${data.length}
   `;
 
-  document.getElementById("rev").innerText=rev;
-  document.getElementById("prof").innerText=prof;
-  document.getElementById("trx").innerText=data.length;
+  revEl.innerText=rev;
+  profEl.innerText=prof;
+  trx.innerText=data.length;
 }
 
 // INIT
