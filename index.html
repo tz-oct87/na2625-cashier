@@ -4,21 +4,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{font-family:sans-serif}
+.header{background:linear-gradient(90deg,#10b981,#059669)}
+.product{display:flex;gap:12px;padding:12px;border-bottom:1px solid #eee}
+.product:hover{background:#f1f5f9}
+.badge{background:#22c55e;color:white;border-radius:999px;padding:4px 10px;font-size:12px}
+</style>
 </head>
 
 <body class="bg-gray-100">
 
 <!-- HEADER -->
-<div class="bg-gradient-to-r from-green-500 to-green-700 text-white p-4 flex justify-between">
+<div class="header text-white p-4 flex justify-between items-center">
   <button onclick="toggleMenu()">☰</button>
-  <div id="title">Transaksi Baru</div>
+  <div id="title">TRANSAKSI BARU</div>
   <div>🛒 <span id="cartCount">0</span></div>
 </div>
 
 <!-- MENU -->
-<div id="menu" class="fixed bg-white w-64 h-full p-4 hidden shadow">
+<div id="menu" class="fixed top-0 left-0 w-64 h-full bg-white p-5 shadow hidden z-50">
   <button onclick="toggleMenu()">❌</button>
-  <div class="mt-4 space-y-3">
+  <div class="mt-6 space-y-4">
     <div onclick="nav('billing')">Cashier</div>
     <div onclick="nav('products')">Products</div>
     <div onclick="nav('stock')">Stock</div>
@@ -26,26 +34,29 @@
   </div>
 </div>
 
-<!-- CONTENT -->
 <div class="p-4 space-y-4">
 
 <!-- CASHIER -->
 <div id="billing">
-  <input id="searchProduct" placeholder="Search..." class="w-full p-3 rounded">
+  <input id="searchProduct" placeholder="Cari produk..." class="w-full p-3 rounded-xl border mb-2">
 
-  <div id="results"></div>
+  <div id="results" class="bg-white rounded-xl overflow-hidden"></div>
 
-  <div class="bg-white p-3 rounded mt-3">
+  <div class="bg-white p-4 rounded-xl mt-3">
     <div id="cart"></div>
-    <div>Total: <b id="total">0</b></div>
-    <button onclick="checkout()" class="bg-green-500 w-full text-white p-3 mt-2 rounded">
+
+    <div class="mt-3 text-sm">
+      Total: <b id="total">0</b>
+    </div>
+
+    <button onclick="checkout()" class="w-full mt-3 bg-green-500 text-white p-3 rounded-xl">
       Checkout
     </button>
   </div>
 </div>
 
 <!-- PRODUCTS -->
-<div id="products" class="hidden">
+<div id="products" class="hidden space-y-2">
   <input id="name" placeholder="Name" class="input">
   <input id="sell" placeholder="Sell" class="input">
   <input id="cost" placeholder="Cost" class="input">
@@ -53,16 +64,16 @@
   <input id="barcode" placeholder="Barcode" class="input">
   <input id="image" placeholder="Image URL" class="input">
 
-  <button onclick="addProduct()" class="bg-green-500 text-white p-2 w-full">Add</button>
+  <button onclick="addProduct()" class="bg-green-500 text-white w-full p-3 rounded-xl">
+    Add Product
+  </button>
 
   <div id="productList"></div>
 </div>
 
 <!-- STOCK -->
 <div id="stock" class="hidden">
-  <select id="stockProduct"></select>
-  <input id="qty" type="number">
-  <button onclick="addStock()">Update</button>
+  <div id="stockList" class="bg-white rounded-xl overflow-hidden"></div>
 </div>
 
 <!-- ANALYTICS -->
@@ -72,26 +83,34 @@
 
 </div>
 
-<!-- RECEIPT MODAL -->
+<!-- RECEIPT -->
 <div id="receipt" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
   <div class="bg-white p-5 w-80 rounded">
     <h2 class="text-center font-bold">Receipt</h2>
-    <div id="receiptContent"></div>
-    <button onclick="window.print()" class="bg-green-500 text-white w-full mt-2 p-2">Print</button>
+    <div id="receiptContent" class="text-sm mt-3"></div>
+    <button onclick="window.print()" class="bg-green-500 text-white w-full mt-3 p-2 rounded">
+      Print
+    </button>
   </div>
 </div>
 
+<style>
+.input{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd}
+</style>
+
 <script>
-const API="https://script.google.com/macros/s/AKfycbxlXSiIyNiC7sHT4TvEYTU0LsuGLYnrftcCKIMT9BXp3_ImRp9OWpvB1nJgvftvuKfR/exec";
+const API="https://script.google.com/macros/s/AKfycbwfKeqs4rkYKRCRJ069WnbHVxbVmTbS6Q0iSOt_shrLFCI46izg55-f7MbR_dsnMkeS/exec";
 
 let products=[],cart=[];
 
-// NAV
+// NAVIGATION
 function nav(id){
   ["billing","products","stock","analytics"].forEach(p=>{
     document.getElementById(p).classList.add("hidden");
   });
   document.getElementById(id).classList.remove("hidden");
+
+  if(id==="analytics") loadChart();
 }
 
 // MENU
@@ -109,16 +128,83 @@ async function loadProducts(){
   }));
 
   renderProducts();
+  renderStock();
 }
 
-// RENDER
+// RENDER PRODUCTS (LIKE IMAGE)
 function renderProducts(){
   results.innerHTML=products.map(p=>`
-    <div onclick="add('${p.name}')" class="flex gap-2 bg-white p-2 rounded mt-2">
-      <img src="${p.image}" class="w-12 h-12 rounded">
-      <div>${p.name}<br>Rp ${p.sell}</div>
+    <div class="product" onclick="add('${p.name}')">
+      <img src="${p.image||'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full">
+      <div>
+        <div>${p.name}</div>
+        <div class="text-sm text-gray-500">Rp ${p.sell}</div>
+      </div>
     </div>
   `).join("");
+
+  productList.innerHTML=products.map(p=>`
+    <div class="bg-white p-3 rounded-xl flex justify-between">
+      ${p.name}
+      <button onclick="del('${p.name}')">❌</button>
+    </div>
+  `).join("");
+}
+
+// STOCK PAGE (LIKE IMAGE)
+function renderStock(){
+  stockList.innerHTML=products.map(p=>`
+    <div class="product">
+      <img src="${p.image||'https://via.placeholder.com/50'}" class="w-10 h-10 rounded-full">
+      <div class="flex-1">
+        ${p.name}
+      </div>
+      <div class="badge">${p.stock}</div>
+    </div>
+  `).join("");
+}
+
+// SEARCH
+searchProduct.oninput=()=>{
+  let v=searchProduct.value.toLowerCase();
+  results.innerHTML=products
+    .filter(p=>p.name.toLowerCase().includes(v))
+    .map(p=>`
+      <div class="product" onclick="add('${p.name}')">
+        <img src="${p.image||'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full">
+        <div>${p.name}<br>Rp ${p.sell}</div>
+      </div>
+    `).join("");
+};
+
+// ADD PRODUCT
+async function addProduct(){
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      type:"addProduct",
+      name:name.value,
+      sell:sell.value,
+      cost:cost.value,
+      stock:stockVal.value,
+      barcode:barcode.value,
+      image:image.value
+    })
+  });
+
+  loadProducts();
+}
+
+// DELETE
+async function del(name){
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({type:"deleteProduct",name})
+  });
+
+  loadProducts();
 }
 
 // CART
@@ -140,7 +226,10 @@ function renderCart(){
   cartCount.innerText=cart.length;
 
   cart.innerHTML=cart.map(i=>`
-    <div>${i.name} x${i.qty}</div>
+    <div class="flex justify-between border-b py-1">
+      ${i.name} x${i.qty}
+      <span>${i.qty*i.price}</span>
+    </div>
   `).join("");
 }
 
@@ -148,6 +237,7 @@ function renderCart(){
 async function checkout(){
   await fetch(API,{
     method:"POST",
+    headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
       type:"addTransaction",
       items:JSON.stringify(cart),
@@ -158,6 +248,8 @@ async function checkout(){
   });
 
   showReceipt();
+  cart=[];
+  renderCart();
 }
 
 // RECEIPT
@@ -165,7 +257,7 @@ function showReceipt(){
   receipt.classList.remove("hidden");
 
   receiptContent.innerHTML=cart.map(i=>`
-    <div>${i.name} x${i.qty}</div>
+    <div>${i.name} x${i.qty} = ${i.qty*i.price}</div>
   `).join("") + `<hr>Total: ${total.innerText}`;
 }
 
@@ -179,13 +271,19 @@ async function loadChart(){
 
   new Chart(chart,{
     type:"line",
-    data:{labels,datasets:[{data:values}]}
+    data:{
+      labels,
+      datasets:[{
+        label:"Revenue",
+        data:values,
+        fill:true
+      }]
+    }
   });
 }
 
 // INIT
 loadProducts();
-loadChart();
 </script>
 
 </body>
