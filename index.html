@@ -1,145 +1,227 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NA2625 POS</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-body{background:#f8fafc;font-family:sans-serif}
-.header{background:linear-gradient(90deg,#10b981,#059669)}
-.card{background:white;border-radius:16px;box-shadow:0 4px 10px rgba(0,0,0,0.08)}
-.product:hover{transform:scale(0.97)}
-.product{transition:0.2s}
-.category{white-space:nowrap;padding:6px 14px;border-radius:999px;background:#e5e7eb}
-.category.active{background:#10b981;color:white}
+body{
+  background:#f1f5f9;
+  font-family:Inter, sans-serif;
+}
+
+/* HEADER */
+.header{
+  background:linear-gradient(90deg,#10b981,#059669);
+}
+
+/* CARD */
+.card{
+  background:white;
+  border-radius:16px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.08);
+}
+
+/* PRODUCT */
+.product{
+  transition:0.2s;
+  cursor:pointer;
+}
+.product:hover{
+  transform:translateY(-3px);
+}
+
+/* CATEGORY */
+.category{
+  padding:6px 14px;
+  border-radius:999px;
+  background:#e5e7eb;
+  white-space:nowrap;
+  font-size:13px;
+}
+.category.active{
+  background:#10b981;
+  color:white;
+}
+
+/* SCROLL */
+::-webkit-scrollbar{height:6px}
+::-webkit-scrollbar-thumb{background:#cbd5f5;border-radius:10px}
 </style>
 </head>
 
 <body>
 
 <!-- HEADER -->
-<div class="header text-white p-4 text-center text-lg font-bold">
-Kasir POS
+<div class="header text-white p-4 flex justify-between items-center">
+  <div class="font-bold text-lg">🧾 NA2625 POS</div>
+  <div class="text-sm">Cart: <span id="cartCount">0</span></div>
 </div>
 
-<!-- CATEGORY -->
+<!-- CATEGORY BAR -->
 <div id="categories" class="flex gap-2 overflow-x-auto p-3"></div>
 
 <!-- MAIN -->
 <div class="grid md:grid-cols-3 gap-4 p-4">
 
-<!-- PRODUCTS -->
-<div class="md:col-span-2">
-  <div id="products" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
-</div>
-
-<!-- CART -->
-<div class="card p-3">
-  <h2 class="font-bold mb-2">Cart</h2>
-  <div id="cart"></div>
-
-  <div class="mt-2">
-    Total: <b id="total">0</b>
+  <!-- PRODUCTS -->
+  <div class="md:col-span-2">
+    <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
   </div>
 
-  <button onclick="checkout()" class="bg-green-500 text-white w-full p-3 mt-2 rounded-xl">
-    Bayar
-  </button>
-</div>
+  <!-- CART PANEL -->
+  <div class="card p-4 flex flex-col">
+
+    <h2 class="font-semibold mb-2">🛒 Cart</h2>
+
+    <div id="cartItems" class="flex-1 overflow-auto text-sm"></div>
+
+    <div class="border-t pt-2 mt-2">
+      <div class="flex justify-between font-semibold">
+        <span>Total</span>
+        <span id="total">0</span>
+      </div>
+
+      <button onclick="checkout()"
+        class="w-full mt-3 bg-green-500 hover:bg-green-600 text-white p-3 rounded-xl transition">
+        Checkout
+      </button>
+    </div>
+
+  </div>
 
 </div>
 
 <!-- RECEIPT -->
-<div id="receipt" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-white w-72 p-4 rounded">
-    <h2 class="text-center font-bold">STRUK</h2>
-    <div id="receiptContent" class="text-sm mt-2"></div>
-    <button onclick="window.print()" class="bg-green-500 text-white w-full p-2 mt-2 rounded">
+<div id="receiptModal"
+class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+
+  <div class="bg-white w-80 rounded-xl p-5">
+
+    <h2 class="text-center font-bold text-lg mb-2">Receipt</h2>
+
+    <div id="receiptContent" class="text-sm space-y-1"></div>
+
+    <div class="border-t mt-2 pt-2 font-bold text-right">
+      Total: <span id="receiptTotal"></span>
+    </div>
+
+    <button onclick="window.print()"
+      class="w-full mt-3 bg-green-500 text-white p-2 rounded-lg">
       Print
     </button>
+
+    <button onclick="closeReceipt()"
+      class="w-full mt-2 bg-gray-200 p-2 rounded-lg">
+      Close
+    </button>
+
   </div>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbz0SXsxX1jRAO-vSxKs_hGZqXXWO8nposUzayV82bwJpTEX_hfiD_Oc9xAsNw3ToKaq/exec";
+const API="https://script.google.com/macros/s/AKfycbzQ7DntFuURViDZDitCEwLVzsyOkp5d7k177hWSEmh6ijjNpa8GpFKhUIX0Zyseu2Ze/exec";
 
 let products=[],cart=[],activeCategory="All";
 
-// LOAD
+/* LOAD DATA */
 async function load(){
-  let res=await fetch(API+"?type=products");
-  let data=await res.json();
+  const res=await fetch(API+"?type=products");
+  const data=await res.json();
 
   products=data.slice(1).map(p=>({
-    name:p[0],sell:+p[1],cost:+p[2],
-    stock:+p[3],image:p[5],category:p[6]||"General"
+    name:p[0],
+    sell:+p[1],
+    cost:+p[2],
+    stock:+p[3],
+    image:p[5],
+    category:p[6]||"General"
   }));
 
   renderCategories();
   renderProducts();
 }
 
-// CATEGORY
+/* CATEGORY */
 function renderCategories(){
-  let cats=["All",...new Set(products.map(p=>p.category))];
+  const cats=["All",...new Set(products.map(p=>p.category))];
 
   categories.innerHTML=cats.map(c=>`
-    <div onclick="setCat('${c}')"
+    <div onclick="setCategory('${c}')"
       class="category ${c===activeCategory?'active':''}">
       ${c}
     </div>
   `).join("");
 }
 
-function setCat(c){
+function setCategory(c){
   activeCategory=c;
   renderCategories();
   renderProducts();
 }
 
-// PRODUCTS
+/* PRODUCTS */
 function renderProducts(){
-  let list=products.filter(p=>activeCategory==="All"||p.category===activeCategory);
+  const list=products.filter(p=>activeCategory==="All"||p.category===activeCategory);
 
-  productsDiv=list.map(p=>`
-    <div class="card product p-2 text-center" onclick="add('${p.name}')">
-      <img src="${p.image||'https://via.placeholder.com/100'}" class="w-full h-24 object-cover rounded">
-      <div class="mt-1">${p.name}</div>
-      <div class="text-green-600">Rp ${p.sell}</div>
+  productsGrid.innerHTML=list.map(p=>`
+    <div class="card product p-2" onclick="addToCart('${p.name}')">
+      <img src="${p.image||'https://via.placeholder.com/150'}"
+        class="w-full h-28 object-cover rounded-lg">
+      <div class="mt-1 font-medium text-sm">${p.name}</div>
+      <div class="text-green-600 text-sm">Rp ${p.sell}</div>
     </div>
   `).join("");
-
-  document.getElementById("products").innerHTML=productsDiv;
 }
 
-// CART
-function add(name){
-  let p=products.find(x=>x.name===name);
-  let ex=cart.find(i=>i.name===name);
+/* CART */
+function addToCart(name){
+  const p=products.find(x=>x.name===name);
+  const exist=cart.find(i=>i.name===name);
 
-  if(ex) ex.qty++;
+  if(exist) exist.qty++;
   else cart.push({name:p.name,qty:1,price:p.sell});
 
   renderCart();
 }
 
 function renderCart(){
-  let t=0;
+  let totalVal=0;
 
-  cart.forEach(i=>t+=i.qty*i.price);
+  cartItems.innerHTML=cart.map((i,idx)=>{
+    const subtotal=i.qty*i.price;
+    totalVal+=subtotal;
 
-  total.innerText=t;
+    return `
+      <div class="flex justify-between border-b py-1">
+        <div>
+          ${i.name}<br>
+          <span class="text-xs text-gray-500">x${i.qty}</span>
+        </div>
+        <div class="text-right">
+          ${subtotal}<br>
+          <button onclick="removeItem(${idx})" class="text-red-500 text-xs">remove</button>
+        </div>
+      </div>
+    `;
+  }).join("");
 
-  cart.innerHTML=cart.map(i=>`
-    <div class="flex justify-between border-b py-1">
-      ${i.name} x${i.qty}
-      <span>${i.qty*i.price}</span>
-    </div>
-  `).join("");
+  total.innerText=totalVal;
+  cartCount.innerText=cart.length;
 }
 
-// CHECKOUT
+function removeItem(i){
+  cart.splice(i,1);
+  renderCart();
+}
+
+/* CHECKOUT */
 async function checkout(){
+
+  if(cart.length===0) return alert("Cart empty");
+
   await fetch(API,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -153,20 +235,30 @@ async function checkout(){
   });
 
   showReceipt();
+}
+
+/* RECEIPT */
+function showReceipt(){
+  receiptModal.classList.remove("hidden");
+
+  receiptContent.innerHTML=cart.map(i=>`
+    <div class="flex justify-between">
+      <span>${i.name} x${i.qty}</span>
+      <span>${i.qty*i.price}</span>
+    </div>
+  `).join("");
+
+  receiptTotal.innerText=total.innerText;
+
   cart=[];
   renderCart();
 }
 
-// RECEIPT
-function showReceipt(){
-  receipt.classList.remove("hidden");
-
-  receiptContent.innerHTML=cart.map(i=>`
-    <div>${i.name} x${i.qty} = ${i.qty*i.price}</div>
-  `).join("") + `<hr>Total: ${total.innerText}`;
+function closeReceipt(){
+  receiptModal.classList.add("hidden");
 }
 
-// INIT
+/* INIT */
 load();
 </script>
 
