@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NA2625 Shop Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+
+<body class="bg-[#0b1220] text-white p-6">
+
+<h1 class="text-2xl mb-4">🏪 Shop Admin</h1>
+
+<div class="grid grid-cols-2 gap-6">
+
+  <!-- PRODUCTS -->
+  <div class="bg-[#1f2937] p-4 rounded">
+    <h2>Add Product</h2>
+
+    <input id="pname" placeholder="Name" class="w-full p-2 mb-2 text-black rounded">
+    <input id="pprice" type="number" placeholder="Price" class="w-full p-2 mb-2 text-black rounded">
+    <input id="pbarcode" placeholder="Barcode" class="w-full p-2 mb-2 text-black rounded">
+
+    <button onclick="addProduct()" class="bg-green-500 px-3 py-2 rounded">Add</button>
+
+    <div id="products" class="mt-4"></div>
+  </div>
+
+  <!-- BILLING -->
+  <div class="bg-[#1f2937] p-4 rounded">
+    <h2>Billing</h2>
+
+    <input id="barcodeInput" placeholder="Scan Barcode"
+      class="w-full p-2 text-black rounded mb-2">
+
+    <div id="cart"></div>
+
+    <div class="mt-3">Total: <b id="total">0</b></div>
+
+    <input id="customer" placeholder="Customer"
+      class="w-full p-2 text-black rounded mt-2">
+
+    <button onclick="checkout()" class="bg-green-600 px-4 py-2 mt-3 rounded">
+      Generate Receipt
+    </button>
+
+    <button onclick="downloadPNG()" class="bg-blue-500 px-4 py-2 mt-2 rounded">
+      Download PNG
+    </button>
+
+    <button onclick="printReceipt()" class="bg-yellow-500 px-4 py-2 mt-2 rounded">
+      Print
+    </button>
+  </div>
+
+</div>
+
+<!-- RECEIPT -->
+<div id="receipt" class="hidden bg-white text-black p-4 mt-6 w-80">
+
+  <img src="https://tactykz.com/wp-content/uploads/2026/03/NA2625-CR.png"
+    class="mx-auto mb-2 w-32 object-contain">
+
+  <div class="text-center font-bold">NA2625 STORE</div>
+  <hr>
+
+  <div id="receiptItems"></div>
+
+  <hr>
+  <div>Total: <b id="receiptTotal"></b></div>
+  <div id="receiptDate"></div>
+  <div class="text-center mt-2">Thank you!</div>
+</div>
+
+<script>
+const API="https://script.google.com/macros/s/AKfycbxQlaT4BL6IvqJXVaOsJ1du3GzrjaMzigdz7BnVcwGJ9nhT-PYIkH1t7LkNuU90dLhC/exec";
+
+let products=[];
+let cart=[];
+
+// LOAD PRODUCTS
+async function loadProducts(){
+  let res=await fetch(API+"?type=products");
+  let data=await res.json();
+
+  products=data.slice(1).map(p=>({
+    name:p[0],
+    price:Number(p[1]),
+    barcode:p[2]
+  }));
+
+  document.getElementById("products").innerHTML=
+    products.map(p=>`<div>${p.name} - ${p.price}</div>`).join("");
+}
+
+// ADD PRODUCT
+async function addProduct(){
+  await fetch(API,{
+    method:"POST",
+    body:JSON.stringify({
+      type:"addProduct",
+      name:pname.value,
+      price:pprice.value,
+      barcode:pbarcode.value
+    })
+  });
+
+  loadProducts();
+}
+
+// BARCODE SCAN
+barcodeInput.addEventListener("change",()=>{
+  let code=barcodeInput.value.trim();
+  let product=products.find(p=>p.barcode==code);
+
+  if(product){
+    addToCart(product);
+    barcodeInput.value="";
+  }else{
+    alert("Not found");
+  }
+});
+
+// ADD TO CART
+function addToCart(product){
+  let existing=cart.find(i=>i.name===product.name);
+
+  if(existing){
+    existing.qty++;
+    existing.total+=product.price;
+  }else{
+    cart.push({name:product.name,qty:1,total:product.price});
+  }
+
+  renderCart();
+}
+
+// RENDER CART
+function renderCart(){
+  let t=0;
+
+  cart.forEach(i=>t+=i.total);
+  total.innerText=t;
+
+  cart.innerHTML=cart.map(i=>`
+    <div>${i.name} x${i.qty} = ${i.total}</div>
+  `).join("");
+}
+
+// CHECKOUT
+async function checkout(){
+
+  receiptItems.innerHTML=cart.map(i=>`
+    <div>${i.name} x${i.qty} = ${i.total}</div>
+  `).join("");
+
+  receiptTotal.innerText=total.innerText;
+  receiptDate.innerText=new Date().toLocaleString();
+
+  receipt.classList.remove("hidden");
+
+  await fetch(API,{
+    method:"POST",
+    body:JSON.stringify({
+      type:"addTransaction",
+      items:JSON.stringify(cart),
+      total:total.innerText,
+      customer:customer.value
+    })
+  });
+}
+
+// PNG EXPORT
+function downloadPNG(){
+  html2canvas(document.getElementById("receipt")).then(canvas=>{
+    let link=document.createElement("a");
+    link.download="receipt.png";
+    link.href=canvas.toDataURL();
+    link.click();
+  });
+}
+
+// PRINT
+function printReceipt(){
+  let w=window.open();
+  w.document.write(receipt.innerHTML);
+  w.print();
+  w.close();
+}
+
+loadProducts();
+</script>
+
+</body>
+</html>
