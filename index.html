@@ -7,205 +7,219 @@
 
 <style>
 body{background:#f1f5f9;font-family:sans-serif}
-.header{background:linear-gradient(90deg,#10b981,#059669)}
-.card{background:white;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,0.08)}
-.product{transition:0.2s;cursor:pointer}
-.product:active{transform:scale(0.96)}
-.category{padding:6px 12px;border-radius:999px;background:#e5e7eb}
-.category.active{background:#10b981;color:white}
+.sidebar{background:#020617}
+.navBtn{display:block;width:100%;text-align:left;padding:10px;border-radius:8px}
+.navBtn:hover{background:#1e293b}
+.card{background:white;border-radius:12px;padding:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08)}
+.page{display:none}
+.page.active{display:block}
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<div class="header text-white p-4 flex justify-between">
-  <div class="font-bold">NA2625 POS</div>
-  <div>Cart: <span id="cartCount">0</span></div>
+<!-- SIDEBAR -->
+<div class="sidebar text-white w-60 fixed h-full p-4 hidden md:block">
+  <div class="text-xl font-bold mb-6">NA2625</div>
+  <button onclick="showPage('cashier')" class="navBtn">🧾 Cashier</button>
+  <button onclick="showPage('products')" class="navBtn">📦 Products</button>
+  <button onclick="showPage('stock')" class="navBtn">📥 Stock</button>
+  <button onclick="showPage('analytics')" class="navBtn">📊 Analytics</button>
 </div>
-
-<!-- CATEGORY -->
-<div id="categories" class="flex gap-2 overflow-x-auto p-3"></div>
 
 <!-- MAIN -->
-<div class="grid md:grid-cols-3 gap-4 p-4">
+<div class="md:ml-64 p-4">
 
-  <!-- PRODUCTS -->
-  <div class="md:col-span-2">
-    <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
-  </div>
+<!-- CASHIER -->
+<div id="cashier" class="page active">
+  <h1 class="text-xl mb-3">Cashier</h1>
+  <div class="grid md:grid-cols-3 gap-4">
 
-  <!-- CART -->
-  <div class="card p-4">
-    <h2 class="font-bold mb-2">Cart</h2>
-
-    <div id="cartItems" class="text-sm"></div>
-
-    <div class="mt-2 font-semibold">
-      Total: <span id="total">0</span>
+    <div class="md:col-span-2">
+      <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
     </div>
 
-    <button onclick="checkout()" class="bg-green-500 text-white w-full mt-3 p-3 rounded-xl">
-      Checkout
-    </button>
-  </div>
+    <div class="card">
+      <h2 class="font-bold">Cart</h2>
+      <div id="cartItems"></div>
+      <div>Total: <b id="total">0</b></div>
+      <button onclick="checkout()" class="bg-green-500 text-white w-full mt-2 p-2 rounded">Checkout</button>
+    </div>
 
+  </div>
 </div>
 
-<!-- RECEIPT -->
-<div id="receiptModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-white w-72 p-4 rounded">
-    <h2 class="text-center font-bold">Receipt</h2>
-    <div id="receiptContent" class="text-sm mt-2"></div>
-    <div class="mt-2 font-bold text-right">
-      Total: <span id="receiptTotal"></span>
-    </div>
-    <button onclick="window.print()" class="bg-green-500 text-white w-full mt-2 p-2 rounded">
-      Print
-    </button>
-    <button onclick="closeReceipt()" class="bg-gray-200 w-full mt-2 p-2 rounded">
-      Close
-    </button>
+<!-- PRODUCTS -->
+<div id="products" class="page">
+  <h1 class="text-xl mb-3">Products</h1>
+
+  <div class="card grid grid-cols-5 gap-2">
+    <input id="pName" placeholder="Name" class="border p-2">
+    <input id="pSell" placeholder="Sell" class="border p-2">
+    <input id="pCost" placeholder="Cost" class="border p-2">
+    <input id="pStock" placeholder="Stock" class="border p-2">
+    <input id="pImg" placeholder="Image URL" class="border p-2">
   </div>
+
+  <button onclick="addProduct()" class="bg-green-500 text-white p-2 mt-2 rounded">Add Product</button>
+
+  <div id="productList" class="mt-4"></div>
+</div>
+
+<!-- STOCK -->
+<div id="stock" class="page">
+  <h1 class="text-xl mb-3">Stock</h1>
+
+  <select id="stockProduct" class="border p-2"></select>
+  <input id="stockQty" type="number" class="border p-2">
+  <button onclick="updateStock()" class="bg-blue-500 text-white p-2">Update</button>
+</div>
+
+<!-- ANALYTICS -->
+<div id="analytics" class="page">
+  <h1 class="text-xl mb-3">Analytics</h1>
+  <div id="report" class="card"></div>
+</div>
+
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbzQ7DntFuURViDZDitCEwLVzsyOkp5d7k177hWSEmh6ijjNpa8GpFKhUIX0Zyseu2Ze/exec";
+const API="https://script.google.com/macros/s/AKfycbw79UUvDLUP-IZK70yL4YkJvYBf0liNSDY1bichPotvYjyvEFKUBP09iFfxGtItzIBr/exec";
 
-let productData=[];
-let cart=[];
-let activeCategory="All";
+let products=[],cart=[];
+
+/* NAV */
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
 
 /* LOAD */
 async function load(){
-  try{
-    let res=await fetch(API+"?type=products");
-    let data=await res.json();
+  let res=await fetch(API+"?type=products");
+  let data=await res.json();
 
-    productData=data.slice(1).map(p=>({
-      name:p[0],
-      sell:+p[1],
-      cost:+p[2],
-      stock:+p[3],
-      image:p[5],
-      category:p[6]||"General"
-    }));
+  products=data.slice(1).map(p=>({
+    name:p[0],sell:+p[1],cost:+p[2],stock:+p[3],image:p[5]
+  }));
 
-    renderCategories();
-    renderProducts();
-
-  }catch(e){
-    alert("API ERROR");
-    console.log(e);
-  }
-}
-
-/* CATEGORY */
-function renderCategories(){
-  const cats=["All",...new Set(productData.map(p=>p.category))];
-
-  document.getElementById("categories").innerHTML=cats.map(c=>`
-    <div onclick="setCategory('${c}')"
-      class="category ${c===activeCategory?'active':''}">
-      ${c}
-    </div>
-  `).join("");
-}
-
-function setCategory(c){
-  activeCategory=c;
-  renderCategories();
   renderProducts();
+  renderProductList();
+  renderStockDropdown();
 }
 
-/* PRODUCTS */
+/* CASHIER PRODUCTS */
 function renderProducts(){
-  const list=productData.filter(p=>activeCategory==="All"||p.category===activeCategory);
-
-  document.getElementById("productsGrid").innerHTML=list.map(p=>`
-    <div class="card product p-2" onclick="addToCart('${p.name}')">
-      <img src="${p.image||'https://via.placeholder.com/150'}"
-        class="w-full h-24 object-cover rounded">
-      <div class="text-sm mt-1">${p.name}</div>
-      <div class="text-green-600 text-sm">Rp ${p.sell}</div>
+  productsGrid.innerHTML=products.map(p=>`
+    <div class="card" onclick="addToCart('${p.name}')">
+      <img src="${p.image||'https://via.placeholder.com/100'}" class="w-full h-24 object-cover">
+      <div>${p.name}</div>
+      <div>Rp ${p.sell}</div>
     </div>
   `).join("");
 }
 
 /* CART */
 function addToCart(name){
-  const p=productData.find(x=>x.name===name);
-  const existing=cart.find(i=>i.name===name);
-
-  if(existing) existing.qty++;
+  let p=products.find(x=>x.name===name);
+  let ex=cart.find(i=>i.name===name);
+  if(ex) ex.qty++;
   else cart.push({name:p.name,qty:1,price:p.sell});
-
   renderCart();
 }
 
 function renderCart(){
-  let totalVal=0;
-
-  document.getElementById("cartItems").innerHTML=cart.map((i,idx)=>{
+  let t=0;
+  cartItems.innerHTML=cart.map(i=>{
     let sub=i.qty*i.price;
-    totalVal+=sub;
-
-    return `
-      <div class="flex justify-between border-b py-1">
-        ${i.name} x${i.qty}
-        <span>${sub}</span>
-      </div>
-    `;
+    t+=sub;
+    return `<div>${i.name} x${i.qty} = ${sub}</div>`;
   }).join("");
-
-  document.getElementById("total").innerText=totalVal;
-  document.getElementById("cartCount").innerText=cart.length;
+  total.innerText=t;
 }
 
 /* CHECKOUT */
 async function checkout(){
-  if(cart.length===0) return alert("Cart kosong");
-
-  const savedCart=[...cart]; // keep copy
-
   await fetch(API,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
       type:"addTransaction",
-      items:JSON.stringify(savedCart),
-      total:document.getElementById("total").innerText,
+      items:JSON.stringify(cart),
+      total:total.innerText,
       profit:0,
       customer:"-"
     })
   });
-
-  showReceipt(savedCart);
-
   cart=[];
   renderCart();
 }
 
-/* RECEIPT */
-function showReceipt(data){
-  document.getElementById("receiptModal").classList.remove("hidden");
+/* PRODUCTS PAGE */
+async function addProduct(){
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      type:"addProduct",
+      name:pName.value,
+      sell:pSell.value,
+      cost:pCost.value,
+      stock:pStock.value,
+      image:pImg.value
+    })
+  });
+  load();
+}
 
-  document.getElementById("receiptContent").innerHTML=data.map(i=>`
-    <div class="flex justify-between">
-      ${i.name} x${i.qty}
-      <span>${i.qty*i.price}</span>
+function renderProductList(){
+  productList.innerHTML=products.map(p=>`
+    <div class="card flex justify-between">
+      ${p.name} (${p.stock})
+      <button onclick="deleteProduct('${p.name}')">❌</button>
     </div>
   `).join("");
-
-  document.getElementById("receiptTotal").innerText=
-    data.reduce((sum,i)=>sum+(i.qty*i.price),0);
 }
 
-function closeReceipt(){
-  document.getElementById("receiptModal").classList.add("hidden");
+async function deleteProduct(name){
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({type:"deleteProduct",name})
+  });
+  load();
 }
 
-/* INIT */
+/* STOCK */
+function renderStockDropdown(){
+  stockProduct.innerHTML=products.map(p=>`<option>${p.name}</option>`).join("");
+}
+
+async function updateStock(){
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      type:"updateStock",
+      name:stockProduct.value,
+      qty:+stockQty.value,
+      action:"ADD"
+    })
+  });
+  load();
+}
+
+/* ANALYTICS */
+async function loadAnalytics(){
+  let res=await fetch(API+"?type=transactions");
+  let data=await res.json();
+
+  let total=0;
+  data.slice(1).forEach(r=>total+=+r[2]);
+
+  report.innerHTML=`Total Revenue: Rp ${total}`;
+}
+
 load();
 </script>
 
