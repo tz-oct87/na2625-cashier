@@ -1,83 +1,123 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NA2625 Shop Admin</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<title>NA2625 Business System</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-[#0b1220] text-white p-6">
+<body class="bg-[#0b1220] text-white flex">
 
-<h1 class="text-2xl mb-4">🏪 Shop Admin</h1>
+<!-- SIDEBAR -->
+<div class="w-60 bg-[#111827] p-4 space-y-3 min-h-screen">
+  <div class="text-xl font-bold mb-6">NA2625</div>
 
-<div class="grid grid-cols-2 gap-6">
+  <button onclick="show('dashboard')" class="block w-full text-left">Dashboard</button>
+  <button onclick="show('products')" class="block w-full text-left">Products</button>
+  <button onclick="show('stock')" class="block w-full text-left">Stock</button>
+  <button onclick="show('billing')" class="block w-full text-left">Billing</button>
+  <button onclick="show('analytics')" class="block w-full text-left">Analytics</button>
+</div>
+
+<!-- CONTENT -->
+<div class="flex-1 p-6 space-y-6">
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <h1 class="text-xl mb-4">Dashboard</h1>
+
+    <div class="grid grid-cols-3 gap-4">
+      <div class="bg-[#1f2937] p-4 rounded">Revenue<br><b id="rev"></b></div>
+      <div class="bg-[#1f2937] p-4 rounded">Profit<br><b id="prof"></b></div>
+      <div class="bg-[#1f2937] p-4 rounded">Transactions<br><b id="trx"></b></div>
+    </div>
+  </div>
 
   <!-- PRODUCTS -->
-  <div class="bg-[#1f2937] p-4 rounded">
-    <h2>Add Product</h2>
+  <div id="products" class="hidden">
+    <h1 class="mb-3">Add Product</h1>
 
-    <input id="pname" placeholder="Name" class="w-full p-2 mb-2 text-black rounded">
-    <input id="pprice" type="number" placeholder="Price" class="w-full p-2 mb-2 text-black rounded">
-    <input id="pbarcode" placeholder="Barcode" class="w-full p-2 mb-2 text-black rounded">
+    <div class="grid grid-cols-2 gap-2">
+      <input id="name" placeholder="Name" class="p-2 text-black rounded">
+      <input id="sell" placeholder="Sell Price" class="p-2 text-black rounded">
+      <input id="cost" placeholder="Cost Price" class="p-2 text-black rounded">
+      <input id="stockVal" placeholder="Stock" class="p-2 text-black rounded">
+      <input id="barcode" placeholder="Barcode" class="p-2 text-black rounded">
+    </div>
 
-    <button onclick="addProduct()" class="bg-green-500 px-3 py-2 rounded">Add</button>
+    <button onclick="addProduct()" class="bg-green-500 px-4 py-2 mt-3 rounded">Add</button>
 
-    <div id="products" class="mt-4"></div>
+    <div id="productList" class="mt-4"></div>
+  </div>
+
+  <!-- STOCK -->
+  <div id="stock" class="hidden">
+    <h1>Stock Update</h1>
+
+    <select id="stockProduct" class="text-black p-2 rounded"></select>
+    <input id="qty" type="number" class="text-black p-2 rounded">
+
+    <button onclick="addStock()" class="bg-blue-500 px-3 py-2 mt-2 rounded">
+      Add Stock
+    </button>
   </div>
 
   <!-- BILLING -->
-  <div class="bg-[#1f2937] p-4 rounded">
-    <h2>Billing</h2>
+  <div id="billing" class="hidden">
+    <h1>Billing</h1>
 
-    <input id="barcodeInput" placeholder="Scan Barcode"
-      class="w-full p-2 text-black rounded mb-2">
+    <input id="barcodeScan" placeholder="Scan Barcode"
+      class="text-black p-2 rounded w-full mb-2">
 
     <div id="cart"></div>
 
-    <div class="mt-3">Total: <b id="total">0</b></div>
+    <div class="mt-2">Total: <b id="total">0</b></div>
+    <div>Profit: <b id="profit">0</b></div>
 
-    <input id="customer" placeholder="Customer"
-      class="w-full p-2 text-black rounded mt-2">
-
-    <button onclick="checkout()" class="bg-green-600 px-4 py-2 mt-3 rounded">
-      Generate Receipt
+    <button onclick="checkout()" class="bg-green-500 px-4 py-2 mt-2 rounded">
+      Checkout
     </button>
 
-    <button onclick="downloadPNG()" class="bg-blue-500 px-4 py-2 mt-2 rounded">
-      Download PNG
-    </button>
+    <!-- RECEIPT -->
+    <div id="receipt" class="hidden bg-white text-black p-4 mt-4 w-80">
+      <div class="text-center font-bold">NA2625 STORE</div>
+      <hr>
+      <div id="rItems"></div>
+      <hr>
+      Total: <b id="rTotal"></b>
+      <div id="rDate"></div>
+    </div>
+  </div>
 
-    <button onclick="printReceipt()" class="bg-yellow-500 px-4 py-2 mt-2 rounded">
-      Print
-    </button>
+  <!-- ANALYTICS -->
+  <div id="analytics" class="hidden">
+    <h1>Analytics</h1>
+
+    <select id="filter" onchange="loadAnalytics()" class="text-black p-2 rounded">
+      <option value="all">All</option>
+      <option value="day">Today</option>
+      <option value="week">7 Days</option>
+      <option value="month">Month</option>
+      <option value="year">Year</option>
+    </select>
+
+    <div id="report" class="mt-4"></div>
   </div>
 
 </div>
 
-<!-- RECEIPT -->
-<div id="receipt" class="hidden bg-white text-black p-4 mt-6 w-80">
-
-  <img src="https://tactykz.com/wp-content/uploads/2026/03/NA2625-CR.png"
-    class="mx-auto mb-2 w-32 object-contain">
-
-  <div class="text-center font-bold">NA2625 STORE</div>
-  <hr>
-
-  <div id="receiptItems"></div>
-
-  <hr>
-  <div>Total: <b id="receiptTotal"></b></div>
-  <div id="receiptDate"></div>
-  <div class="text-center mt-2">Thank you!</div>
-</div>
-
 <script>
-const API="https://script.google.com/macros/s/AKfycbxQlaT4BL6IvqJXVaOsJ1du3GzrjaMzigdz7BnVcwGJ9nhT-PYIkH1t7LkNuU90dLhC/exec";
+const API="https://script.google.com/macros/s/AKfycbx6ty3Fy-r7iAzu9jX79JY1u8Wrx59i4Kk0o7UpArwZU9nEUtLvgmKK9VSSBURTONne/exec";
 
 let products=[];
 let cart=[];
+
+// NAV
+function show(id){
+  ["dashboard","products","stock","billing","analytics"].forEach(p=>{
+    document.getElementById(p).classList.add("hidden");
+  });
+  document.getElementById(id).classList.remove("hidden");
+}
 
 // LOAD PRODUCTS
 async function loadProducts(){
@@ -86,12 +126,19 @@ async function loadProducts(){
 
   products=data.slice(1).map(p=>({
     name:p[0],
-    price:Number(p[1]),
-    barcode:p[2]
+    sell:Number(p[1]),
+    cost:Number(p[2]),
+    stock:Number(p[3]),
+    barcode:p[4]
   }));
 
-  document.getElementById("products").innerHTML=
-    products.map(p=>`<div>${p.name} - ${p.price}</div>`).join("");
+  productList.innerHTML=products.map(p=>
+    `<div>${p.name} | Stock: ${p.stock}</div>`
+  ).join("");
+
+  stockProduct.innerHTML=products.map(p=>
+    `<option>${p.name}</option>`
+  ).join("");
 }
 
 // ADD PRODUCT
@@ -100,63 +147,84 @@ async function addProduct(){
     method:"POST",
     body:JSON.stringify({
       type:"addProduct",
-      name:pname.value,
-      price:pprice.value,
-      barcode:pbarcode.value
+      name:name.value,
+      sell:sell.value,
+      cost:cost.value,
+      stock:stockVal.value,
+      barcode:barcode.value
     })
   });
 
   loadProducts();
 }
 
-// BARCODE SCAN
-barcodeInput.addEventListener("change",()=>{
-  let code=barcodeInput.value.trim();
-  let product=products.find(p=>p.barcode==code);
+// STOCK
+async function addStock(){
+  await fetch(API,{
+    method:"POST",
+    body:JSON.stringify({
+      type:"updateStock",
+      name:stockProduct.value,
+      qty:Number(qty.value),
+      action:"ADD"
+    })
+  });
 
-  if(product){
-    addToCart(product);
-    barcodeInput.value="";
-  }else{
-    alert("Not found");
+  loadProducts();
+}
+
+// SCAN
+barcodeScan.addEventListener("change",()=>{
+  let code=barcodeScan.value.trim();
+  let p=products.find(x=>x.barcode==code);
+
+  if(p){
+    let exist=cart.find(i=>i.name===p.name);
+
+    if(exist){
+      exist.qty++;
+      exist.total+=p.sell;
+      exist.profit+=(p.sell-p.cost);
+    }else{
+      cart.push({
+        name:p.name,
+        qty:1,
+        total:p.sell,
+        profit:(p.sell-p.cost)
+      });
+    }
+
+    renderCart();
+    barcodeScan.value="";
   }
 });
 
-// ADD TO CART
-function addToCart(product){
-  let existing=cart.find(i=>i.name===product.name);
-
-  if(existing){
-    existing.qty++;
-    existing.total+=product.price;
-  }else{
-    cart.push({name:product.name,qty:1,total:product.price});
-  }
-
-  renderCart();
-}
-
-// RENDER CART
+// CART
 function renderCart(){
-  let t=0;
+  let t=0,pr=0;
 
-  cart.forEach(i=>t+=i.total);
+  cart.forEach(i=>{
+    t+=i.total;
+    pr+=i.profit;
+  });
+
   total.innerText=t;
+  profit.innerText=pr;
 
-  cart.innerHTML=cart.map(i=>`
-    <div>${i.name} x${i.qty} = ${i.total}</div>
-  `).join("");
+  cart.innerHTML=cart.map(i=>
+    `<div>${i.name} x${i.qty} = ${i.total}</div>`
+  ).join("");
 }
 
 // CHECKOUT
 async function checkout(){
 
-  receiptItems.innerHTML=cart.map(i=>`
-    <div>${i.name} x${i.qty} = ${i.total}</div>
-  `).join("");
+  rItems.innerHTML=cart.map(i=>
+    `<div>${i.name} x${i.qty} = ${i.total}</div>`
+  ).join("");
 
-  receiptTotal.innerText=total.innerText;
-  receiptDate.innerText=new Date().toLocaleString();
+  rTotal.innerText=total.innerText;
+  rDate.innerText=new Date().toLocaleString();
 
   receipt.classList.remove("hidden");
 
@@ -166,30 +234,58 @@ async function checkout(){
       type:"addTransaction",
       items:JSON.stringify(cart),
       total:total.innerText,
-      customer:customer.value
+      profit:profit.innerText,
+      customer:"-"
     })
   });
+
+  cart=[];
+  renderCart();
+  loadAnalytics();
 }
 
-// PNG EXPORT
-function downloadPNG(){
-  html2canvas(document.getElementById("receipt")).then(canvas=>{
-    let link=document.createElement("a");
-    link.download="receipt.png";
-    link.href=canvas.toDataURL();
-    link.click();
+// ANALYTICS
+async function loadAnalytics(){
+  let res=await fetch(API+"?type=transactions");
+  let data=await res.json();
+  data=data.slice(1);
+
+  let now=new Date();
+  let f=filter.value;
+
+  data=data.filter(d=>{
+    let t=new Date(d[0]);
+
+    if(f==="day") return t.toDateString()===now.toDateString();
+    if(f==="week") return (now-t)/(1000*60*60*24)<=7;
+    if(f==="month") return t.getMonth()===now.getMonth();
+    if(f==="year") return t.getFullYear()===now.getFullYear();
+
+    return true;
   });
+
+  let rev=0, prof=0;
+
+  data.forEach(d=>{
+    rev+=Number(d[2]);
+    prof+=Number(d[3]);
+  });
+
+  report.innerHTML=`
+    Revenue: ${rev}<br>
+    Profit: ${prof}<br>
+    Transactions: ${data.length}
+  `;
+
+  // update dashboard too
+  document.getElementById("rev").innerText=rev;
+  document.getElementById("prof").innerText=prof;
+  document.getElementById("trx").innerText=data.length;
 }
 
-// PRINT
-function printReceipt(){
-  let w=window.open();
-  w.document.write(receipt.innerHTML);
-  w.print();
-  w.close();
-}
-
+// INIT
 loadProducts();
+loadAnalytics();
 </script>
 
 </body>
