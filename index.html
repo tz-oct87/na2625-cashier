@@ -8,16 +8,14 @@
 <body class="bg-[#0f172a] text-white flex">
 
 <!-- SIDEBAR -->
-<div class="w-64 bg-[#020617] p-5 flex flex-col gap-4 min-h-screen">
-
+<div class="w-64 bg-[#020617] p-6 flex flex-col gap-3 min-h-screen">
   <div class="text-2xl font-bold mb-6">NA2625</div>
 
-  <button onclick="showPage('dashboard')" class="nav">Dashboard</button>
-  <button onclick="showPage('products')" class="nav">Products</button>
-  <button onclick="showPage('stock')" class="nav">Stock</button>
-  <button onclick="showPage('billing')" class="nav">Cashier</button>
-  <button onclick="showPage('analytics')" class="nav">Analytics</button>
-
+  <button onclick="nav('dashboard')" class="nav">Dashboard</button>
+  <button onclick="nav('products')" class="nav">Products</button>
+  <button onclick="nav('stock')" class="nav">Stock</button>
+  <button onclick="nav('billing')" class="nav">Cashier</button>
+  <button onclick="nav('analytics')" class="nav">Analytics</button>
 </div>
 
 <!-- MAIN -->
@@ -25,78 +23,81 @@
 
 <!-- DASHBOARD -->
 <div id="dashboard">
-
   <h1 class="text-2xl mb-4">Dashboard</h1>
 
   <div class="grid grid-cols-4 gap-4">
-
     <div class="card">Revenue<br><b id="rev"></b></div>
     <div class="card">Profit<br><b id="prof"></b></div>
     <div class="card">Transactions<br><b id="trx"></b></div>
     <div class="card">Products<br><b id="prodCount"></b></div>
-
   </div>
-
 </div>
 
 <!-- PRODUCTS -->
 <div id="products" class="hidden">
+  <h1 class="text-2xl mb-4">Product Management</h1>
 
-  <h1 class="text-2xl mb-4">Products</h1>
-
-  <div class="card grid grid-cols-5 gap-2 mb-4">
+  <div class="card grid grid-cols-5 gap-2">
     <input id="name" placeholder="Name" class="input">
-    <input id="sell" placeholder="Sell" class="input">
-    <input id="cost" placeholder="Cost" class="input">
+    <input id="sell" placeholder="Sell Price" class="input">
+    <input id="cost" placeholder="Cost Price" class="input">
     <input id="stockVal" placeholder="Stock" class="input">
     <input id="barcode" placeholder="Barcode" class="input">
   </div>
 
-  <button onclick="addProduct()" class="btn">Add Product</button>
+  <button onclick="addProduct()" class="btn mt-3">Add Product</button>
 
   <div class="card mt-4">
     <table class="w-full text-sm">
       <thead>
         <tr class="text-gray-400">
-          <th>Name</th><th>Sell</th><th>Stock</th><th>Barcode</th>
+          <th>Name</th><th>Sell</th><th>Cost</th><th>Stock</th><th>Barcode</th>
         </tr>
       </thead>
       <tbody id="productList"></tbody>
     </table>
   </div>
-
 </div>
 
 <!-- STOCK -->
 <div id="stock" class="hidden">
-
   <h1 class="text-2xl mb-4">Stock Management</h1>
 
-  <div class="card flex gap-2">
-    <select id="stockProduct" class="input"></select>
-    <input id="qty" type="number" class="input">
-    <button onclick="addStock()" class="btn">Add Stock</button>
+  <div class="card flex gap-3">
+    <select id="stockProduct" class="input flex-1"></select>
+    <input id="qty" type="number" placeholder="Qty" class="input">
+    <button onclick="addStock()" class="btn">Update</button>
   </div>
-
 </div>
 
 <!-- BILLING -->
 <div id="billing" class="hidden">
-
   <h1 class="text-2xl mb-4">Cashier</h1>
 
+  <!-- SCAN -->
   <input id="barcodeScan" placeholder="Scan barcode..."
     class="input w-full mb-4">
 
+  <!-- PRODUCT QUICK ADD -->
+  <div class="card mb-4 grid grid-cols-4 gap-2 max-h-40 overflow-y-auto" id="productButtons"></div>
+
+  <!-- CART -->
   <div class="card">
-    <div id="cart"></div>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-gray-400">
+          <th>Name</th><th>Qty</th><th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="cart"></tbody>
+    </table>
 
     <div class="mt-4">
-      Total: <b id="total"></b><br>
-      Profit: <b id="profit"></b>
+      Total: <b id="total">0</b><br>
+      Profit: <b id="profit">0</b>
     </div>
 
-    <button onclick="checkout()" class="btn mt-3 w-full">
+    <button onclick="checkout()" class="btn mt-4 w-full">
       Checkout
     </button>
   </div>
@@ -115,7 +116,6 @@
 
 <!-- ANALYTICS -->
 <div id="analytics" class="hidden">
-
   <h1 class="text-2xl mb-4">Analytics</h1>
 
   <select id="filter" onchange="loadAnalytics()" class="input mb-4">
@@ -127,7 +127,6 @@
   </select>
 
   <div class="card" id="report"></div>
-
 </div>
 
 </div>
@@ -136,7 +135,7 @@
 .nav{padding:10px;border-radius:8px;text-align:left}
 .nav:hover{background:#1e293b}
 .card{background:#1e293b;padding:16px;border-radius:12px}
-.input{padding:8px;border-radius:8px;color:black}
+.input{padding:10px;border-radius:8px;color:black;width:100%}
 .btn{background:#22c55e;padding:10px;border-radius:10px}
 </style>
 
@@ -146,7 +145,7 @@ const API="https://script.google.com/macros/s/AKfycbx6ty3Fy-r7iAzu9jX79JY1u8Wrx5
 let products=[],cart=[];
 
 // NAV
-function showPage(id){
+function nav(id){
   ["dashboard","products","stock","billing","analytics"].forEach(p=>{
     document.getElementById(p).classList.add("hidden");
   });
@@ -164,16 +163,27 @@ async function loadProducts(){
 
   prodCount.innerText=products.length;
 
+  // TABLE
   productList.innerHTML=products.map(p=>`
     <tr>
       <td>${p.name}</td>
       <td>${p.sell}</td>
+      <td>${p.cost}</td>
       <td>${p.stock}</td>
       <td>${p.barcode}</td>
     </tr>
   `).join("");
 
+  // STOCK SELECT
   stockProduct.innerHTML=products.map(p=>`<option>${p.name}</option>`).join("");
+
+  // QUICK BUTTONS
+  productButtons.innerHTML=products.map(p=>`
+    <button onclick="addToCart('${p.name}')"
+      class="bg-blue-500 rounded p-2 text-sm">
+      ${p.name}<br>${p.sell}
+    </button>
+  `).join("");
 }
 
 // ADD PRODUCT
@@ -206,11 +216,22 @@ async function addStock(){
   loadProducts();
 }
 
+// ADD CART (MANUAL)
+function addToCart(name){
+  let p=products.find(x=>x.name===name);
+  processCart(p);
+}
+
 // SCAN
 barcodeScan.addEventListener("change",()=>{
   let p=products.find(x=>x.barcode==barcodeScan.value);
   if(!p)return alert("Not found");
+  processCart(p);
+  barcodeScan.value="";
+});
 
+// PROCESS CART
+function processCart(p){
   let exist=cart.find(i=>i.name===p.name);
 
   if(exist){
@@ -221,11 +242,10 @@ barcodeScan.addEventListener("change",()=>{
     cart.push({name:p.name,qty:1,total:p.sell,profit:(p.sell-p.cost)});
   }
 
-  barcodeScan.value="";
   renderCart();
-});
+}
 
-// CART
+// RENDER CART
 function renderCart(){
   let t=0,pr=0;
 
@@ -234,9 +254,13 @@ function renderCart(){
   total.innerText=t;
   profit.innerText=pr;
 
-  cart.innerHTML=cart.map(i=>
-    `<div>${i.name} x${i.qty} = ${i.total}</div>`
-  ).join("");
+  cart.innerHTML=cart.map(i=>`
+    <tr>
+      <td>${i.name}</td>
+      <td>${i.qty}</td>
+      <td>${i.total}</td>
+    </tr>
+  `).join("");
 }
 
 // CHECKOUT
