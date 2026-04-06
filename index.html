@@ -3,208 +3,113 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{font-family:sans-serif}
+body{background:#f8fafc;font-family:sans-serif}
 .header{background:linear-gradient(90deg,#10b981,#059669)}
-.product{display:flex;gap:12px;padding:12px;border-bottom:1px solid #eee}
-.product:hover{background:#f1f5f9}
-.badge{background:#22c55e;color:white;border-radius:999px;padding:4px 10px;font-size:12px}
+.card{background:white;border-radius:16px;box-shadow:0 4px 10px rgba(0,0,0,0.08)}
+.product:hover{transform:scale(0.97)}
+.product{transition:0.2s}
+.category{white-space:nowrap;padding:6px 14px;border-radius:999px;background:#e5e7eb}
+.category.active{background:#10b981;color:white}
 </style>
 </head>
 
-<body class="bg-gray-100">
+<body>
 
 <!-- HEADER -->
-<div class="header text-white p-4 flex justify-between items-center">
-  <button onclick="toggleMenu()">☰</button>
-  <div id="title">TRANSAKSI BARU</div>
-  <div>🛒 <span id="cartCount">0</span></div>
+<div class="header text-white p-4 text-center text-lg font-bold">
+Kasir POS
 </div>
 
-<!-- MENU -->
-<div id="menu" class="fixed top-0 left-0 w-64 h-full bg-white p-5 shadow hidden z-50">
-  <button onclick="toggleMenu()">❌</button>
-  <div class="mt-6 space-y-4">
-    <div onclick="nav('billing')">Cashier</div>
-    <div onclick="nav('products')">Products</div>
-    <div onclick="nav('stock')">Stock</div>
-    <div onclick="nav('analytics')">Reports</div>
-  </div>
-</div>
+<!-- CATEGORY -->
+<div id="categories" class="flex gap-2 overflow-x-auto p-3"></div>
 
-<div class="p-4 space-y-4">
-
-<!-- CASHIER -->
-<div id="billing">
-  <input id="searchProduct" placeholder="Cari produk..." class="w-full p-3 rounded-xl border mb-2">
-
-  <div id="results" class="bg-white rounded-xl overflow-hidden"></div>
-
-  <div class="bg-white p-4 rounded-xl mt-3">
-    <div id="cart"></div>
-
-    <div class="mt-3 text-sm">
-      Total: <b id="total">0</b>
-    </div>
-
-    <button onclick="checkout()" class="w-full mt-3 bg-green-500 text-white p-3 rounded-xl">
-      Checkout
-    </button>
-  </div>
-</div>
+<!-- MAIN -->
+<div class="grid md:grid-cols-3 gap-4 p-4">
 
 <!-- PRODUCTS -->
-<div id="products" class="hidden space-y-2">
-  <input id="name" placeholder="Name" class="input">
-  <input id="sell" placeholder="Sell" class="input">
-  <input id="cost" placeholder="Cost" class="input">
-  <input id="stockVal" placeholder="Stock" class="input">
-  <input id="barcode" placeholder="Barcode" class="input">
-  <input id="image" placeholder="Image URL" class="input">
+<div class="md:col-span-2">
+  <div id="products" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+</div>
 
-  <button onclick="addProduct()" class="bg-green-500 text-white w-full p-3 rounded-xl">
-    Add Product
+<!-- CART -->
+<div class="card p-3">
+  <h2 class="font-bold mb-2">Cart</h2>
+  <div id="cart"></div>
+
+  <div class="mt-2">
+    Total: <b id="total">0</b>
+  </div>
+
+  <button onclick="checkout()" class="bg-green-500 text-white w-full p-3 mt-2 rounded-xl">
+    Bayar
   </button>
-
-  <div id="productList"></div>
-</div>
-
-<!-- STOCK -->
-<div id="stock" class="hidden">
-  <div id="stockList" class="bg-white rounded-xl overflow-hidden"></div>
-</div>
-
-<!-- ANALYTICS -->
-<div id="analytics" class="hidden">
-  <canvas id="chart"></canvas>
 </div>
 
 </div>
 
 <!-- RECEIPT -->
 <div id="receipt" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-white p-5 w-80 rounded">
-    <h2 class="text-center font-bold">Receipt</h2>
-    <div id="receiptContent" class="text-sm mt-3"></div>
-    <button onclick="window.print()" class="bg-green-500 text-white w-full mt-3 p-2 rounded">
+  <div class="bg-white w-72 p-4 rounded">
+    <h2 class="text-center font-bold">STRUK</h2>
+    <div id="receiptContent" class="text-sm mt-2"></div>
+    <button onclick="window.print()" class="bg-green-500 text-white w-full p-2 mt-2 rounded">
       Print
     </button>
   </div>
 </div>
 
-<style>
-.input{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd}
-</style>
-
 <script>
-const API="https://script.google.com/macros/s/AKfycbwfKeqs4rkYKRCRJ069WnbHVxbVmTbS6Q0iSOt_shrLFCI46izg55-f7MbR_dsnMkeS/exec";
+const API="https://script.google.com/macros/s/AKfycbz0SXsxX1jRAO-vSxKs_hGZqXXWO8nposUzayV82bwJpTEX_hfiD_Oc9xAsNw3ToKaq/exec";
 
-let products=[],cart=[];
+let products=[],cart=[],activeCategory="All";
 
-// NAVIGATION
-function nav(id){
-  ["billing","products","stock","analytics"].forEach(p=>{
-    document.getElementById(p).classList.add("hidden");
-  });
-  document.getElementById(id).classList.remove("hidden");
-
-  if(id==="analytics") loadChart();
-}
-
-// MENU
-function toggleMenu(){
-  menu.classList.toggle("hidden");
-}
-
-// LOAD PRODUCTS
-async function loadProducts(){
+// LOAD
+async function load(){
   let res=await fetch(API+"?type=products");
   let data=await res.json();
 
   products=data.slice(1).map(p=>({
-    name:p[0],sell:+p[1],cost:+p[2],stock:+p[3],barcode:p[4],image:p[5]
+    name:p[0],sell:+p[1],cost:+p[2],
+    stock:+p[3],image:p[5],category:p[6]||"General"
   }));
 
+  renderCategories();
   renderProducts();
-  renderStock();
 }
 
-// RENDER PRODUCTS (LIKE IMAGE)
+// CATEGORY
+function renderCategories(){
+  let cats=["All",...new Set(products.map(p=>p.category))];
+
+  categories.innerHTML=cats.map(c=>`
+    <div onclick="setCat('${c}')"
+      class="category ${c===activeCategory?'active':''}">
+      ${c}
+    </div>
+  `).join("");
+}
+
+function setCat(c){
+  activeCategory=c;
+  renderCategories();
+  renderProducts();
+}
+
+// PRODUCTS
 function renderProducts(){
-  results.innerHTML=products.map(p=>`
-    <div class="product" onclick="add('${p.name}')">
-      <img src="${p.image||'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full">
-      <div>
-        <div>${p.name}</div>
-        <div class="text-sm text-gray-500">Rp ${p.sell}</div>
-      </div>
+  let list=products.filter(p=>activeCategory==="All"||p.category===activeCategory);
+
+  productsDiv=list.map(p=>`
+    <div class="card product p-2 text-center" onclick="add('${p.name}')">
+      <img src="${p.image||'https://via.placeholder.com/100'}" class="w-full h-24 object-cover rounded">
+      <div class="mt-1">${p.name}</div>
+      <div class="text-green-600">Rp ${p.sell}</div>
     </div>
   `).join("");
 
-  productList.innerHTML=products.map(p=>`
-    <div class="bg-white p-3 rounded-xl flex justify-between">
-      ${p.name}
-      <button onclick="del('${p.name}')">❌</button>
-    </div>
-  `).join("");
-}
-
-// STOCK PAGE (LIKE IMAGE)
-function renderStock(){
-  stockList.innerHTML=products.map(p=>`
-    <div class="product">
-      <img src="${p.image||'https://via.placeholder.com/50'}" class="w-10 h-10 rounded-full">
-      <div class="flex-1">
-        ${p.name}
-      </div>
-      <div class="badge">${p.stock}</div>
-    </div>
-  `).join("");
-}
-
-// SEARCH
-searchProduct.oninput=()=>{
-  let v=searchProduct.value.toLowerCase();
-  results.innerHTML=products
-    .filter(p=>p.name.toLowerCase().includes(v))
-    .map(p=>`
-      <div class="product" onclick="add('${p.name}')">
-        <img src="${p.image||'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full">
-        <div>${p.name}<br>Rp ${p.sell}</div>
-      </div>
-    `).join("");
-};
-
-// ADD PRODUCT
-async function addProduct(){
-  await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      type:"addProduct",
-      name:name.value,
-      sell:sell.value,
-      cost:cost.value,
-      stock:stockVal.value,
-      barcode:barcode.value,
-      image:image.value
-    })
-  });
-
-  loadProducts();
-}
-
-// DELETE
-async function del(name){
-  await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({type:"deleteProduct",name})
-  });
-
-  loadProducts();
+  document.getElementById("products").innerHTML=productsDiv;
 }
 
 // CART
@@ -220,10 +125,10 @@ function add(name){
 
 function renderCart(){
   let t=0;
+
   cart.forEach(i=>t+=i.qty*i.price);
 
   total.innerText=t;
-  cartCount.innerText=cart.length;
 
   cart.innerHTML=cart.map(i=>`
     <div class="flex justify-between border-b py-1">
@@ -261,29 +166,8 @@ function showReceipt(){
   `).join("") + `<hr>Total: ${total.innerText}`;
 }
 
-// CHART
-async function loadChart(){
-  let res=await fetch(API+"?type=transactions");
-  let data=await res.json();
-
-  let labels=data.slice(1).map(r=>new Date(r[0]).toLocaleDateString());
-  let values=data.slice(1).map(r=>r[2]);
-
-  new Chart(chart,{
-    type:"line",
-    data:{
-      labels,
-      datasets:[{
-        label:"Revenue",
-        data:values,
-        fill:true
-      }]
-    }
-  });
-}
-
 // INIT
-loadProducts();
+load();
 </script>
 
 </body>
