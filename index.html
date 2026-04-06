@@ -1,124 +1,137 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>NA2625 Business</title>
+<title>NA2625 POS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{font-family:sans-serif}
+.header{
+  background:linear-gradient(90deg,#10b981,#059669);
+}
+.card{
+  background:white;
+  border-radius:16px;
+  padding:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+.product{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px;
+  border-bottom:1px solid #eee;
+}
+.product:hover{background:#f1f5f9}
+.circle{
+  width:50px;height:50px;border-radius:50%;
+  background:#e2e8f0;
+}
+</style>
 </head>
 
-<body class="bg-[#0f172a] text-white flex">
+<body class="bg-gray-100">
 
-<!-- SIDEBAR -->
-<div class="w-64 bg-[#020617] p-6 min-h-screen">
-  <div class="text-2xl font-bold mb-6">NA2625</div>
-  <div class="space-y-2">
-    <button onclick="nav('dashboard')" class="nav">Dashboard</button>
-    <button onclick="nav('products')" class="nav">Products</button>
-    <button onclick="nav('stock')" class="nav">Stock</button>
-    <button onclick="nav('billing')" class="nav">Cashier</button>
-    <button onclick="nav('analytics')" class="nav">Analytics</button>
+<!-- HEADER -->
+<div class="header text-white p-4 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <button onclick="toggleMenu()">☰</button>
+    <span id="title">Transaksi Baru</span>
+  </div>
+  <div>🛒 <span id="cartCount">0</span></div>
+</div>
+
+<!-- MENU -->
+<div id="menu" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg p-5 hidden z-50">
+  <button onclick="toggleMenu()">❌</button>
+  <div class="mt-6 space-y-3">
+    <div onclick="nav('billing')" class="cursor-pointer">Cashier</div>
+    <div onclick="nav('products')" class="cursor-pointer">Products</div>
+    <div onclick="nav('stock')" class="cursor-pointer">Stock</div>
+    <div onclick="nav('analytics')" class="cursor-pointer">Reports</div>
   </div>
 </div>
 
-<!-- MAIN -->
-<div class="flex-1 p-8 space-y-6">
+<!-- CONTENT -->
+<div class="p-4 space-y-4">
 
-<!-- DASHBOARD -->
-<div id="dashboard">
-  <h1 class="text-2xl mb-4">Dashboard</h1>
-  <div class="grid grid-cols-4 gap-4">
-    <div class="card">Revenue<br><b id="rev"></b></div>
-    <div class="card">Profit<br><b id="prof"></b></div>
-    <div class="card">Transactions<br><b id="trx"></b></div>
-    <div class="card">Products<br><b id="prodCount"></b></div>
+<!-- CASHIER -->
+<div id="billing">
+  <input id="searchProduct" placeholder="Search..." class="w-full p-3 rounded-xl border mb-2">
+
+  <div id="results" class="bg-white rounded-xl"></div>
+
+  <div class="card mt-4">
+    <h2 class="font-bold mb-2">Cart</h2>
+    <div id="cart"></div>
+
+    <div class="mt-3 text-sm">
+      Total: <b id="total">0</b><br>
+      Profit: <b id="profit">0</b>
+    </div>
+
+    <button onclick="checkout()" class="w-full mt-3 bg-green-500 text-white p-3 rounded-xl">
+      Checkout
+    </button>
   </div>
 </div>
 
 <!-- PRODUCTS -->
 <div id="products" class="hidden">
-  <h1 class="text-2xl mb-4">Products</h1>
+  <div class="card">
+    <input id="name" placeholder="Name" class="w-full mb-2 p-2 border rounded">
+    <input id="sell" placeholder="Sell" class="w-full mb-2 p-2 border rounded">
+    <input id="cost" placeholder="Cost" class="w-full mb-2 p-2 border rounded">
+    <input id="stockVal" placeholder="Stock" class="w-full mb-2 p-2 border rounded">
+    <input id="barcode" placeholder="Barcode" class="w-full mb-2 p-2 border rounded">
 
-  <div class="card grid grid-cols-5 gap-2">
-    <input id="name" placeholder="Name" class="input">
-    <input id="sell" placeholder="Sell" class="input">
-    <input id="cost" placeholder="Cost" class="input">
-    <input id="stockVal" placeholder="Stock" class="input">
-    <input id="barcode" placeholder="Barcode" class="input">
+    <button onclick="addProduct()" class="bg-green-500 text-white w-full p-2 rounded">
+      Add Product
+    </button>
   </div>
 
-  <button onclick="addProduct()" class="btn mt-3">Add</button>
-
-  <div class="card mt-4">
-    <table class="w-full text-sm">
-      <thead>
-        <tr><th>Name</th><th>Sell</th><th>Stock</th><th></th></tr>
-      </thead>
-      <tbody id="productList"></tbody>
-    </table>
-  </div>
+  <div id="productList" class="mt-4"></div>
 </div>
 
 <!-- STOCK -->
 <div id="stock" class="hidden">
-  <h1 class="text-2xl mb-4">Stock</h1>
-
-  <div class="card flex gap-2">
-    <select id="stockProduct" class="input"></select>
-    <input id="qty" type="number" class="input">
-    <button onclick="addStock()" class="btn">Update</button>
-  </div>
-</div>
-
-<!-- BILLING -->
-<div id="billing" class="hidden">
-  <h1 class="text-2xl mb-4">Cashier</h1>
-
-  <input id="searchProduct" placeholder="Search..." class="input w-full mb-2">
-  <div id="results" class="bg-[#1e293b] rounded mb-3"></div>
-
-  <input id="barcodeScan" placeholder="Scan..." class="input w-full mb-4">
-
   <div class="card">
-    <table class="w-full text-sm">
-      <tbody id="cart"></tbody>
-    </table>
-
-    <div class="mt-3">
-      Total: <b id="total">0</b><br>
-      Profit: <b id="profit">0</b>
-    </div>
-
-    <button onclick="checkout()" class="btn mt-3 w-full">Checkout</button>
+    <select id="stockProduct" class="w-full mb-2 p-2 border rounded"></select>
+    <input id="qty" type="number" class="w-full mb-2 p-2 border rounded">
+    <button onclick="addStock()" class="bg-green-500 text-white w-full p-2 rounded">
+      Update Stock
+    </button>
   </div>
 </div>
 
 <!-- ANALYTICS -->
 <div id="analytics" class="hidden">
-  <h1 class="text-2xl mb-4">Analytics</h1>
-  <div class="card" id="report"></div>
+  <div class="card" id="report">Loading...</div>
 </div>
 
 </div>
-
-<style>
-.nav{display:block;padding:10px;border-radius:8px}
-.nav:hover{background:#1e293b}
-.card{background:#1e293b;padding:16px;border-radius:12px}
-.input{padding:10px;border-radius:8px;color:black;width:100%}
-.btn{background:#22c55e;padding:10px;border-radius:10px}
-</style>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbwRCjUMtUJqLdzntBjZUTa3zM1gyZARo8iW27wHNcZcOmz1G9LQN85gqZ7HejgCdYH-/exec";
+const API="https://script.google.com/macros/s/AKfycbwFWArc4jl_9rBWprk9ohD9Yf1VrXjHSU5DoALLKzKzQ5zmRGejIp3EX5eT_E9nrsEx/exec";
+
 let products=[],cart=[];
 
+// NAV
 function nav(id){
-  ["dashboard","products","stock","billing","analytics"].forEach(p=>{
+  ["billing","products","stock","analytics"].forEach(p=>{
     document.getElementById(p).classList.add("hidden");
   });
   document.getElementById(id).classList.remove("hidden");
+  toggleMenu();
 }
 
-// LOAD
+// MENU
+function toggleMenu(){
+  menu.classList.toggle("hidden");
+}
+
+// LOAD PRODUCTS
 async function loadProducts(){
   let res=await fetch(API+"?type=products");
   let data=await res.json();
@@ -127,27 +140,54 @@ async function loadProducts(){
     name:p[0],sell:+p[1],cost:+p[2],stock:+p[3],barcode:p[4]
   }));
 
-  prodCount.innerText=products.length;
+  renderProducts();
+}
+
+// RENDER PRODUCTS (LIKE IMAGE)
+function renderProducts(){
+  results.innerHTML=products.map(p=>`
+    <div class="product" onclick="add('${p.name}')">
+      <div class="circle"></div>
+      <div>
+        <div>${p.name}</div>
+        <div class="text-sm text-gray-500">Rp ${p.sell}</div>
+      </div>
+    </div>
+  `).join("");
 
   productList.innerHTML=products.map(p=>`
-    <tr>
-      <td>${p.name}</td>
-      <td>${p.sell}</td>
-      <td>${p.stock}</td>
-      <td><button onclick="del('${p.name}')">❌</button></td>
-    </tr>
+    <div class="card flex justify-between items-center">
+      <div>${p.name} (${p.stock})</div>
+      <button onclick="del('${p.name}')">❌</button>
+    </div>
   `).join("");
 
   stockProduct.innerHTML=products.map(p=>`<option>${p.name}</option>`).join("");
 }
 
-// ADD
+// SEARCH
+searchProduct.oninput=()=>{
+  let v=searchProduct.value.toLowerCase();
+  results.innerHTML=products
+    .filter(p=>p.name.toLowerCase().includes(v))
+    .map(p=>`
+      <div class="product" onclick="add('${p.name}')">
+        <div class="circle"></div>
+        <div>
+          <div>${p.name}</div>
+          <div class="text-sm text-gray-500">Rp ${p.sell}</div>
+        </div>
+      </div>
+    `).join("");
+};
+
+// ADD PRODUCT
 async function addProduct(){
   await fetch(API,{
     method:"POST",
     body:JSON.stringify({
       type:"addProduct",
-      name:name.value.trim(),
+      name:name.value,
       sell:sell.value,
       cost:cost.value,
       stock:stockVal.value,
@@ -180,16 +220,7 @@ async function addStock(){
   loadProducts();
 }
 
-// SEARCH
-searchProduct.oninput=()=>{
-  let v=searchProduct.value.toLowerCase();
-  results.innerHTML=products
-    .filter(p=>p.name.toLowerCase().includes(v))
-    .slice(0,5)
-    .map(p=>`<div onclick="add('${p.name}')">${p.name}</div>`)
-    .join("");
-};
-
+// ADD TO CART
 function add(name){
   let p=products.find(x=>x.name===name);
   let ex=cart.find(i=>i.name===name);
@@ -197,28 +228,26 @@ function add(name){
   if(ex){ex.qty++;ex.total+=p.sell;ex.profit+=(p.sell-p.cost);}
   else cart.push({name:p.name,qty:1,total:p.sell,profit:(p.sell-p.cost)});
 
-  render();
+  renderCart();
 }
 
 // CART
-function render(){
+function renderCart(){
   let t=0,pr=0;
+
   cart.forEach(i=>{t+=i.total;pr+=i.profit});
 
   total.innerText=t;
   profit.innerText=pr;
+  cartCount.innerText=cart.length;
 
   cart.innerHTML=cart.map((i,idx)=>`
-    <tr>
-      <td>${i.name}</td>
-      <td>${i.qty}</td>
-      <td>${i.total}</td>
-      <td><button onclick="remove(${idx})">❌</button></td>
-    </tr>
+    <div class="flex justify-between border-b py-1">
+      <div>${i.name} x${i.qty}</div>
+      <div>${i.total}</div>
+    </div>
   `).join("");
 }
-
-function remove(i){cart.splice(i,1);render();}
 
 // CHECKOUT
 async function checkout(){
@@ -233,7 +262,9 @@ async function checkout(){
     })
   });
 
-  cart=[];render();
+  alert("Transaction Success");
+  cart=[];
+  renderCart();
 }
 
 // INIT
