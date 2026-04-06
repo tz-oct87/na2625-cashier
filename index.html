@@ -1,118 +1,152 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>NA2625 Business System</title>
+<title>NA2625 Business</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-[#0b1220] text-white flex">
+<body class="bg-[#0f172a] text-white flex">
 
 <!-- SIDEBAR -->
-<div class="w-60 bg-[#111827] p-4 space-y-3 min-h-screen">
-  <div class="text-xl font-bold mb-6">NA2625</div>
+<div class="w-64 bg-[#020617] p-5 flex flex-col gap-4 min-h-screen">
 
-  <button onclick="show('dashboard')" class="block w-full text-left">Dashboard</button>
-  <button onclick="show('products')" class="block w-full text-left">Products</button>
-  <button onclick="show('stock')" class="block w-full text-left">Stock</button>
-  <button onclick="show('billing')" class="block w-full text-left">Billing</button>
-  <button onclick="show('analytics')" class="block w-full text-left">Analytics</button>
+  <div class="text-2xl font-bold mb-6">NA2625</div>
+
+  <button onclick="showPage('dashboard')" class="nav">Dashboard</button>
+  <button onclick="showPage('products')" class="nav">Products</button>
+  <button onclick="showPage('stock')" class="nav">Stock</button>
+  <button onclick="showPage('billing')" class="nav">Cashier</button>
+  <button onclick="showPage('analytics')" class="nav">Analytics</button>
+
 </div>
 
-<!-- CONTENT -->
-<div class="flex-1 p-6 space-y-6">
+<!-- MAIN -->
+<div class="flex-1 p-8 space-y-6">
 
-  <!-- DASHBOARD -->
-  <div id="dashboard">
-    <h1 class="text-xl mb-4">Dashboard</h1>
+<!-- DASHBOARD -->
+<div id="dashboard">
 
-    <div class="grid grid-cols-3 gap-4">
-      <div class="bg-[#1f2937] p-4 rounded">Revenue<br><b id="rev"></b></div>
-      <div class="bg-[#1f2937] p-4 rounded">Profit<br><b id="prof"></b></div>
-      <div class="bg-[#1f2937] p-4 rounded">Transactions<br><b id="trx"></b></div>
-    </div>
+  <h1 class="text-2xl mb-4">Dashboard</h1>
+
+  <div class="grid grid-cols-4 gap-4">
+
+    <div class="card">Revenue<br><b id="rev"></b></div>
+    <div class="card">Profit<br><b id="prof"></b></div>
+    <div class="card">Transactions<br><b id="trx"></b></div>
+    <div class="card">Products<br><b id="prodCount"></b></div>
+
   </div>
 
-  <!-- PRODUCTS -->
-  <div id="products" class="hidden">
-    <h1 class="mb-3">Add Product</h1>
+</div>
 
-    <div class="grid grid-cols-2 gap-2">
-      <input id="name" placeholder="Name" class="p-2 text-black rounded">
-      <input id="sell" placeholder="Sell Price" class="p-2 text-black rounded">
-      <input id="cost" placeholder="Cost Price" class="p-2 text-black rounded">
-      <input id="stockVal" placeholder="Stock" class="p-2 text-black rounded">
-      <input id="barcode" placeholder="Barcode" class="p-2 text-black rounded">
-    </div>
+<!-- PRODUCTS -->
+<div id="products" class="hidden">
 
-    <button onclick="addProduct()" class="bg-green-500 px-4 py-2 mt-3 rounded">Add</button>
+  <h1 class="text-2xl mb-4">Products</h1>
 
-    <div id="productList" class="mt-4"></div>
+  <div class="card grid grid-cols-5 gap-2 mb-4">
+    <input id="name" placeholder="Name" class="input">
+    <input id="sell" placeholder="Sell" class="input">
+    <input id="cost" placeholder="Cost" class="input">
+    <input id="stockVal" placeholder="Stock" class="input">
+    <input id="barcode" placeholder="Barcode" class="input">
   </div>
 
-  <!-- STOCK -->
-  <div id="stock" class="hidden">
-    <h1>Stock Update</h1>
+  <button onclick="addProduct()" class="btn">Add Product</button>
 
-    <select id="stockProduct" class="text-black p-2 rounded"></select>
-    <input id="qty" type="number" class="text-black p-2 rounded">
-
-    <button onclick="addStock()" class="bg-blue-500 px-3 py-2 mt-2 rounded">
-      Add Stock
-    </button>
+  <div class="card mt-4">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-gray-400">
+          <th>Name</th><th>Sell</th><th>Stock</th><th>Barcode</th>
+        </tr>
+      </thead>
+      <tbody id="productList"></tbody>
+    </table>
   </div>
 
-  <!-- BILLING -->
-  <div id="billing" class="hidden">
-    <h1>Billing</h1>
+</div>
 
-    <input id="barcodeScan" placeholder="Scan Barcode"
-      class="text-black p-2 rounded w-full mb-2">
+<!-- STOCK -->
+<div id="stock" class="hidden">
 
+  <h1 class="text-2xl mb-4">Stock Management</h1>
+
+  <div class="card flex gap-2">
+    <select id="stockProduct" class="input"></select>
+    <input id="qty" type="number" class="input">
+    <button onclick="addStock()" class="btn">Add Stock</button>
+  </div>
+
+</div>
+
+<!-- BILLING -->
+<div id="billing" class="hidden">
+
+  <h1 class="text-2xl mb-4">Cashier</h1>
+
+  <input id="barcodeScan" placeholder="Scan barcode..."
+    class="input w-full mb-4">
+
+  <div class="card">
     <div id="cart"></div>
 
-    <div class="mt-2">Total: <b id="total">0</b></div>
-    <div>Profit: <b id="profit">0</b></div>
+    <div class="mt-4">
+      Total: <b id="total"></b><br>
+      Profit: <b id="profit"></b>
+    </div>
 
-    <button onclick="checkout()" class="bg-green-500 px-4 py-2 mt-2 rounded">
+    <button onclick="checkout()" class="btn mt-3 w-full">
       Checkout
     </button>
-
-    <!-- RECEIPT -->
-    <div id="receipt" class="hidden bg-white text-black p-4 mt-4 w-80">
-      <div class="text-center font-bold">NA2625 STORE</div>
-      <hr>
-      <div id="rItems"></div>
-      <hr>
-      Total: <b id="rTotal"></b>
-      <div id="rDate"></div>
-    </div>
   </div>
 
-  <!-- ANALYTICS -->
-  <div id="analytics" class="hidden">
-    <h1>Analytics</h1>
-
-    <select id="filter" onchange="loadAnalytics()" class="text-black p-2 rounded">
-      <option value="all">All</option>
-      <option value="day">Today</option>
-      <option value="week">7 Days</option>
-      <option value="month">Month</option>
-      <option value="year">Year</option>
-    </select>
-
-    <div id="report" class="mt-4"></div>
+  <!-- RECEIPT -->
+  <div id="receipt" class="hidden bg-white text-black p-4 mt-4 w-80 rounded">
+    <div class="text-center font-bold text-lg">NA2625 STORE</div>
+    <hr>
+    <div id="rItems"></div>
+    <hr>
+    Total: <b id="rTotal"></b>
+    <div id="rDate"></div>
   </div>
 
 </div>
+
+<!-- ANALYTICS -->
+<div id="analytics" class="hidden">
+
+  <h1 class="text-2xl mb-4">Analytics</h1>
+
+  <select id="filter" onchange="loadAnalytics()" class="input mb-4">
+    <option value="all">All</option>
+    <option value="day">Today</option>
+    <option value="week">7 Days</option>
+    <option value="month">Month</option>
+    <option value="year">Year</option>
+  </select>
+
+  <div class="card" id="report"></div>
+
+</div>
+
+</div>
+
+<style>
+.nav{padding:10px;border-radius:8px;text-align:left}
+.nav:hover{background:#1e293b}
+.card{background:#1e293b;padding:16px;border-radius:12px}
+.input{padding:8px;border-radius:8px;color:black}
+.btn{background:#22c55e;padding:10px;border-radius:10px}
+</style>
 
 <script>
 const API="https://script.google.com/macros/s/AKfycbx6ty3Fy-r7iAzu9jX79JY1u8Wrx59i4Kk0o7UpArwZU9nEUtLvgmKK9VSSBURTONne/exec";
 
-let products=[];
-let cart=[];
+let products=[],cart=[];
 
 // NAV
-function show(id){
+function showPage(id){
   ["dashboard","products","stock","billing","analytics"].forEach(p=>{
     document.getElementById(p).classList.add("hidden");
   });
@@ -125,20 +159,21 @@ async function loadProducts(){
   let data=await res.json();
 
   products=data.slice(1).map(p=>({
-    name:p[0],
-    sell:Number(p[1]),
-    cost:Number(p[2]),
-    stock:Number(p[3]),
-    barcode:p[4]
+    name:p[0], sell:+p[1], cost:+p[2], stock:+p[3], barcode:p[4]
   }));
 
-  productList.innerHTML=products.map(p=>
-    `<div>${p.name} | Stock: ${p.stock}</div>`
-  ).join("");
+  prodCount.innerText=products.length;
 
-  stockProduct.innerHTML=products.map(p=>
-    `<option>${p.name}</option>`
-  ).join("");
+  productList.innerHTML=products.map(p=>`
+    <tr>
+      <td>${p.name}</td>
+      <td>${p.sell}</td>
+      <td>${p.stock}</td>
+      <td>${p.barcode}</td>
+    </tr>
+  `).join("");
+
+  stockProduct.innerHTML=products.map(p=>`<option>${p.name}</option>`).join("");
 }
 
 // ADD PRODUCT
@@ -154,7 +189,6 @@ async function addProduct(){
       barcode:barcode.value
     })
   });
-
   loadProducts();
 }
 
@@ -165,48 +199,37 @@ async function addStock(){
     body:JSON.stringify({
       type:"updateStock",
       name:stockProduct.value,
-      qty:Number(qty.value),
+      qty:+qty.value,
       action:"ADD"
     })
   });
-
   loadProducts();
 }
 
 // SCAN
 barcodeScan.addEventListener("change",()=>{
-  let code=barcodeScan.value.trim();
-  let p=products.find(x=>x.barcode==code);
+  let p=products.find(x=>x.barcode==barcodeScan.value);
+  if(!p)return alert("Not found");
 
-  if(p){
-    let exist=cart.find(i=>i.name===p.name);
+  let exist=cart.find(i=>i.name===p.name);
 
-    if(exist){
-      exist.qty++;
-      exist.total+=p.sell;
-      exist.profit+=(p.sell-p.cost);
-    }else{
-      cart.push({
-        name:p.name,
-        qty:1,
-        total:p.sell,
-        profit:(p.sell-p.cost)
-      });
-    }
-
-    renderCart();
-    barcodeScan.value="";
+  if(exist){
+    exist.qty++;
+    exist.total+=p.sell;
+    exist.profit+=(p.sell-p.cost);
+  }else{
+    cart.push({name:p.name,qty:1,total:p.sell,profit:(p.sell-p.cost)});
   }
+
+  barcodeScan.value="";
+  renderCart();
 });
 
 // CART
 function renderCart(){
   let t=0,pr=0;
 
-  cart.forEach(i=>{
-    t+=i.total;
-    pr+=i.profit;
-  });
+  cart.forEach(i=>{t+=i.total;pr+=i.profit});
 
   total.innerText=t;
   profit.innerText=pr;
@@ -219,9 +242,9 @@ function renderCart(){
 // CHECKOUT
 async function checkout(){
 
-  rItems.innerHTML=cart.map(i=>
-    `<div>${i.name} x${i.qty} = ${i.total}</div>`
-  ).join("");
+  rItems.innerHTML=cart.map(i=>`
+    <div>${i.name} x${i.qty} = ${i.total}</div>
+  `).join("");
 
   rTotal.innerText=total.innerText;
   rDate.innerText=new Date().toLocaleString();
@@ -255,21 +278,15 @@ async function loadAnalytics(){
 
   data=data.filter(d=>{
     let t=new Date(d[0]);
-
     if(f==="day") return t.toDateString()===now.toDateString();
     if(f==="week") return (now-t)/(1000*60*60*24)<=7;
     if(f==="month") return t.getMonth()===now.getMonth();
     if(f==="year") return t.getFullYear()===now.getFullYear();
-
     return true;
   });
 
-  let rev=0, prof=0;
-
-  data.forEach(d=>{
-    rev+=Number(d[2]);
-    prof+=Number(d[3]);
-  });
+  let rev=0,prof=0;
+  data.forEach(d=>{rev+=+d[2];prof+=+d[3]});
 
   report.innerHTML=`
     Revenue: ${rev}<br>
@@ -277,7 +294,6 @@ async function loadAnalytics(){
     Transactions: ${data.length}
   `;
 
-  // update dashboard too
   document.getElementById("rev").innerText=rev;
   document.getElementById("prof").innerText=prof;
   document.getElementById("trx").innerText=data.length;
