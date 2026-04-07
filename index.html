@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NA2625 | KASIR APPS</title>
+    <title>NA2625 | CREATIVEWORKS POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        /* Mobile-First Layout Engine */
         .page-content { display: none; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .page-content.active { display: block; }
         #app { display: flex; height: 100vh; flex-direction: column; }
@@ -29,14 +28,11 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal.active { display: flex; }
         
-        #toast { 
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
-            padding: 12px 24px; border-radius: 12px; background: #1e293b; 
-            border: 1px solid #334155; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; 
-        }
-        #toast.show { opacity: 1; }
+        /* Centered Result Pop-up */
+        #resultPopup { display: none; position: fixed; inset: 0; z-index: 200; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); }
+        #resultPopup.active { display: flex; }
 
-        .spinner { width: 14px; height: 14px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; margin-right: 8px; }
+        .spinner { width: 14px; height: 14px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; margin-right: 8px; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         @media print {
@@ -49,20 +45,31 @@
 </head>
 <body class="h-full overflow-hidden font-sans">
 
-<div id="toast" class="font-bold shadow-2xl">SUCCESS</div>
+<div id="resultPopup">
+    <div id="popupContent" class="w-[80%] max-w-xs p-8 rounded-3xl border border-slate-700 text-center shadow-2xl scale-95 transition-transform">
+        <div id="popupIcon" class="text-4xl mb-4"></div>
+        <h3 id="popupTitle" class="text-white font-black uppercase tracking-widest text-sm mb-2"></h3>
+        <p id="popupMsg" class="text-slate-400 text-[10px] uppercase font-bold mb-6"></p>
+        <button onclick="closeResult()" class="w-full bg-slate-800 p-3 rounded-xl font-black text-[10px] uppercase text-white hover:bg-slate-700">Dismiss</button>
+    </div>
+</div>
 
 <div id="loginPage" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950 p-6">
     <div class="w-full max-w-sm p-8 bg-slate-900 rounded-3xl border border-slate-800 text-center shadow-2xl">
-        <h1 class="text-4xl font-black text-teal-400 mb-8 tracking-tighter uppercase">TACTYKZ POS</h1>
-        <input id="user" type="text" placeholder="Username" class="w-full p-4 mb-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-lg">
-        <input id="pass" type="password" placeholder="Password" class="w-full p-4 mb-6 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-lg">
-        <button id="loginBtn" onclick="doLogin()" class="w-full bg-teal-600 hover:bg-teal-500 p-4 rounded-xl font-black transition-all">SIGN IN</button>
+        <h1 class="text-4xl font-black text-teal-400 mb-2 tracking-tighter uppercase">NA2625</h1>
+        <p class="text-[10px] font-bold text-slate-500 mb-8 uppercase tracking-[0.2em]">Creativeworks POS</p>
+        <input id="user" type="text" placeholder="Username" class="w-full p-4 mb-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-lg text-white">
+        <input id="pass" type="password" placeholder="Password" class="w-full p-4 mb-6 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-lg text-white">
+        <button id="loginBtn" onclick="doLogin()" class="w-full bg-teal-600 hover:bg-teal-500 p-4 rounded-xl font-black transition-all text-white">SIGN IN</button>
     </div>
 </div>
 
 <div id="app" class="hidden">
     <nav class="bg-slate-900 flex flex-col shrink-0 z-50">
-        <div class="p-8 text-xl font-black text-white border-b border-slate-800 desktop-only uppercase tracking-widest">TACTYKZ <span class="text-teal-400">POS</span></div>
+        <div class="p-8 border-b border-slate-800 desktop-only">
+            <div class="text-xl font-black text-white uppercase tracking-widest leading-none">NA2625</div>
+            <div class="text-[8px] font-bold text-teal-500 uppercase mt-1">Creativeworks</div>
+        </div>
         <div class="flex-1 flex md:flex-col p-2 gap-1">
             <button onclick="showPage('cashier')" class="nav-btn active w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">🛒 <span class="md:ml-3">Cashier</span></button>
             <button onclick="showPage('manage')" class="nav-btn w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">📦 <span class="md:ml-3">Inventory</span></button>
@@ -76,7 +83,7 @@
         <div id="page-cashier" class="page-content active p-2 md:p-4">
             <div class="flex flex-col lg:flex-row gap-6 h-full">
                 <div class="flex-1 flex flex-col overflow-hidden">
-                    <input id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-4 outline-none focus:border-teal-500 text-lg shadow-inner">
+                    <input id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-4 outline-none focus:border-teal-500 text-lg shadow-inner text-white">
                     <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto pb-24 md:pb-4 pr-1"></div>
                 </div>
                 <div class="w-full lg:w-80 bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col shrink-0 shadow-2xl">
@@ -90,8 +97,8 @@
                             <span class="text-xs text-slate-500 font-bold">TOTAL</span>
                             <span class="text-2xl font-black text-white uppercase tracking-tighter">Rp<span id="total">0</span></span>
                         </div>
-                        <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold text-xl outline-none border border-slate-700 focus:border-teal-500">
-                        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-teal-600 hover:bg-teal-500 p-4 rounded-xl font-black py-5 shadow-lg shadow-teal-900/20 transition-all">PAY NOW</button>
+                        <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold text-xl outline-none border border-slate-700 focus:border-teal-500 text-white">
+                        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-teal-600 hover:bg-teal-500 p-4 rounded-xl font-black py-5 shadow-lg shadow-teal-900/20 transition-all text-white">PAY NOW</button>
                     </div>
                 </div>
             </div>
@@ -100,13 +107,13 @@
         <div id="page-manage" class="page-content p-4">
             <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 mb-6 shadow-xl">
                 <h3 class="text-teal-400 font-black mb-4 uppercase text-xs tracking-widest">Add New Stock</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-white">
                     <input id="new-name" placeholder="Name" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
                     <input id="new-sell" type="number" placeholder="Price" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
                     <input id="new-cost" type="number" placeholder="Cost" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
                     <input id="new-stock" type="number" placeholder="Stock" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
                 </div>
-                <button id="addProdBtn" onclick="addNewProduct()" class="mt-4 w-full bg-teal-600 p-4 rounded-xl font-black text-sm uppercase">Add to Inventory</button>
+                <button id="addProdBtn" onclick="addNewProduct()" class="mt-4 w-full bg-teal-600 p-4 rounded-xl font-black text-sm uppercase text-white">Add to Inventory</button>
             </div>
             <div id="manageList" class="space-y-3"></div>
             <div class="flex justify-center items-center gap-8 mt-8 pb-10">
@@ -119,7 +126,7 @@
         <div id="page-history" class="page-content p-4">
             <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-slate-900 p-6 rounded-3xl border border-slate-800">
                 <h2 class="text-teal-400 font-black uppercase text-xl">Sales History</h2>
-                <select id="historyFilter" onchange="filterHistory()" class="bg-slate-800 text-[10px] font-bold p-3 rounded-xl border border-slate-700 outline-none uppercase">
+                <select id="historyFilter" onchange="filterHistory()" class="bg-slate-800 text-[10px] font-bold p-3 rounded-xl border border-slate-700 outline-none uppercase text-white">
                     <option value="today">Today</option>
                     <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>
@@ -143,7 +150,7 @@
             <div class="max-w-md mx-auto space-y-6">
                 <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-2xl">
                     <h2 class="text-teal-400 font-black mb-6 uppercase tracking-widest">Config Store</h2>
-                    <div class="space-y-4">
+                    <div class="space-y-4 text-white">
                         <input id="set-name" placeholder="Store Name" class="w-full bg-slate-800 p-4 rounded-xl outline-none border border-slate-700">
                         <textarea id="set-addr" placeholder="Store Address" class="w-full bg-slate-800 p-4 rounded-xl outline-none border border-slate-700 h-24"></textarea>
                         <input id="set-note" placeholder="Receipt Footer Note" class="w-full bg-slate-800 p-4 rounded-xl outline-none border border-slate-700">
@@ -163,7 +170,7 @@
 <div id="invoiceModal" class="modal">
     <div class="bg-white text-slate-900 w-[90%] max-w-[350px] p-6 rounded-2xl shadow-2xl">
         <div id="receiptArea" class="p-2 text-center bg-white font-mono text-[12px]">
-            <h2 id="invStoreName" class="font-black text-lg uppercase mb-1 leading-none">TACTYKZ</h2>
+            <h2 id="invStoreName" class="font-black text-lg uppercase mb-1 leading-none">NA2625</h2>
             <p id="invStoreAddr" class="text-[9px] text-gray-500 mb-4 whitespace-pre-wrap leading-tight"></p>
             <div class="border-y border-dashed border-gray-300 py-2 mb-4 flex justify-between text-[9px] uppercase">
                 <span id="invDate"></span><span id="invUser"></span>
@@ -189,25 +196,30 @@ const API = "https://script.google.com/macros/s/AKfycbweov-VD-18mMRdQJ6IbAv6Mcx2
 let products = [], cart = [], currentUser = "", historyData = [], filteredHistory = [], salesCount = {};
 let currentPage = 1, itemsPerPage = 10;
 
-// --- NOTIFICATIONS ---
-function showToast(msg, isError=false) {
-    const t = document.getElementById('toast');
-    t.innerText = msg; t.style.background = isError ? '#ef4444' : '#14b8a6';
-    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
+// --- POPUP SYSTEM ---
+function showResult(title, msg, isError=false) {
+    const p = document.getElementById('resultPopup');
+    const content = document.getElementById('popupContent');
+    document.getElementById('popupIcon').innerText = isError ? "❌" : "✅";
+    document.getElementById('popupTitle').innerText = title;
+    document.getElementById('popupMsg').innerText = msg;
+    content.className = isError ? "w-[80%] max-w-xs p-8 rounded-3xl border border-red-900/50 bg-slate-900 text-center shadow-2xl" : "w-[80%] max-w-xs p-8 rounded-3xl border border-teal-900/50 bg-slate-900 text-center shadow-2xl";
+    p.classList.add('active');
 }
+function closeResult() { document.getElementById('resultPopup').classList.remove('active'); }
 
 // --- CORE SYSTEM FUNCTIONS ---
 async function doLogin() {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    if(!u || !p) return showToast("Enter Username & Password", true);
+    if(!u || !p) return showResult("Input Required", "Enter Username & Password", true);
     const b = document.getElementById('loginBtn');
-    b.disabled = true; b.innerText = "SIGNING IN...";
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span> SIGNING IN...';
     try {
         const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
         const data = await res.json();
         if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
-        else showToast("INVALID CREDENTIALS", true);
-    } catch(e) { showToast("Connection failed", true); }
+        else showResult("Denied", "INVALID CREDENTIALS", true);
+    } catch(e) { showResult("Network Error", "Connection failed", true); }
     b.disabled = false; b.innerText = "SIGN IN";
 }
 
@@ -221,7 +233,7 @@ async function loadAppData() {
         calculateSales();
         renderProducts();
         if(document.getElementById('page-manage').classList.contains('active')) renderManage();
-    } catch(e) { showToast("Sync Error", true); }
+    } catch(e) { showResult("Sync Error", "Could not fetch data", true); }
 }
 
 function calculateSales() {
@@ -248,7 +260,7 @@ function renderProducts() {
         const sold = salesCount[p.name] || 0;
         const isBest = p.name === bestSeller && sold > 0;
         return `
-        <div onclick="addToCart('${p.name}')" class="relative bg-slate-900 rounded-2xl p-4 border ${isBest ? 'border-teal-500' : 'border-slate-800'} active:scale-95 transition-all text-center shadow-lg group">
+        <div onclick="addToCart('${p.name}')" class="relative bg-slate-900 rounded-2xl p-4 border ${isBest ? 'border-teal-500' : 'border-slate-800'} active:scale-95 transition-all text-center shadow-lg group cursor-pointer">
             ${isBest ? '<span class="absolute -top-2 -left-2 bg-teal-500 text-slate-950 text-[8px] font-black px-2 py-1 rounded-lg">BEST SELLER</span>' : ''}
             <span class="absolute top-2 right-2 text-[7px] text-slate-600 font-bold uppercase">${sold} SOLD</span>
             <p class="font-black text-[11px] text-white truncate mb-1 uppercase mt-2">${p.name}</p>
@@ -266,12 +278,12 @@ function renderManage() {
         <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-wrap justify-between items-center gap-4">
             <div class="flex-1 min-w-[140px]">
                 <p class="font-black text-[10px] uppercase text-teal-400">${p.name}</p>
-                <p class="text-[8px] text-slate-500 font-bold uppercase">Total Units Sold: ${salesCount[p.name] || 0}</p>
+                <p class="text-[8px] text-slate-500 font-bold uppercase text-white">Sold: ${salesCount[p.name] || 0}</p>
             </div>
-            <div class="flex gap-2 items-center">
+            <div class="flex gap-2 items-center text-white">
                 <input id="prc-${idx}" type="number" value="${p.sell}" class="w-20 bg-slate-800 p-2 rounded-lg text-[10px] outline-none border border-slate-700">
                 <input id="stk-${idx}" type="number" value="${p.stock}" class="w-14 bg-slate-800 p-2 rounded-lg text-[10px] outline-none border border-slate-700">
-                <button onclick="updateItem('${p.name}', ${idx})" class="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg text-[9px] font-bold h-[34px]">SAVE</button>
+                <button id="upd-btn-${idx}" onclick="updateItem('${p.name}', ${idx})" class="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg text-[9px] font-bold h-[34px] min-w-[60px] text-white uppercase">Save</button>
             </div>
         </div>`).join("");
 }
@@ -279,9 +291,9 @@ function renderManage() {
 // --- CART LOGIC ---
 function addToCart(name) {
     const p = products.find(x => x.name === name);
-    if(p.stock <= 0) return showToast("Out of stock!", true);
+    if(p.stock <= 0) return showResult("Out of Stock", "No units left in inventory", true);
     let item = cart.find(i => i.name === name);
-    if (item) { if(item.qty >= p.stock) return showToast("Stock limit reached", true); item.qty++; }
+    if (item) { if(item.qty >= p.stock) return showResult("Stock Limit", "Cannot exceed inventory count", true); item.qty++; }
     else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
     renderCart();
 }
@@ -293,7 +305,7 @@ function renderCart() {
         return `<div class="flex justify-between bg-slate-800 p-3 rounded-xl items-center shadow-md border border-slate-700">
             <div class="flex flex-col"><span class="truncate text-[10px] font-black uppercase text-white">${i.name}</span>
             <span class="text-[9px] text-teal-400 font-bold">Rp${(i.qty*i.price).toLocaleString()}</span></div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 text-white">
                 <button onclick="changeQty('${i.name}',-1)" class="bg-slate-700 w-8 h-8 rounded-lg font-bold">-</button>
                 <span class="text-xs font-bold w-4 text-center">${i.qty}</span>
                 <button onclick="changeQty('${i.name}',1)" class="bg-slate-700 w-8 h-8 rounded-lg font-bold">+</button>
@@ -305,7 +317,7 @@ function renderCart() {
 
 function changeQty(n, d) {
     let i = cart.find(x => x.name === n); const p = products.find(x => x.name === n);
-    if (d > 0 && i.qty >= p.stock) return showToast("Stock limit reached", true);
+    if (d > 0 && i.qty >= p.stock) return showResult("Stock Limit", "Limit reached", true);
     i.qty += d; if (i.qty <= 0) cart = cart.filter(x => x.name !== n);
     renderCart();
 }
@@ -314,9 +326,9 @@ function changeQty(n, d) {
 async function checkout() {
     const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
     const paid = Number(document.getElementById('cashInput').value || 0);
-    if (cart.length === 0 || paid < total) return showToast("Verify Cart/Cash", true);
+    if (cart.length === 0 || paid < total) return showResult("Checkout Failed", "Verify your cart and payment amount", true);
     const b = document.getElementById('checkoutBtn');
-    b.disabled = true; b.innerText = "PROCESSING...";
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span> PROCESSING...';
     try {
         const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
         await fetch(API, { method: 'POST', body: JSON.stringify({ 
@@ -324,34 +336,38 @@ async function checkout() {
         })});
         showInvoice(currentUser, [...cart], total, paid, paid-total);
         cart = []; document.getElementById('cashInput').value = "";
-        loadAppData(); 
-    } catch(e) { showToast("Sync Error", true); }
+        renderCart(); loadAppData(); 
+    } catch(e) { showResult("Sync Error", "Network communication failed", true); }
     b.disabled = false; b.innerText = "PAY NOW";
 }
 
-async function printBluetooth() {
-    const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
-    const encoder = new TextEncoder();
-    let cmds = [
-        '\x1B\x40', '\x1B\x61\x01', '\x1B\x21\x20', (set.name || "NA2625").toUpperCase() + '\n',
-        '\x1B\x21\x00', (set.addr || "") + '\n', '--------------------------------\n', '\x1B\x61\x00'
-    ];
-    cart.forEach(i => cmds.push(`${i.name.substring(0,18).padEnd(18)} ${String(i.qty).padStart(2)} ${String(i.price*i.qty).padStart(8)}\n`));
-    cmds.push('--------------------------------\n', '\x1B\x61\x02', `TOTAL: ${document.getElementById('recTotal').innerText}\n\n`, '\x1B\x61\x01', (set.note || "Thank you!") + '\n\n\n\n');
-    
-    const data = encoder.encode(cmds.join(''));
+async function addNewProduct() {
+    const n = document.getElementById('new-name').value, s = Number(document.getElementById('new-sell').value);
+    const c = Number(document.getElementById('new-cost').value), st = Number(document.getElementById('new-stock').value);
+    if(!n || !s) return showResult("Incomplete", "Name and Price required", true);
+    const b = document.getElementById('addProdBtn');
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span> ADDING...';
     try {
-        showToast("LINKING PRINTER...");
-        const device = await navigator.bluetooth.requestDevice({
-            filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'MPT' }, { namePrefix: 'RPP' }],
-            optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-        });
-        const server = await device.gatt.connect();
-        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-        for (let i = 0; i < data.length; i += 20) await characteristic.writeValue(data.slice(i, i + 20));
-        showToast("PRINTING...");
-    } catch (e) { showToast("BT FAILED: Use System Print", true); }
+        await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addProduct', name: n, sell: s, cost: c, stock: st }) });
+        document.querySelectorAll('#page-manage input').forEach(i => i.value="");
+        await loadAppData(); 
+        showResult("Success", "New item added to catalog");
+    } catch(e) { showResult("Failed", "Server sync failed", true); }
+    b.disabled = false; b.innerText = "Add to Inventory";
+}
+
+async function updateItem(name, idx) {
+    const p = products.find(x => x.name === name);
+    const nP = Number(document.getElementById(`prc-${idx}`).value);
+    const nS = Number(document.getElementById(`stk-${idx}`).value);
+    const b = document.getElementById(`upd-btn-${idx}`);
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span>';
+    try {
+        await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'editProduct', oldName: name, name, sell: nP, cost: p.cost, stock: nS })});
+        await loadAppData(); 
+        showResult("Updated", `Data for ${name} saved`);
+    } catch(e) { showResult("Failed", "Server sync failed", true); }
+    b.disabled = false; b.innerText = "SAVE";
 }
 
 // --- PAGE NAVIGATION ---
@@ -361,22 +377,14 @@ function showPage(p) {
         x.classList.remove('active');
         x.classList.add('text-slate-400');
     });
-
     document.getElementById('page-' + p).classList.add('active');
-    
-    // Find button by onclick content
     const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(`'${p}'`));
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.classList.remove('text-slate-400');
-    }
-
+    if (activeBtn) { activeBtn.classList.add('active'); activeBtn.classList.remove('text-slate-400'); }
     if(p === 'manage') renderManage();
     if(p === 'history') filterHistory();
     if(p === 'settings') loadSettings();
 }
 
-// --- UTILITIES ---
 function loadSettings() {
     const s = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
     document.getElementById('set-name').value = s.name || "";
@@ -389,24 +397,7 @@ function saveSettings() {
         name: document.getElementById('set-name').value,
         addr: document.getElementById('set-addr').value,
         note: document.getElementById('set-note').value
-    })); showToast("SETTINGS UPDATED");
-}
-
-async function addNewProduct() {
-    const n = document.getElementById('new-name').value, s = Number(document.getElementById('new-sell').value);
-    const c = Number(document.getElementById('new-cost').value), st = Number(document.getElementById('new-stock').value);
-    if(!n || !s) return showToast("Name and Price required", true);
-    await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addProduct', name: n, sell: s, cost: c, stock: st }) });
-    document.querySelectorAll('#page-manage input').forEach(i => i.value="");
-    await loadAppData(); 
-}
-
-async function updateItem(name, idx) {
-    const p = products.find(x => x.name === name);
-    const nP = Number(document.getElementById(`prc-${idx}`).value);
-    const nS = Number(document.getElementById(`stk-${idx}`).value);
-    await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'editProduct', oldName: name, name, sell: nP, cost: p.cost, stock: nS })});
-    await loadAppData(); showToast("STOCKED SAVED");
+    })); showResult("Saved", "Configuration updated successfully");
 }
 
 function changePage(d) {
@@ -433,7 +424,7 @@ function renderHistoryList() {
         return `<div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center shadow-md">
             <div><p class="text-[9px] text-slate-500 font-mono tracking-tighter">${new Date(r[0]).toLocaleString()}</p>
             <p class="font-black text-white text-sm">Rp${Number(r[3]).toLocaleString()}</p></div>
-            <button onclick="viewHistoryItem(${i})" class="text-[9px] bg-slate-800 px-3 py-2 rounded-lg font-bold uppercase tracking-widest">View</button>
+            <button onclick="viewHistoryItem(${i})" class="text-[9px] bg-slate-800 px-3 py-2 rounded-lg font-bold uppercase tracking-widest text-white">View</button>
         </div>`;
     }).join("");
     document.getElementById('sumRevenue').innerText = "Rp" + rev.toLocaleString();
@@ -447,7 +438,7 @@ function viewHistoryItem(i) {
 
 function showInvoice(user, items, total, paid, change, dateStr = null) {
     const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
-    document.getElementById('invStoreName').innerText = set.name || "TACTYKZ";
+    document.getElementById('invStoreName').innerText = set.name || "NA2625";
     document.getElementById('invStoreAddr').innerText = set.addr || "";
     document.getElementById('invNote').innerText = set.note || "";
     document.getElementById('invDate').innerText = dateStr || new Date().toLocaleString();
@@ -463,8 +454,24 @@ function exportStatement() {
     const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
     const win = window.open('', '_blank');
     const rows = filteredHistory.map(r => `<tr><td style="border-bottom:1px solid #eee;padding:10px">${new Date(r[0]).toLocaleDateString()}</td><td style="border-bottom:1px solid #eee;padding:10px;text-align:right">Rp${Number(r[3]).toLocaleString()}</td></tr>`).join("");
-    win.document.write(`<html><body style="font-family:sans-serif;padding:40px;color:#333"><center><h1>${set.name || 'TACTYKZ'}</h1><p>Sales Audit Report</p><hr></center><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f9f9f9"><th>DATE</th><th style="text-align:right">TOTAL</th></tr></thead><tbody>${rows}</tbody></table><h2 style="text-align:right;margin-top:20px">TOTAL REVENUE: ${document.getElementById('sumRevenue').innerText}</h2></body></html>`);
+    win.document.write(`<html><body style="font-family:sans-serif;padding:40px;color:#333"><center><h1>${set.name || 'NA2625'}</h1><p>Sales Audit Report</p><hr></center><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f9f9f9"><th>DATE</th><th style="text-align:right">TOTAL</th></tr></thead><tbody>${rows}</tbody></table><h2 style="text-align:right;margin-top:20px">TOTAL REVENUE: ${document.getElementById('sumRevenue').innerText}</h2></body></html>`);
     win.document.close(); win.print();
+}
+
+async function printBluetooth() {
+    const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
+    const encoder = new TextEncoder();
+    let cmds = [ '\x1B\x40', '\x1B\x61\x01', '\x1B\x21\x20', (set.name || "NA2625").toUpperCase() + '\n', '\x1B\x21\x00', (set.addr || "") + '\n', '--------------------------------\n', '\x1B\x61\x00' ];
+    cart.forEach(i => cmds.push(`${i.name.substring(0,18).padEnd(18)} ${String(i.qty).padStart(2)} ${String(i.price*i.qty).padStart(8)}\n`));
+    cmds.push('--------------------------------\n', '\x1B\x61\x02', `TOTAL: ${document.getElementById('recTotal').innerText}\n\n', '\x1B\x61\x01', (set.note || "Thank you!") + '\n\n\n\n');
+    const data = encoder.encode(cmds.join(''));
+    try {
+        const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'MPT' }, { namePrefix: 'RPP' }], optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] });
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+        for (let i = 0; i < data.length; i += 20) await characteristic.writeValue(data.slice(i, i + 20));
+    } catch (e) { showResult("BT Error", "Use System Print instead", true); }
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
