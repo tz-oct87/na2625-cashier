@@ -1,214 +1,227 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-200">
+<html lang="id" class="h-full bg-slate-950 text-slate-200">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TACTYKZ | POS PRO</title>
+    <title>NA2625 CREATIVEWORKS | POS PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        /* Mobile-First Layout Engine */
         .page-content { display: none; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .page-content.active { display: block; }
         #app { display: flex; height: 100vh; flex-direction: column; }
         
         @media (min-width: 768px) {
             #app { flex-direction: row; }
-            nav { width: 260px; height: 100%; border-right: 1px solid #1e293b; }
+            nav { width: 280px; height: 100%; border-right: 1px solid #1e293b; }
         }
         
         @media (max-width: 767px) {
-            nav { order: 2; width: 100%; height: 70px; flex-direction: row !important; border-top: 1px solid #1e293b; padding: 0 !important; }
+            nav { order: 2; width: 100%; height: 75px; flex-direction: row !important; border-top: 1px solid #1e293b; padding: 0 !important; background: #0f172a; }
             nav .nav-btn { flex: 1; justify-content: center; border: none !important; padding: 0 !important; font-size: 10px; color: #64748b; }
-            nav .nav-btn.active { border-top: 3px solid #2dd4bf !important; color: #2dd4bf !important; border-radius: 0; background: transparent; }
+            nav .nav-btn.active { border-top: 3px solid #2dd4bf !important; color: #2dd4bf !important; background: transparent; }
             .desktop-only { display: none; }
-            main { flex: 1; padding: 12px !important; padding-bottom: 20px !important; }
+            main { flex: 1; padding: 12px !important; padding-bottom: 90px !important; }
         }
 
         .nav-btn.active { background: #1e293b; color: #2dd4bf; border-left: 4px solid #2dd4bf; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal.active { display: flex; }
         
-        #toast { 
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
-            padding: 12px 24px; border-radius: 12px; background: #1e293b; 
-            border: 1px solid #334155; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; 
-        }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; }
         #toast.show { opacity: 1; }
-
-        .spinner { width: 14px; height: 14px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; margin-right: 8px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        @media print {
-            body * { visibility: hidden; }
-            #receiptArea, #receiptArea * { visibility: visible; }
-            #receiptArea { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none !important; }
-        }
+        .logo-main { max-width: 160px; margin: 0 auto; filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.2)); }
     </style>
 </head>
 <body class="h-full overflow-hidden font-sans">
 
-<div id="toast" class="font-bold shadow-2xl">SUCCESS</div>
+<div id="toast" class="font-bold shadow-2xl bg-teal-600 text-white">SUCCESS</div>
 
 <div id="loginPage" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950 p-6">
     <div class="w-full max-w-sm p-8 bg-slate-900 rounded-3xl border border-slate-800 text-center shadow-2xl">
-        <h1 class="text-4xl font-black text-teal-400 mb-8 tracking-tighter uppercase">TACTYKZ POS</h1>
-        <input id="user" type="text" placeholder="Username" class="w-full p-4 mb-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-lg">
-        <input id="pass" type="password" placeholder="Password" class="w-full p-4 mb-6 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-lg">
-        <button id="loginBtn" onclick="doLogin()" class="w-full bg-teal-600 hover:bg-teal-500 p-4 rounded-xl font-black transition-all">SIGN IN</button>
+        <img src="https://tactykz.com/wp-content/uploads/2026/03/NA2625-CR.png" alt="Logo" class="logo-main mb-6">
+        <h1 class="text-xs font-black text-slate-500 mb-8 tracking-[0.3em] uppercase">NA2625 CREATIVEWORKS</h1>
+        <input id="user" type="text" placeholder="User" class="w-full p-4 mb-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-lg">
+        <input id="pass" type="password" placeholder="Pass" class="w-full p-4 mb-6 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-lg">
+        <button id="loginBtn" onclick="doLogin()" class="w-full bg-teal-600 p-4 rounded-xl font-black transition-all shadow-lg">SIGN IN</button>
     </div>
 </div>
 
 <div id="app" class="hidden">
     <nav class="bg-slate-900 flex flex-col shrink-0 z-50">
-        <div class="p-8 text-xl font-black text-white border-b border-slate-800 desktop-only uppercase tracking-widest">TACTYKZ <span class="text-teal-400">POS</span></div>
-        <div class="flex-1 flex md:flex-col p-2 gap-1">
-            <button onclick="showPage('cashier')" class="nav-btn active w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">🛒 <span class="md:ml-3">Cashier</span></button>
-            <button onclick="showPage('manage')" class="nav-btn w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">📦 <span class="md:ml-3">Inventory</span></button>
-            <button onclick="showPage('history')" class="nav-btn w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">📜 <span class="md:ml-3">History</span></button>
-            <button onclick="showPage('settings')" class="nav-btn w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">⚙️ <span class="md:ml-3">Settings</span></button>
+        <div class="p-8 border-b border-slate-800 desktop-only text-center">
+            <img src="https://tactykz.com/wp-content/uploads/2026/03/NA2625-CR.png" alt="Logo" class="w-24 mx-auto mb-4">
+            <p class="text-[9px] font-black text-teal-400 tracking-widest uppercase">NA2625 CREATIVEWORKS</p>
         </div>
-        <button onclick="logout()" class="p-4 text-[10px] font-bold text-red-500 uppercase desktop-only border-t border-slate-800 hover:bg-red-950/20">Logout System</button>
+        
+        <div class="flex-1 flex md:flex-col p-2 gap-1">
+            <button onclick="showPage('cashier')" class="nav-btn active w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">🛒 <span class="md:ml-3" id="lang-nav-cashier"></span></button>
+            <button onclick="showPage('manage')" class="nav-btn w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">📦 <span class="md:ml-3" id="lang-nav-inv"></span></button>
+            <button onclick="showPage('history')" class="nav-btn w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">📜 <span class="md:ml-3" id="lang-nav-hist"></span></button>
+            <button onclick="showPage('settings')" class="nav-btn w-full flex flex-col md:flex-row items-center md:px-6 py-4 rounded-xl font-bold">⚙️ <span class="md:ml-3" id="lang-nav-sett"></span></button>
+        </div>
+
+        <div class="p-4 desktop-only border-t border-slate-800">
+            <select id="langSelect" onchange="changeLanguage(this.value)" class="w-full bg-slate-800 border border-slate-700 text-[10px] p-2 rounded-lg font-bold uppercase outline-none text-teal-400">
+                <option value="id">Bahasa Indonesia</option>
+                <option value="en">English</option>
+                <option value="nl">Dutch</option>
+                <option value="jp">Japan</option>
+                <option value="kr">Korean</option>
+                <option value="cn">China</option>
+                <option value="my">Melayu</option>
+                <option value="ph">Tagalog</option>
+                <option value="pk">Pakistani</option>
+                <option value="np">Nepal</option>
+            </select>
+        </div>
     </nav>
 
     <main class="flex-1 overflow-hidden flex flex-col">
-        <div id="page-cashier" class="page-content active p-2 md:p-4">
+        <div id="page-cashier" class="page-content active p-4 md:p-6">
             <div class="flex flex-col lg:flex-row gap-6 h-full">
                 <div class="flex-1 flex flex-col overflow-hidden">
-                    <input id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-4 outline-none focus:border-teal-500 text-lg shadow-inner">
-                    <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto pb-24 md:pb-4 pr-1"></div>
+                    <input id="posSearch" oninput="renderProducts()" class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-4 outline-none focus:border-teal-500 shadow-xl">
+                    <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto pb-20 pr-1"></div>
                 </div>
+                
                 <div class="w-full lg:w-80 bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col shrink-0 shadow-2xl">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-slate-500 text-[10px] uppercase tracking-widest">Cart</h3>
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-800">
+                        <h3 class="font-bold text-slate-500 text-[10px] uppercase tracking-widest" id="lang-cart-title">Cart</h3>
                         <button onclick="cart=[];renderCart();" class="text-[9px] text-red-400 font-bold uppercase">Clear</button>
                     </div>
-                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-2 min-h-[120px] max-h-[300px] lg:max-h-none mb-4 pr-1"></div>
-                    <div class="border-t border-slate-800 pt-4 space-y-4">
+                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-2 mb-4"></div>
+                    <div class="space-y-4">
                         <div class="flex justify-between items-end">
-                            <span class="text-xs text-slate-500 font-bold">TOTAL</span>
-                            <span class="text-2xl font-black text-white uppercase tracking-tighter">Rp<span id="total">0</span></span>
+                            <span class="text-xs text-slate-500 font-bold uppercase">Total</span>
+                            <span class="text-2xl font-black text-white"><span class="curr-sym"></span><span id="total">0</span></span>
                         </div>
-                        <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold text-xl outline-none border border-slate-700 focus:border-teal-500">
-                        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-teal-600 hover:bg-teal-500 p-4 rounded-xl font-black py-5 shadow-lg shadow-teal-900/20 transition-all">PAY NOW</button>
+                        <input type="number" id="cashInput" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold text-xl outline-none border border-slate-700 focus:border-teal-500">
+                        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-teal-600 p-4 rounded-xl font-black py-5 shadow-lg uppercase tracking-widest" id="lang-pay-btn">PAY</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="page-manage" class="page-content p-4">
-            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 mb-6 shadow-xl">
-                <h3 class="text-teal-400 font-black mb-4 uppercase text-xs tracking-widest">Add New Stock</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <input id="new-name" placeholder="Name" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
-                    <input id="new-sell" type="number" placeholder="Price" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
-                    <input id="new-cost" type="number" placeholder="Cost" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
-                    <input id="new-stock" type="number" placeholder="Stock" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 mb-6">
+                    <h3 class="text-teal-400 font-black mb-4 uppercase text-xs tracking-widest" id="lang-add-title"></h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <input id="new-name" placeholder="Name" class="bg-slate-800 p-4 rounded-xl text-sm border border-slate-700 outline-none">
+                        <input id="new-sell" type="number" placeholder="Price" class="bg-slate-800 p-4 rounded-xl text-sm border border-slate-700 outline-none">
+                        <input id="new-cost" type="number" placeholder="Cost" class="bg-slate-800 p-4 rounded-xl text-sm border border-slate-700 outline-none">
+                        <input id="new-stock" type="number" placeholder="Stock" class="bg-slate-800 p-4 rounded-xl text-sm border border-slate-700 outline-none">
+                    </div>
+                    <button onclick="addNewProduct()" class="mt-4 w-full bg-teal-600 p-4 rounded-xl font-black uppercase text-sm">Update Stock</button>
                 </div>
-                <button id="addProdBtn" onclick="addNewProduct()" class="mt-4 w-full bg-teal-600 p-4 rounded-xl font-black text-sm uppercase">Add to Inventory</button>
-            </div>
-            <div id="manageList" class="space-y-3"></div>
-            <div class="flex justify-center items-center gap-8 mt-8 pb-10">
-                <button onclick="changePage(-1)" class="text-teal-400 font-black uppercase text-xs">← Prev</button>
-                <span id="pageInfo" class="text-[10px] font-mono text-slate-500">Page 1</span>
-                <button onclick="changePage(1)" class="text-teal-400 font-black uppercase text-xs">Next →</button>
+                <div id="manageList" class="space-y-3 pb-20"></div>
             </div>
         </div>
 
         <div id="page-history" class="page-content p-4">
-            <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-slate-900 p-6 rounded-3xl border border-slate-800">
-                <h2 class="text-teal-400 font-black uppercase text-xl">Sales History</h2>
-                <select id="historyFilter" onchange="filterHistory()" class="bg-slate-800 text-[10px] font-bold p-3 rounded-xl border border-slate-700 outline-none uppercase">
-                    <option value="today">Today</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                </select>
-                <button onclick="exportStatement()" class="bg-teal-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-teal-900/10">PDF Export</button>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mb-6 text-center">
-                <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg">
-                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Revenue</p>
-                    <p id="sumRevenue" class="text-xl font-black text-white">Rp0</p>
+            <div class="max-w-2xl mx-auto space-y-6">
+                <div class="flex justify-between items-center bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <div>
+                        <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Total Sales</p>
+                        <p id="sumRevenue" class="text-2xl font-black text-white">0</p>
+                    </div>
+                    <button onclick="exportStatement()" class="bg-teal-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase">Export PDF</button>
                 </div>
-                <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg">
-                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Profit</p>
-                    <p id="sumProfit" class="text-xl font-black text-teal-400">Rp0</p>
-                </div>
+                <div id="historyList" class="space-y-3 pb-20"></div>
             </div>
-            <div id="historyList" class="space-y-3 pb-10"></div>
         </div>
 
         <div id="page-settings" class="page-content p-4">
             <div class="max-w-md mx-auto space-y-6">
-                <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-2xl">
-                    <h2 class="text-teal-400 font-black mb-6 uppercase tracking-widest">Config Store</h2>
-                    <div class="space-y-4">
-                        <input id="set-name" placeholder="Store Name" class="w-full bg-slate-800 p-4 rounded-xl outline-none border border-slate-700">
-                        <textarea id="set-addr" placeholder="Store Address" class="w-full bg-slate-800 p-4 rounded-xl outline-none border border-slate-700 h-24"></textarea>
-                        <input id="set-note" placeholder="Receipt Footer Note" class="w-full bg-slate-800 p-4 rounded-xl outline-none border border-slate-700">
-                        <button onclick="saveSettings()" class="w-full bg-teal-600 p-4 rounded-xl font-black uppercase">Save Configuration</button>
+                <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-2xl text-center">
+                    <img src="https://tactykz.com/wp-content/uploads/2026/03/NA2625-CR.png" alt="Logo" class="w-32 mx-auto mb-6">
+                    <h2 class="text-teal-400 font-black mb-6 uppercase tracking-widest">Store Setup</h2>
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <label class="text-[9px] text-slate-500 font-bold uppercase mb-2 block">Language / Currency</label>
+                            <select onchange="changeLanguage(this.value)" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl font-bold uppercase outline-none text-teal-400">
+                                <option value="id">Bahasa Indonesia (IDR)</option>
+                                <option value="en">English (USD)</option>
+                                <option value="nl">Dutch (EUR)</option>
+                                <option value="jp">Japan (JPY)</option>
+                                <option value="kr">Korean (KRW)</option>
+                                <option value="cn">China (CNY)</option>
+                                <option value="my">Melayu (MYR)</option>
+                                <option value="ph">Tagalog (PHP)</option>
+                                <option value="pk">Pakistani (PKR)</option>
+                                <option value="np">Nepal (NPR)</option>
+                            </select>
+                        </div>
+                        <input id="set-name" placeholder="Store Name" class="w-full bg-slate-800 p-4 rounded-xl border border-slate-700 outline-none">
+                        <textarea id="set-addr" placeholder="Address" class="w-full bg-slate-800 p-4 rounded-xl border border-slate-700 outline-none h-20"></textarea>
+                        <button onclick="saveSettings()" class="w-full bg-teal-600 p-4 rounded-xl font-black uppercase shadow-lg">Save Config</button>
                     </div>
                 </div>
-                <div class="bg-slate-900 p-6 rounded-3xl border border-red-900/20 text-center">
-                    <button onclick="logout()" class="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white p-4 rounded-xl font-black uppercase transition-all border border-red-900/30">
-                        Logout of Session
-                    </button>
-                </div>
+                <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 p-4 rounded-xl font-black uppercase border border-red-900/30">Logout Session</button>
             </div>
         </div>
     </main>
 </div>
 
 <div id="invoiceModal" class="modal">
-    <div class="bg-white text-slate-900 w-[90%] max-w-[350px] p-6 rounded-2xl shadow-2xl">
-        <div id="receiptArea" class="p-2 text-center bg-white font-mono text-[12px]">
-            <h2 id="invStoreName" class="font-black text-lg uppercase mb-1 leading-none">TACTYKZ</h2>
-            <p id="invStoreAddr" class="text-[9px] text-gray-500 mb-4 whitespace-pre-wrap leading-tight"></p>
-            <div class="border-y border-dashed border-gray-300 py-2 mb-4 flex justify-between text-[9px] uppercase">
-                <span id="invDate"></span><span id="invUser"></span>
+    <div class="bg-white text-slate-900 w-[90%] max-w-[350px] p-6 rounded-2xl">
+        <div id="receiptArea" class="text-center font-mono text-[12px] p-2">
+            <img src="https://tactykz.com/wp-content/uploads/2026/03/NA2625-CR.png" alt="Logo" class="w-20 mx-auto mb-2 grayscale">
+            <h2 id="invStoreName" class="font-black text-sm uppercase">NA2625</h2>
+            <p id="invStoreAddr" class="text-[9px] mb-4"></p>
+            <div id="receiptItems" class="text-left border-t border-dashed border-gray-300 py-2 space-y-1"></div>
+            <div class="border-t border-dashed border-gray-300 pt-2 font-bold flex justify-between">
+                <span>TOTAL</span><span id="recTotal"></span>
             </div>
-            <div id="receiptItems" class="space-y-1 mb-4 text-left leading-tight"></div>
-            <div class="border-t border-dashed border-gray-300 pt-2 space-y-1">
-                <div class="flex justify-between font-bold text-sm"><span>TOTAL</span><span id="recTotal"></span></div>
-                <div class="flex justify-between text-[10px]"><span>PAID</span><span id="recPaid"></span></div>
-                <div class="flex justify-between font-bold text-[10px]"><span>CHANGE</span><span id="recChange"></span></div>
-            </div>
-            <p id="invNote" class="mt-6 text-[10px] italic text-gray-400 border-t border-dashed border-gray-300 pt-4"></p>
         </div>
-        <div class="grid grid-cols-2 gap-2 mt-6 no-print">
-            <button onclick="printBluetooth()" class="bg-blue-600 text-white p-4 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-blue-900/20">Print BT</button>
-            <button onclick="window.print()" class="bg-gray-200 p-4 rounded-xl font-black text-[10px] uppercase text-gray-600">PDF/Save</button>
-            <button onclick="closeModal('invoiceModal')" class="col-span-2 bg-slate-100 p-3 rounded-xl font-bold text-[10px] uppercase text-gray-400">Close</button>
+        <div class="grid grid-cols-2 gap-2 mt-4">
+            <button onclick="printBluetooth()" class="bg-teal-600 text-white p-3 rounded-xl font-black text-[10px] uppercase">BT Print</button>
+            <button onclick="closeModal('invoiceModal')" class="bg-slate-100 p-3 rounded-xl font-bold text-slate-400 uppercase text-[10px]">Close</button>
         </div>
     </div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbweov-VD-18mMRdQJ6IbAv6Mcx2Oesq8naGvDfHpDQkdbVYlMh6VKlqFdb30tsdd59p/exec"; 
-let products = [], cart = [], currentUser = "", historyData = [], filteredHistory = [], salesCount = {};
-let currentPage = 1, itemsPerPage = 10;
+const API = "https://script.google.com/macros/s/AKfycbweov-VD-18mMRdQJ6IbAv6Mcx2Oesq8naGvDfHpDQkdbVYlMh6VKlqFdb30tsdd59p/exec";
+let currentLang = 'id';
+let products = [], cart = [], currentUser = "", historyData = [], salesCount = {};
 
-// --- NOTIFICATIONS ---
-function showToast(msg, isError=false) {
-    const t = document.getElementById('toast');
-    t.innerText = msg; t.style.background = isError ? '#ef4444' : '#14b8a6';
-    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
+const translations = {
+    id: { cashier: 'KASIR', inv: 'INVENTARIS', hist: 'RIWAYAT', sett: 'PENGATURAN', search: 'Cari produk...', cart: 'KERANJANG', pay: 'BAYAR SEKARANG', add: 'TAMBAH PRODUK', sym: 'Rp' },
+    en: { cashier: 'CASHIER', inv: 'INVENTORY', hist: 'HISTORY', sett: 'SETTINGS', search: 'Search items...', cart: 'CART', pay: 'CHECKOUT', add: 'ADD NEW ITEM', sym: '$' },
+    nl: { cashier: 'KASSA', inv: 'VOORRAAD', hist: 'HISTORIE', sett: 'INSTELLINGEN', search: 'Zoeken...', cart: 'MANDJE', pay: 'BETALEN', add: 'ITEM TOEVOEGEN', sym: '€' },
+    jp: { cashier: 'レジ', inv: '在庫管理', hist: '販売履歴', sett: '環境設定', search: '検索...', cart: 'カート', pay: '決済する', add: '新規登録', sym: '¥' },
+    kr: { cashier: '계산대', inv: '재고관리', hist: '판매기록', sett: '시스템설정', search: '검색...', cart: '장바구니', pay: '결제하기', add: '품목추가', sym: '₩' },
+    cn: { cashier: '收银', inv: '库存', hist: '记录', sett: '设置', search: '搜索...', cart: '购物车', pay: '结账', add: '新增产品', sym: '¥' },
+    my: { cashier: 'KAUNTER', inv: 'INVENTORI', hist: 'REKOD', sett: 'TETAPAN', search: 'Cari...', cart: 'BAKUL', pay: 'BAYAR', add: 'TAMBAH BARANG', sym: 'RM' },
+    ph: { cashier: 'KAHERA', inv: 'IMBENTARYO', hist: 'KASAYSAYAN', sett: 'SETTING', search: 'Hanapin...', cart: 'CART', pay: 'MAGBAYAD', add: 'DAGDAGAN', sym: '₱' },
+    pk: { cashier: 'کیشیر', inv: 'اسٹاک', hist: 'تاریخ', sett: 'سیٹنگز', search: 'تلاش کریں', cart: 'جھولی', pay: 'ادائیگی', add: 'نیا شامل کریں', sym: 'Rs' },
+    np: { cashier: 'क्यासियर', inv: 'मौज्दात', hist: 'इतिहास', sett: 'सेटिङ', search: 'खोज्नुहोस्', cart: 'कार्ट', pay: 'तिर्नुहोस्', add: 'थप्नुहोस्', sym: 'रू' }
+};
+
+function changeLanguage(lang) {
+    currentLang = lang;
+    const t = translations[lang];
+    document.getElementById('lang-nav-cashier').innerText = t.cashier;
+    document.getElementById('lang-nav-inv').innerText = t.inv;
+    document.getElementById('lang-nav-hist').innerText = t.hist;
+    document.getElementById('lang-nav-sett').innerText = t.sett;
+    document.getElementById('posSearch').placeholder = t.search;
+    document.getElementById('lang-cart-title').innerText = t.cart;
+    document.getElementById('checkoutBtn').innerText = t.pay;
+    document.getElementById('lang-add-title').innerText = t.add;
+    document.querySelectorAll('.curr-sym').forEach(el => el.innerText = t.sym);
+    localStorage.setItem('NA_POS_LANG', lang);
+    renderProducts();
 }
 
-// --- CORE SYSTEM FUNCTIONS ---
 async function doLogin() {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    if(!u || !p) return showToast("Enter Username & Password", true);
-    const b = document.getElementById('loginBtn');
-    b.disabled = true; b.innerText = "SIGNING IN...";
-    try {
-        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
-        const data = await res.json();
-        if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
-        else showToast("INVALID CREDENTIALS", true);
-    } catch(e) { showToast("Connection failed", true); }
-    b.disabled = false; b.innerText = "SIGN IN";
+    if(!u || !p) return;
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
+    const data = await res.json();
+    if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
 }
 
 function logout() { localStorage.removeItem('NA_POS_USER'); location.reload(); }
@@ -218,261 +231,178 @@ async function loadAppData() {
         const [pRes, hRes] = await Promise.all([fetch(API+"?type=products"), fetch(API+"?type=transactions")]);
         products = await pRes.json();
         historyData = (await hRes.json()).reverse();
-        calculateSales();
+        calculateAnalytics();
         renderProducts();
+        renderHistory();
         if(document.getElementById('page-manage').classList.contains('active')) renderManage();
-    } catch(e) { showToast("Sync Error", true); }
+    } catch(e) { showToast("Sync Failed", true); }
 }
 
-function calculateSales() {
+function calculateAnalytics() {
     salesCount = {};
     historyData.forEach(row => {
-        try {
-            const items = JSON.parse(row[5]);
-            items.forEach(it => { salesCount[it.name] = (salesCount[it.name] || 0) + it.qty; });
-        } catch(e) {}
+        try { JSON.parse(row[5]).forEach(it => { salesCount[it.name] = (salesCount[it.name] || 0) + it.qty; }); } catch(e) {}
     });
 }
 
-function getBestSeller() {
-    let max = 0, name = "";
-    for (const key in salesCount) { if (salesCount[key] > max) { max = salesCount[key]; name = key; } }
-    return name;
-}
-
-// --- UI RENDERING ---
 function renderProducts() {
-    const query = document.getElementById('posSearch').value.toLowerCase();
-    const bestSeller = getBestSeller();
-    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(query)).map(p => {
-        const sold = salesCount[p.name] || 0;
-        const isBest = p.name === bestSeller && sold > 0;
-        return `
-        <div onclick="addToCart('${p.name}')" class="relative bg-slate-900 rounded-2xl p-4 border ${isBest ? 'border-teal-500' : 'border-slate-800'} active:scale-95 transition-all text-center shadow-lg group">
-            ${isBest ? '<span class="absolute -top-2 -left-2 bg-teal-500 text-slate-950 text-[8px] font-black px-2 py-1 rounded-lg">BEST SELLER</span>' : ''}
-            <span class="absolute top-2 right-2 text-[7px] text-slate-600 font-bold uppercase">${sold} SOLD</span>
-            <p class="font-black text-[11px] text-white truncate mb-1 uppercase mt-2">${p.name}</p>
-            <p class="text-teal-400 font-black text-sm">Rp${p.sell.toLocaleString()}</p>
-            <div class="mt-2 text-[8px] ${p.stock < 5 ? 'text-red-500 font-black animate-pulse' : 'text-slate-500'} uppercase">STK: ${p.stock}</div>
-        </div>`;
-    }).join("");
-}
-
-function renderManage() {
-    const start = (currentPage - 1) * itemsPerPage;
-    const pag = products.slice(start, start + itemsPerPage);
-    document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${Math.ceil(products.length/itemsPerPage) || 1}`;
-    document.getElementById('manageList').innerHTML = pag.map((p, idx) => `
-        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-wrap justify-between items-center gap-4">
-            <div class="flex-1 min-w-[140px]">
-                <p class="font-black text-[10px] uppercase text-teal-400">${p.name}</p>
-                <p class="text-[8px] text-slate-500 font-bold uppercase">Total Units Sold: ${salesCount[p.name] || 0}</p>
-            </div>
-            <div class="flex gap-2 items-center">
-                <input id="prc-${idx}" type="number" value="${p.sell}" class="w-20 bg-slate-800 p-2 rounded-lg text-[10px] outline-none border border-slate-700">
-                <input id="stk-${idx}" type="number" value="${p.stock}" class="w-14 bg-slate-800 p-2 rounded-lg text-[10px] outline-none border border-slate-700">
-                <button onclick="updateItem('${p.name}', ${idx})" class="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg text-[9px] font-bold h-[34px]">SAVE</button>
-            </div>
+    const q = document.getElementById('posSearch').value.toLowerCase();
+    const sym = translations[currentLang].sym;
+    const best = Object.keys(salesCount).reduce((a, b) => salesCount[a] > salesCount[b] ? a : b, "");
+    
+    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(q)).map(p => `
+        <div onclick="addToCart('${p.name}')" class="relative bg-slate-900 rounded-2xl p-4 border ${p.name===best?'border-teal-500':'border-slate-800'} text-center shadow-lg active:scale-95 transition-all">
+            ${p.name===best?'<span class="absolute -top-2 -left-2 bg-teal-500 text-slate-950 text-[7px] font-black px-2 py-1 rounded-lg">TOP SELL</span>':''}
+            <p class="font-black text-[10px] text-white truncate uppercase mb-1">${p.name}</p>
+            <p class="text-teal-400 font-black text-sm">${sym}${p.sell.toLocaleString()}</p>
+            <p class="text-[8px] ${p.stock<5?'text-red-500':'text-slate-600'} mt-2 uppercase">Stock: ${p.stock}</p>
         </div>`).join("");
 }
 
-// --- CART LOGIC ---
 function addToCart(name) {
     const p = products.find(x => x.name === name);
-    if(p.stock <= 0) return showToast("Out of stock!", true);
-    let item = cart.find(i => i.name === name);
-    if (item) { if(item.qty >= p.stock) return showToast("Stock limit reached", true); item.qty++; }
+    if(p.stock <= 0) return showToast("No Stock", true);
+    let i = cart.find(x => x.name === name);
+    if (i) { if(i.qty >= p.stock) return; i.qty++; }
     else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
     renderCart();
 }
 
 function renderCart() {
-    let t = 0;
+    let t = 0; const sym = translations[currentLang].sym;
     document.getElementById('cartItems').innerHTML = cart.map(i => {
         t += i.qty * i.price;
-        return `<div class="flex justify-between bg-slate-800 p-3 rounded-xl items-center shadow-md border border-slate-700">
-            <div class="flex flex-col"><span class="truncate text-[10px] font-black uppercase text-white">${i.name}</span>
-            <span class="text-[9px] text-teal-400 font-bold">Rp${(i.qty*i.price).toLocaleString()}</span></div>
-            <div class="flex items-center gap-2">
-                <button onclick="changeQty('${i.name}',-1)" class="bg-slate-700 w-8 h-8 rounded-lg font-bold">-</button>
-                <span class="text-xs font-bold w-4 text-center">${i.qty}</span>
-                <button onclick="changeQty('${i.name}',1)" class="bg-slate-700 w-8 h-8 rounded-lg font-bold">+</button>
-            </div>
+        return `<div class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700">
+            <div><p class="text-[9px] font-black text-white uppercase">${i.name}</p>
+            <p class="text-[9px] text-teal-400">${sym}${(i.qty*i.price).toLocaleString()}</p></div>
+            <span class="font-bold text-xs">x${i.qty}</span>
         </div>`;
     }).join("");
     document.getElementById('total').innerText = t.toLocaleString();
 }
 
-function changeQty(n, d) {
-    let i = cart.find(x => x.name === n); const p = products.find(x => x.name === n);
-    if (d > 0 && i.qty >= p.stock) return showToast("Stock limit reached", true);
-    i.qty += d; if (i.qty <= 0) cart = cart.filter(x => x.name !== n);
-    renderCart();
-}
-
-// --- CHECKOUT & PRINT ---
 async function checkout() {
     const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
     const paid = Number(document.getElementById('cashInput').value || 0);
-    if (cart.length === 0 || paid < total) return showToast("Verify Cart/Cash", true);
-    const b = document.getElementById('checkoutBtn');
-    b.disabled = true; b.innerText = "PROCESSING...";
-    try {
-        const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
-        await fetch(API, { method: 'POST', body: JSON.stringify({ 
-            type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total 
-        })});
-        showInvoice(currentUser, [...cart], total, paid, paid-total);
-        cart = []; document.getElementById('cashInput').value = "";
-        loadAppData(); 
-    } catch(e) { showToast("Sync Error", true); }
-    b.disabled = false; b.innerText = "PAY NOW";
+    if (cart.length === 0 || paid < total) return showToast("Check Cart/Cash", true);
+    const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
+    showToast("PROCESSING...");
+    await fetch(API, { method: 'POST', body: JSON.stringify({ 
+        type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total 
+    })});
+    showInvoice(currentUser, [...cart], total, paid, paid-total);
+    cart = []; document.getElementById('cashInput').value = "";
+    loadAppData();
+}
+
+function showInvoice(user, items, total, paid, change) {
+    const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
+    const sym = translations[currentLang].sym;
+    document.getElementById('invStoreName').innerText = set.name || "NA2625";
+    document.getElementById('invStoreAddr').innerText = set.addr || "";
+    document.getElementById('recTotal').innerText = sym + total.toLocaleString();
+    document.getElementById('receiptItems').innerHTML = items.map(i => `<div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span></div>`).join("");
+    document.getElementById('invoiceModal').classList.add('active');
 }
 
 async function printBluetooth() {
     const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
     const encoder = new TextEncoder();
-    let cmds = [
-        '\x1B\x40', '\x1B\x61\x01', '\x1B\x21\x20', (set.name || "TACTYKZ").toUpperCase() + '\n',
-        '\x1B\x21\x00', (set.addr || "") + '\n', '--------------------------------\n', '\x1B\x61\x00'
-    ];
-    cart.forEach(i => cmds.push(`${i.name.substring(0,18).padEnd(18)} ${String(i.qty).padStart(2)} ${String(i.price*i.qty).padStart(8)}\n`));
-    cmds.push('--------------------------------\n', '\x1B\x61\x02', `TOTAL: ${document.getElementById('recTotal').innerText}\n\n`, '\x1B\x61\x01', (set.note || "Thank you!") + '\n\n\n\n');
-    
+    let cmds = ['\x1B\x40', '\x1B\x61\x01', (set.name || "NA2625").toUpperCase() + '\n', '--------------------------------\n'];
+    cart.forEach(i => cmds.push(`${i.name.substring(0,20)} x${i.qty}\n`));
+    cmds.push('--------------------------------\n', `TOTAL: ${document.getElementById('recTotal').innerText}\n\n\n`);
     const data = encoder.encode(cmds.join(''));
     try {
-        showToast("LINKING PRINTER...");
-        const device = await navigator.bluetooth.requestDevice({
-            filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'MPT' }, { namePrefix: 'RPP' }],
-            optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-        });
+        const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }] });
         const server = await device.gatt.connect();
         const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
         const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-        for (let i = 0; i < data.length; i += 20) await characteristic.writeValue(data.slice(i, i + 20));
-        showToast("PRINTING...");
-    } catch (e) { showToast("BT FAILED: Use System Print", true); }
+        await characteristic.writeValue(data);
+    } catch (e) { alert("BT Fail: Use Screen Print"); }
 }
 
-// --- PAGE NAVIGATION ---
+function exportStatement() {
+    const win = window.open('', '_blank');
+    const sym = translations[currentLang].sym;
+    const rows = historyData.map(r => `<tr><td>${new Date(r[0]).toLocaleDateString()}</td><td>${sym}${Number(r[3]).toLocaleString()}</td></tr>`).join("");
+    win.document.write(`<html><body><h1>NA2625 Sales Report</h1><table border="1" width="100%">${rows}</table></body></html>`);
+    win.document.close(); win.print();
+}
+
+function renderManage() {
+    document.getElementById('manageList').innerHTML = products.map((p, idx) => `
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+            <span class="text-[10px] font-black uppercase text-teal-400">${p.name}</span>
+            <div class="flex gap-2">
+                <input id="stk-${idx}" type="number" value="${p.stock}" class="w-16 bg-slate-800 p-2 rounded text-[10px] outline-none">
+                <button onclick="updateStock('${p.name}', ${idx})" class="bg-teal-600 px-3 py-1 rounded text-[9px] font-bold">SAVE</button>
+            </div>
+        </div>`).join("");
+}
+
+async function updateStock(name, idx) {
+    const nS = Number(document.getElementById(`stk-${idx}`).value);
+    await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'editProduct', oldName: name, name, stock: nS })});
+    loadAppData(); showToast("STOCK SAVED");
+}
+
+function renderHistory() {
+    const sym = translations[currentLang].sym;
+    let rev = 0;
+    document.getElementById('historyList').innerHTML = historyData.map(r => {
+        rev += Number(r[3]);
+        return `<div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div><p class="text-[8px] text-slate-500">${new Date(r[0]).toLocaleString()}</p>
+            <p class="font-black text-white">${sym}${Number(r[3]).toLocaleString()}</p></div>
+        </div>`;
+    }).join("");
+    document.getElementById('sumRevenue').innerText = sym + rev.toLocaleString();
+}
+
 function showPage(p) {
     document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(x => {
-        x.classList.remove('active');
-        x.classList.add('text-slate-400');
-    });
-
+    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
     document.getElementById('page-' + p).classList.add('active');
-    
-    // Find button by onclick content
-    const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(`'${p}'`));
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.classList.remove('text-slate-400');
-    }
-
-    if(p === 'manage') renderManage();
-    if(p === 'history') filterHistory();
-    if(p === 'settings') loadSettings();
+    const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(`'${p}'`));
+    if (btn) btn.classList.add('active');
+    if (p === 'manage') renderManage();
+    if (p === 'settings') loadSettings();
 }
 
-// --- UTILITIES ---
 function loadSettings() {
     const s = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
     document.getElementById('set-name').value = s.name || "";
     document.getElementById('set-addr').value = s.addr || "";
-    document.getElementById('set-note').value = s.note || "";
 }
 
 function saveSettings() {
     localStorage.setItem('NA_POS_SETTINGS', JSON.stringify({
-        name: document.getElementById('set-name').value,
-        addr: document.getElementById('set-addr').value,
-        note: document.getElementById('set-note').value
-    })); showToast("SETTINGS UPDATED");
+        name: document.getElementById('set-name').value, addr: document.getElementById('set-addr').value
+    })); showToast("SETTINGS SAVED");
 }
 
-async function addNewProduct() {
-    const n = document.getElementById('new-name').value, s = Number(document.getElementById('new-sell').value);
-    const c = Number(document.getElementById('new-cost').value), st = Number(document.getElementById('new-stock').value);
-    if(!n || !s) return showToast("Name and Price required", true);
-    await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addProduct', name: n, sell: s, cost: c, stock: st }) });
-    document.querySelectorAll('#page-manage input').forEach(i => i.value="");
-    await loadAppData(); 
-}
-
-async function updateItem(name, idx) {
-    const p = products.find(x => x.name === name);
-    const nP = Number(document.getElementById(`prc-${idx}`).value);
-    const nS = Number(document.getElementById(`stk-${idx}`).value);
-    await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'editProduct', oldName: name, name, sell: nP, cost: p.cost, stock: nS })});
-    await loadAppData(); showToast("STOCKED SAVED");
-}
-
-function changePage(d) {
-    const max = Math.ceil(products.length / itemsPerPage);
-    currentPage = Math.max(1, Math.min(currentPage + d, max)); renderManage();
-}
-
-function filterHistory() {
-    const mode = document.getElementById('historyFilter').value;
-    const now = new Date();
-    filteredHistory = historyData.filter(row => {
-        const d = new Date(row[0]);
-        if (mode === 'today') return d.toDateString() === now.toDateString();
-        const diff = (now - d) / (1000 * 3600 * 24);
-        return mode === 'weekly' ? diff <= 7 : diff <= 30;
-    });
-    renderHistoryList();
-}
-
-function renderHistoryList() {
-    let rev = 0, prof = 0;
-    document.getElementById('historyList').innerHTML = filteredHistory.map((r, i) => {
-        rev += Number(r[3]); prof += Number(r[4]);
-        return `<div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center shadow-md">
-            <div><p class="text-[9px] text-slate-500 font-mono tracking-tighter">${new Date(r[0]).toLocaleString()}</p>
-            <p class="font-black text-white text-sm">Rp${Number(r[3]).toLocaleString()}</p></div>
-            <button onclick="viewHistoryItem(${i})" class="text-[9px] bg-slate-800 px-3 py-2 rounded-lg font-bold uppercase tracking-widest">View</button>
-        </div>`;
-    }).join("");
-    document.getElementById('sumRevenue').innerText = "Rp" + rev.toLocaleString();
-    document.getElementById('sumProfit').innerText = "Rp" + prof.toLocaleString();
-}
-
-function viewHistoryItem(i) {
-    const r = filteredHistory[i];
-    showInvoice(r[1], JSON.parse(r[5]), r[3], r[6], r[7], new Date(r[0]).toLocaleString());
-}
-
-function showInvoice(user, items, total, paid, change, dateStr = null) {
-    const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
-    document.getElementById('invStoreName').innerText = set.name || "TACTYKZ";
-    document.getElementById('invStoreAddr').innerText = set.addr || "";
-    document.getElementById('invNote').innerText = set.note || "";
-    document.getElementById('invDate').innerText = dateStr || new Date().toLocaleString();
-    document.getElementById('invUser').innerText = "BY: " + user;
-    document.getElementById('recTotal').innerText = "Rp" + Number(total).toLocaleString();
-    document.getElementById('recPaid').innerText = "Rp" + Number(paid).toLocaleString();
-    document.getElementById('recChange').innerText = "Rp" + Number(change).toLocaleString();
-    document.getElementById('receiptItems').innerHTML = items.map(i => `<div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span></div>`).join("");
-    document.getElementById('invoiceModal').classList.add('active');
-}
-
-function exportStatement() {
-    const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
-    const win = window.open('', '_blank');
-    const rows = filteredHistory.map(r => `<tr><td style="border-bottom:1px solid #eee;padding:10px">${new Date(r[0]).toLocaleDateString()}</td><td style="border-bottom:1px solid #eee;padding:10px;text-align:right">Rp${Number(r[3]).toLocaleString()}</td></tr>`).join("");
-    win.document.write(`<html><body style="font-family:sans-serif;padding:40px;color:#333"><center><h1>${set.name || 'TACTYKZ'}</h1><p>Sales Audit Report</p><hr></center><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f9f9f9"><th>DATE</th><th style="text-align:right">TOTAL</th></tr></thead><tbody>${rows}</tbody></table><h2 style="text-align:right;margin-top:20px">TOTAL REVENUE: ${document.getElementById('sumRevenue').innerText}</h2></body></html>`);
-    win.document.close(); win.print();
+function showToast(m, e=false) {
+    const t = document.getElementById('toast'); t.innerText = m;
+    t.style.background = e ? '#ef4444' : '#0d9488';
+    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500);
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
+async function addNewProduct() {
+    const n = document.getElementById('new-name').value, s = Number(document.getElementById('new-sell').value);
+    const c = Number(document.getElementById('new-cost').value), st = Number(document.getElementById('new-stock').value);
+    if(!n || !s) return;
+    await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addProduct', name: n, sell: s, cost: c, stock: st }) });
+    loadAppData();
+}
+
 window.onload = () => {
-    const saved = localStorage.getItem('NA_POS_USER');
-    if (saved) {
-        currentUser = saved;
+    const savedU = localStorage.getItem('NA_POS_USER');
+    const savedL = localStorage.getItem('NA_POS_LANG') || 'id';
+    changeLanguage(savedL);
+    if (savedU) {
+        currentUser = savedU;
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('app').classList.remove('hidden');
         loadAppData();
