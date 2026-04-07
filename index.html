@@ -1,358 +1,299 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-slate-950 text-slate-200">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NA2625 | DARK POS PRO</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <style>
-        .page-content { display: none; height: 100%; overflow-y: auto; }
-        .page-content.active { display: block; }
-        .nav-btn.active { background: #1e293b; color: #2dd4bf; border-left: 4px solid #2dd4bf; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal.active { display: flex; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NA2625 | DARK POS PRO</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<style>
+.page-content { display:none; height:100%; overflow-y:auto; }
+.page-content.active { display:block; }
+.nav-btn.active { background:#1e293b; color:#2dd4bf; border-left:4px solid #2dd4bf; }
+.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px);}
+.modal.active { display:flex; }
+</style>
 </head>
+
 <body class="h-full overflow-hidden font-sans">
 
+<!-- ALERT MODAL -->
+<div id="alertModal" class="modal">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-center w-80">
+        <p id="alertText" class="mb-4 font-bold"></p>
+        <button onclick="closeModal('alertModal')" class="bg-teal-600 px-4 py-2 rounded-lg font-bold">OK</button>
+    </div>
+</div>
+
+<!-- HISTORY MODAL -->
 <div id="historyModal" class="modal">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-md p-8 rounded-3xl shadow-2xl">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md p-8 rounded-3xl">
         <h3 class="text-xl font-black text-teal-400 mb-6">Order Details</h3>
-        <div id="historyDetailContent" class="space-y-3 mb-8 max-h-64 overflow-y-auto pr-2"></div>
-        <button onclick="closeModal('historyModal')" class="w-full bg-slate-800 p-4 rounded-xl font-bold">Close</button>
+        <div id="historyDetailContent" class="space-y-3 mb-6 max-h-64 overflow-y-auto"></div>
+        <button onclick="closeModal('historyModal')" class="w-full bg-slate-800 p-3 rounded-xl">Close</button>
     </div>
 </div>
 
+<!-- INVOICE MODAL -->
 <div id="invoiceModal" class="modal">
-    <div class="bg-white text-slate-900 w-80 p-6 rounded-xl shadow-2xl">
-        <div id="receiptArea" class="p-2">
-            <div class="text-center border-b border-dashed border-slate-300 pb-4 mb-4">
-                <h2 class="font-black text-xl">NA2625</h2>
-                <p class="text-[10px] uppercase text-slate-500">Official Receipt</p>
-            </div>
-            <div id="receiptItems" class="text-xs space-y-2 mb-4"></div>
-            <div class="border-t border-dashed border-slate-300 pt-4 text-xs space-y-1">
-                <div class="flex justify-between font-bold"><span>TOTAL</span><span id="recTotal"></span></div>
-                <div class="flex justify-between"><span>PAID</span><span id="recPaid"></span></div>
-                <div class="flex justify-between text-teal-600 font-bold"><span>CHANGE</span><span id="recChange"></span></div>
+    <div class="bg-white text-black w-80 p-6 rounded-xl">
+        <div id="receiptArea">
+            <h2 class="text-center font-bold mb-4">Receipt</h2>
+            <div id="receiptItems"></div>
+            <div class="mt-4 text-sm">
+                <div>Total: Rp<span id="recTotal"></span></div>
+                <div>Paid: Rp<span id="recPaid"></span></div>
+                <div>Change: Rp<span id="recChange"></span></div>
             </div>
         </div>
-        <div class="flex gap-2 mt-6">
-            <button onclick="downloadReceipt()" class="flex-1 bg-teal-600 text-white p-3 rounded-lg font-bold text-xs">Save</button>
-            <button onclick="closeModal('invoiceModal')" class="flex-1 bg-slate-200 p-3 rounded-lg font-bold text-xs">Close</button>
+        <div class="flex gap-2 mt-4">
+            <button onclick="downloadReceipt()" class="flex-1 bg-teal-600 text-white p-2 rounded">Save</button>
+            <button onclick="closeModal('invoiceModal')" class="flex-1 bg-gray-300 p-2 rounded">Close</button>
         </div>
     </div>
 </div>
 
+<!-- LOGIN -->
 <div id="loginPage" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950">
-    <div class="w-full max-w-sm p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl text-center">
-        <h1 class="text-3xl font-black text-teal-400 mb-8">NA2625</h1>
-        <div class="space-y-4">
-            <input id="user" type="text" placeholder="Username" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center">
-            <input id="pass" type="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center">
-            <button id="loginBtn" class="w-full bg-teal-600 p-4 rounded-xl font-bold transition hover:bg-teal-500">SIGN IN</button>
-        </div>
+    <div class="w-full max-w-sm p-10 bg-slate-900 rounded-3xl border border-slate-800 text-center">
+        <h1 class="text-3xl font-black text-teal-400 mb-6">NA2625</h1>
+        <input id="user" placeholder="Username" class="w-full p-4 mb-3 bg-slate-800 rounded-xl text-center">
+        <input id="pass" type="password" placeholder="Password" class="w-full p-4 mb-3 bg-slate-800 rounded-xl text-center">
+        <button id="loginBtn" class="w-full bg-teal-600 p-4 rounded-xl font-bold">SIGN IN</button>
     </div>
 </div>
 
+<!-- APP -->
 <div id="app" class="flex h-full hidden">
-    <nav class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
-        <div class="p-8 text-xl font-black text-white border-b border-slate-800">NA2625 <span class="text-teal-400">POS</span></div>
-        <div class="flex-1 p-4 space-y-1">
-            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">🛒 Cashier</button>
-            <button onclick="showPage('manage')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">📦 Inventory</button>
-            <button onclick="showPage('history')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">📜 History</button>
-        </div>
-        <div class="p-6 border-t border-slate-800 text-center">
-            <button onclick="logout()" class="text-[10px] font-bold text-red-400 uppercase tracking-widest">Logout</button>
-        </div>
-    </nav>
 
-    <main class="flex-1 bg-slate-950 p-10 overflow-hidden flex flex-col">
-        <div id="page-cashier" class="page-content active h-full">
-            <div class="flex gap-8 h-full">
-                <div class="flex-1 flex flex-col">
-                    <input id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-8 outline-none">
-                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6 overflow-y-auto"></div>
-                </div>
-                <div class="w-80 bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col shrink-0">
-                    <h3 class="font-bold text-slate-500 uppercase text-[10px] mb-6 tracking-widest">Order</h3>
-                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6"></div>
-                    <div class="border-t border-slate-800 pt-6 space-y-4">
-                        <div class="flex justify-between text-xl font-black"><span>Total</span><span>Rp<span id="total">0</span></span></div>
-                        <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold">
-                        <button onclick="checkout()" class="w-full bg-teal-600 p-4 rounded-xl font-black text-lg">CHECKOUT</button>
-                    </div>
-                </div>
-            </div>
+<nav class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
+    <div class="p-6 font-black">NA2625 POS</div>
+    <button onclick="showPage('cashier')" class="nav-btn p-4 text-left">Cashier</button>
+    <button onclick="showPage('manage')" class="nav-btn p-4 text-left">Inventory</button>
+    <button onclick="showPage('history')" class="nav-btn p-4 text-left">History</button>
+    <button onclick="logout()" class="text-red-400 mt-auto p-4">Logout</button>
+</nav>
+
+<main class="flex-1 p-6 overflow-hidden">
+
+<!-- CASHIER -->
+<div id="page-cashier" class="page-content active h-full">
+    <input id="posSearch" oninput="renderProducts()" placeholder="Search..." class="w-full p-3 bg-slate-800 rounded mb-4">
+
+    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 overflow-y-auto"></div>
+
+    <div class="bg-slate-900 p-4 rounded-xl">
+        <div id="cartItems" class="space-y-2 mb-4"></div>
+
+        <div class="flex justify-between font-bold text-lg mb-2">
+            <span>Total</span>
+            <span>Rp<span id="total">0</span></span>
         </div>
 
-        <div id="page-manage" class="page-content">
-            <div class="mb-10 bg-slate-900 p-8 rounded-3xl border border-slate-800">
-                <h2 class="text-xl font-bold mb-6 text-teal-400">Add New Product</h2>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <input id="newPName" placeholder="Product Name" class="p-4 bg-slate-800 rounded-xl outline-none">
-                    <input id="newPStock" type="number" placeholder="Initial Stock" class="p-4 bg-slate-800 rounded-xl outline-none">
-                    <input id="newPSell" type="number" placeholder="Selling Price" class="p-4 bg-slate-800 rounded-xl outline-none">
-                    <input id="newPCost" type="number" placeholder="Factory Cost" class="p-4 bg-slate-800 rounded-xl outline-none">
-                </div>
-                <button onclick="addNewProduct()" class="w-full bg-teal-600 p-4 rounded-xl font-bold">Save New Product</button>
-            </div>
-            <div id="manageList" class="grid gap-4"></div>
-        </div>
+        <input id="cashInput" type="number" placeholder="Cash Amount" class="w-full p-3 bg-slate-800 rounded mb-2 text-center">
 
-        <div id="page-history" class="page-content">
-            <h2 class="text-3xl font-black mb-10">History</h2>
-            <div id="historyList" class="space-y-4"></div>
-        </div>
-    </main>
+        <button onclick="checkout()" class="w-full bg-teal-600 p-3 rounded font-bold">CHECKOUT</button>
+    </div>
+</div>
+
+<!-- MANAGE -->
+<div id="page-manage" class="page-content">
+    <h2 class="text-xl mb-4">Add Product</h2>
+
+    <div class="grid grid-cols-2 gap-2 mb-4">
+        <input id="newPName" placeholder="Name" class="p-2 bg-slate-800 rounded">
+        <input id="newPStock" type="number" placeholder="Stock" class="p-2 bg-slate-800 rounded">
+        <input id="newPSell" type="number" placeholder="Sell" class="p-2 bg-slate-800 rounded">
+        <input id="newPCost" type="number" placeholder="Cost" class="p-2 bg-slate-800 rounded">
+    </div>
+
+    <button onclick="addNewProduct()" class="bg-teal-600 p-3 rounded w-full mb-6">Add Product</button>
+
+    <div id="manageList" class="space-y-4"></div>
+</div>
+
+<!-- HISTORY -->
+<div id="page-history" class="page-content">
+    <h2 class="text-2xl mb-4">History</h2>
+    <div id="historyList"></div>
+</div>
+
+</main>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwsy2sHbC8bylPIyk1K9TAdOZDPZgrEK3gyJt3eBXTIT-p7VwoY5lA9coV8fPcvDsqn/exec";
-let products = [], cart = [], currentUser = "";
+const API = "https://script.google.com/macros/s/AKfycbwb9XB8qvPmeEdhPJ2haiOG7Nx_SIdyVpmiGb2C6oM1PJdqhQzBRoKkvksImnLY6zrE/exec";
 
-// SIMPLE MODAL ALERT
-function showAlert(msg) {
-    const modal = document.createElement("div");
-    modal.className = "modal active";
-    modal.innerHTML = `
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-center w-80">
-            <p class="mb-4 font-bold">${msg}</p>
-            <button onclick="this.closest('.modal').remove()" class="bg-teal-600 px-4 py-2 rounded-lg font-bold">OK</button>
-        </div>`;
-    document.body.appendChild(modal);
+let products=[], cart=[], currentUser="";
+
+// MODAL ALERT
+function showAlert(msg){
+    alertText.innerText=msg;
+    alertModal.classList.add("active");
 }
 
-window.onload = () => {
-    const saved = localStorage.getItem('NA_POS_USER');
-    if (saved) {
-        currentUser = saved;
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('app').classList.remove('hidden');
+function closeModal(id){
+    document.getElementById(id).classList.remove("active");
+}
+
+// LOGIN
+loginBtn.onclick=async()=>{
+    const res=await fetch(API,{method:"POST",body:JSON.stringify({type:"login",user:user.value,pass:pass.value})});
+    const data=await res.json();
+    if(data.success){
+        localStorage.setItem("NA_POS_USER",user.value);
+        location.reload();
+    }else showAlert("Login Failed");
+};
+
+window.onload=()=>{
+    const saved=localStorage.getItem("NA_POS_USER");
+    if(saved){
+        currentUser=saved;
+        loginPage.style.display="none";
+        app.classList.remove("hidden");
         loadProducts();
     }
 };
 
-function logout() { localStorage.removeItem('NA_POS_USER'); location.reload(); }
-
-function showPage(p) {
-    document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-    document.getElementById('page-'+p).classList.add('active');
-    if(p === 'history') fetchHistory();
-    if(p === 'manage') renderManage();
+function logout(){
+    localStorage.removeItem("NA_POS_USER");
+    location.reload();
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-// LOGIN
-document.getElementById('loginBtn').onclick = async () => {
-    const u = user.value, p = pass.value;
-    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
-    const data = await res.json();
-    if(data.success) {
-        localStorage.setItem('NA_POS_USER', u);
-        location.reload();
-    } else showAlert("Login Failed");
-};
-
-// LOAD PRODUCTS
-async function loadProducts() {
-    const res = await fetch(API + "?type=products");
-    products = await res.json();
+// PRODUCTS
+async function loadProducts(){
+    const res=await fetch(API+"?type=products");
+    products=await res.json();
     renderProducts();
 }
 
-// RENDER PRODUCTS
-function renderProducts() {
-    const s = posSearch.value.toLowerCase();
-    productsGrid.innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => {
-        const img = p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150';
+function renderProducts(){
+    const s=posSearch.value.toLowerCase();
+
+    productsGrid.innerHTML=products.filter(p=>p.name.toLowerCase().includes(s)).map(p=>{
+        const img=p.imgId?API+"?type=img&id="+p.imgId:"https://via.placeholder.com/150";
+
         return `
-        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hover:border-teal-500 cursor-pointer">
-            <img src="${img}" class="w-full h-24 object-cover rounded-xl mb-4">
-            <div class="text-center">
-                <p class="text-xs text-slate-400">${p.name}</p>
-                <p class="text-teal-400 font-bold">Rp${p.sell.toLocaleString()}</p>
-                <p class="text-[10px] text-slate-500">Stock: ${p.stock}</p>
-            </div>
+        <div onclick="addToCart('${p.name}')" class="bg-slate-900 p-3 rounded cursor-pointer">
+            <img src="${img}" class="w-full h-24 object-cover mb-2 rounded">
+            <p class="text-sm">${p.name}</p>
+            <p class="text-teal-400">Rp${p.sell}</p>
         </div>`;
     }).join("");
 }
 
 // CART
-function addToCart(name) {
-    const p = products.find(x => x.name === name);
-    if(p.stock <= 0) return showAlert("Out of stock!");
+function addToCart(name){
+    const p=products.find(x=>x.name===name);
+    if(p.stock<=0) return showAlert("Out of stock");
 
-    let item = cart.find(i => i.name === name);
-    if (item) item.qty++;
-    else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
+    let item=cart.find(i=>i.name===name);
+    if(item) item.qty++;
+    else cart.push({name:p.name,qty:1,price:p.sell,cost:p.cost});
 
     renderCart();
 }
 
-function changeQty(name, delta) {
-    const item = cart.find(i => i.name === name);
-    if (!item) return;
+function changeQty(name,delta){
+    const item=cart.find(i=>i.name===name);
+    if(!item) return;
 
-    item.qty += delta;
+    item.qty+=delta;
 
-    if (item.qty <= 0) {
-        cart = cart.filter(i => i.name !== name);
+    if(item.qty<=0){
+        cart=cart.filter(i=>i.name!==name);
     }
 
     renderCart();
 }
 
-function renderCart() {
-    let total = 0;
+function renderCart(){
+    let total=0;
 
-    cartItems.innerHTML = cart.map(i => {
-        total += i.qty * i.price;
+    cartItems.innerHTML=cart.map(i=>{
+        total+=i.qty*i.price;
+
         return `
-        <div class="flex justify-between items-center text-xs p-3 bg-slate-800 rounded-lg">
+        <div class="flex justify-between items-center bg-slate-800 p-2 rounded text-xs">
             <span>${i.name}</span>
-            <div class="flex items-center gap-2">
-                <button onclick="changeQty('${i.name}', -1)" class="px-2 bg-red-500 rounded">-</button>
-                <span>x${i.qty}</span>
-                <button onclick="changeQty('${i.name}', 1)" class="px-2 bg-green-500 rounded">+</button>
+            <div class="flex gap-2 items-center">
+                <button onclick="changeQty('${i.name}',-1)" class="bg-red-500 px-2 rounded">-</button>
+                <span>${i.qty}</span>
+                <button onclick="changeQty('${i.name}',1)" class="bg-green-500 px-2 rounded">+</button>
             </div>
-            <span class="font-bold">Rp${(i.qty*i.price).toLocaleString()}</span>
+            <span>Rp${i.qty*i.price}</span>
         </div>`;
     }).join("");
 
-    totalEl = document.getElementById('total');
-    totalEl.innerText = total.toLocaleString();
+    totalEl.innerText=total;
 }
 
 // CHECKOUT
-async function checkout() {
-    const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
-    const paid = Number(cashInput.value || 0);
+async function checkout(){
+    const total=cart.reduce((s,i)=>s+i.qty*i.price,0);
+    const paid=Number(cashInput.value||0);
 
-    if (paid < total) return showAlert("Insufficient Cash");
+    if(paid<total) return showAlert("Insufficient cash");
 
-    const change = paid - total;
-    const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
+    const change=paid-total;
+    const profit=cart.reduce((s,i)=>s+i.qty*(i.price-i.cost),0);
 
-    recTotal.innerText = "Rp" + total.toLocaleString();
-    recPaid.innerText = "Rp" + paid.toLocaleString();
-    recChange.innerText = "Rp" + change.toLocaleString();
+    recTotal.innerText=total;
+    recPaid.innerText=paid;
+    recChange.innerText=change;
 
-    receiptItems.innerHTML = cart.map(i => `
-        <div class="flex justify-between">
-            <span>${i.name} x${i.qty}</span>
-            <span>${(i.qty*i.price).toLocaleString()}</span>
-        </div>
-    `).join("");
+    receiptItems.innerHTML=cart.map(i=>`${i.name} x${i.qty}`).join("<br>");
 
-    invoiceModal.classList.add('active');
+    invoiceModal.classList.add("active");
 
-    await fetch(API, {
-        method: 'POST',
-        body: JSON.stringify({
-            type: 'addTransaction',
-            user: currentUser,
-            total, profit,
-            items: JSON.stringify(cart),
-            paid, change
+    await fetch(API,{
+        method:"POST",
+        body:JSON.stringify({
+            type:"addTransaction",
+            user:currentUser,
+            total,profit,
+            items:JSON.stringify(cart),
+            paid,change
         })
     });
 
-    cart = [];
-    cashInput.value = "";
-    loadProducts();
+    cart=[];
     renderCart();
+    loadProducts();
 }
 
-// IMAGE UPLOAD FIX
-async function changeProductPic(pName) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        showAlert("Uploading image...");
-
-        const reader = new FileReader();
-        reader.onload = async () => {
-            try {
-                const resImg = await fetch(API, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        type: 'uploadImage',
-                        base64: reader.result
-                    })
-                });
-
-                const dataImg = await resImg.json();
-
-                if (!dataImg.success) return showAlert("Upload failed");
-
-                const prod = products.find(x => x.name === pName);
-
-                await fetch(API, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        type: 'editProduct',
-                        oldName: pName,
-                        name: pName,
-                        sell: prod.sell,
-                        stock: prod.stock,
-                        cost: prod.cost,
-                        imgId: dataImg.imgId
-                    })
-                });
-
-                showAlert("Image updated!");
-                await loadProducts();
-                renderManage();
-
-            } catch (err) {
-                showAlert("Error uploading image");
-            }
-        };
-
-        reader.readAsDataURL(file);
-    };
-
-    input.click();
+// RECEIPT
+function downloadReceipt(){
+    html2canvas(receiptArea).then(c=>{
+        const a=document.createElement("a");
+        a.href=c.toDataURL();
+        a.download="receipt.png";
+        a.click();
+    });
 }
 
-// HISTORY
-async function fetchHistory() {
-    const res = await fetch(API + "?type=transactions");
-    const data = (await res.json()).slice(1).reverse();
+// INVENTORY
+async function addNewProduct(){
+    if(!newPName.value) return showAlert("Enter product name");
 
-    historyList.innerHTML = data.map(r => `
-        <div onclick="showHistoryDetail('${encodeURIComponent(r[5])}')" class="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex justify-between cursor-pointer">
-            <div>
-                <p class="text-xs text-slate-500">${new Date(r[0]).toLocaleString()}</p>
-                <p class="font-bold">Rp${Number(r[3]).toLocaleString()}</p>
-            </div>
-            <span class="text-xs text-teal-400">View →</span>
-        </div>
-    `).join("");
-}
+    await fetch(API,{
+        method:"POST",
+        body:JSON.stringify({
+            type:"addProduct",
+            name:newPName.value,
+            stock:newPStock.value,
+            sell:newPSell.value,
+            cost:newPCost.value
+        })
+    });
 
-function showHistoryDetail(jsonStr) {
-    const items = JSON.parse(decodeURIComponent(jsonStr));
-
-    historyDetailContent.innerHTML = items.map(i => `
-        <div class="flex justify-between text-sm py-2 border-b border-slate-800">
-            <span>${i.name} x${i.qty}</span>
-            <span>Rp${(i.qty*i.price).toLocaleString()}</span>
-        </div>
-    `).join("");
-
-    historyModal.classList.add('active');
+    showAlert("Product added!");
+    loadProducts();
 }
 </script>
+
 </body>
 </html>
