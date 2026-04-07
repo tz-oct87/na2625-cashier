@@ -2,122 +2,153 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NA2625 POS V23</title>
+<title>NA2625 POS</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
 body{background:#f1f5f9;font-family:sans-serif}
 
-/* TOP BAR */
-.topbar{background:linear-gradient(90deg,#10b981,#059669)}
+/* SIDEBAR */
+.sidebar{background:#020617}
+.navBtn{display:block;width:100%;padding:10px;border-radius:8px;text-align:left}
+.navBtn:hover{background:#1e293b}
 
 /* CARD */
-.card{background:white;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,0.08)}
+.card{background:white;border-radius:12px;padding:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08)}
 
-/* CATEGORY */
-.cat{padding:6px 14px;border-radius:999px;background:#e5e7eb;font-size:13px}
-.cat.active{background:#10b981;color:white}
+/* PAGE */
+.page{display:none}
+.page.active{display:block}
 
-/* PRODUCT */
-.product{transition:0.2s}
-.product:active{transform:scale(0.95)}
-
-/* BOTTOM CART */
-.bottomCart{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:white;
-box-shadow:0 -2px 10px rgba(0,0,0,0.1);
-padding:10px;
+/* MOBILE MENU */
+@keyframes slide{
+  from{transform:translateX(-100%)}
+  to{transform:translateX(0)}
 }
-
-/* RECEIPT */
-.receipt{
-font-family:monospace;
-font-size:12px;
-}
-
-/* ANIMATION */
-.fade{animation:fade .2s}
-@keyframes fade{from{opacity:0}to{opacity:1}}
+.animate-slide{animation:slide 0.2s ease}
 </style>
 </head>
 
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar text-white p-4 flex justify-between">
-  <div class="font-bold">Kasir</div>
-  <button onclick="showPage('analytics')">📊</button>
+<!-- HEADER -->
+<div class="bg-green-600 text-white p-4 flex items-center gap-3">
+
+  <!-- BURGER -->
+  <button onclick="toggleMenu()" class="text-xl md:hidden">☰</button>
+
+  <div class="font-bold">NA2625 POS</div>
 </div>
 
-<!-- CATEGORY -->
-<div id="categories" class="flex gap-2 overflow-x-auto p-3"></div>
+<!-- MOBILE MENU -->
+<div id="mobileMenu" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+  <div class="bg-white w-64 h-full p-4 animate-slide">
 
-<!-- MAIN -->
-<div id="cashierPage" class="p-3 pb-24">
+    <div class="flex justify-between mb-4">
+      <b>Menu</b>
+      <button onclick="toggleMenu()">✖</button>
+    </div>
 
-  <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-
-</div>
-
-<!-- CART (DESKTOP) -->
-<div class="hidden md:block fixed right-4 top-20 w-80 card p-3">
-  <h2 class="font-bold">Cart</h2>
-  <div id="cartItems"></div>
-  <div>Total: <b id="total">0</b></div>
-  <button onclick="checkout()" class="bg-green-500 text-white w-full mt-2 p-2 rounded">
-    Checkout
-  </button>
-</div>
-
-<!-- CART (MOBILE) -->
-<div class="bottomCart md:hidden flex justify-between items-center">
-  <div>Total: <b id="mTotal">0</b></div>
-  <button onclick="checkout()" class="bg-green-500 text-white px-4 py-2 rounded">
-    Bayar
-  </button>
-</div>
-
-<!-- RECEIPT -->
-<div id="receiptModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-
-  <div class="bg-white p-4 w-72 receipt">
-
-    <div class="text-center font-bold">NA2625 STORE</div>
-    <div id="rDate"></div>
-    <hr>
-
-    <div id="rItems"></div>
-
-    <hr>
-    <div>Total: <span id="rTotal"></span></div>
-
-    <button onclick="window.print()" class="bg-green-500 text-white w-full mt-2 p-2 rounded">
-      Print
-    </button>
+    <button onclick="goPage('cashier')" class="navBtn">🧾 Cashier</button>
+    <button onclick="goPage('products')" class="navBtn">📦 Products</button>
+    <button onclick="goPage('stock')" class="navBtn">📥 Stock</button>
+    <button onclick="goPage('analytics')" class="navBtn">📊 Analytics</button>
 
   </div>
+</div>
 
+<!-- SIDEBAR DESKTOP -->
+<div class="sidebar text-white w-60 fixed h-full p-4 hidden md:block">
+  <div class="text-xl font-bold mb-6">NA2625</div>
+
+  <button onclick="showPage('cashier')" class="navBtn">🧾 Cashier</button>
+  <button onclick="showPage('products')" class="navBtn">📦 Products</button>
+  <button onclick="showPage('stock')" class="navBtn">📥 Stock</button>
+  <button onclick="showPage('analytics')" class="navBtn">📊 Analytics</button>
+</div>
+
+<!-- MAIN -->
+<div class="md:ml-64 p-4">
+
+<!-- CASHIER -->
+<div id="cashier" class="page active">
+  <h1 class="text-xl mb-3">Cashier</h1>
+
+  <div class="grid md:grid-cols-3 gap-4">
+
+    <div class="md:col-span-2">
+      <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="font-bold">Cart</h2>
+      <div id="cartItems"></div>
+      <div class="mt-2">Total: <b id="total">0</b></div>
+      <button onclick="checkout()" class="bg-green-500 text-white w-full mt-2 p-2 rounded">Checkout</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<div id="products" class="page">
+  <h1 class="text-xl mb-3">Products</h1>
+
+  <div class="card grid grid-cols-2 md:grid-cols-5 gap-2">
+    <input id="pName" placeholder="Name" class="border p-2">
+    <input id="pSell" placeholder="Sell" class="border p-2">
+    <input id="pCost" placeholder="Cost" class="border p-2">
+    <input id="pStock" placeholder="Stock" class="border p-2">
+    <input id="pImg" placeholder="Image URL" class="border p-2">
+  </div>
+
+  <button onclick="addProduct()" class="bg-green-500 text-white p-2 mt-2 rounded">
+    Add Product
+  </button>
+
+  <div id="productList" class="mt-4 space-y-2"></div>
+</div>
+
+<!-- STOCK -->
+<div id="stock" class="page">
+  <h1 class="text-xl mb-3">Stock</h1>
+
+  <div class="card flex gap-2">
+    <select id="stockProduct" class="border p-2 flex-1"></select>
+    <input id="stockQty" type="number" class="border p-2 w-24">
+    <button onclick="updateStock()" class="bg-blue-500 text-white px-4 rounded">Update</button>
+  </div>
 </div>
 
 <!-- ANALYTICS -->
-<div id="analyticsPage" class="hidden p-4">
-
-  <button onclick="showPage('cashier')" class="mb-3">⬅ Back</button>
-
-  <div class="card p-3">
-    <canvas id="chart" height="200"></canvas>
-  </div>
+<div id="analytics" class="page">
+  <h1 class="text-xl mb-3">Analytics</h1>
+  <div id="report" class="card"></div>
+</div>
 
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbxPNHtcXmXS87O9jZO0OqdBfthl53lSq9NzsQdJbZVyTNio0dcglYTQSJYLOs_0s69G/exec";
+const API="https://script.google.com/macros/s/AKfycbyV9mWbPzSTb3HxWdETbqRgp-k9IDSoMDQRh5nDWcuHj3Rqpm4OmBhkelSrwDqQ_pN_/exec";
 
-let products=[],cart=[],activeCat="All";
+let products=[],cart=[];
+
+/* NAVIGATION */
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+
+  if(id==="analytics") loadAnalytics();
+}
+
+function toggleMenu(){
+  document.getElementById("mobileMenu").classList.toggle("hidden");
+}
+
+function goPage(id){
+  toggleMenu();
+  showPage(id);
+}
 
 /* LOAD */
 async function load(){
@@ -125,46 +156,31 @@ async function load(){
   let data=await res.json();
 
   products=data.slice(1).map(p=>({
-    name:p[0],sell:+p[1],stock:+p[3],image:p[5],category:p[6]||"All"
+    name:p[0],
+    sell:+p[1],
+    cost:+p[2],
+    stock:+p[3],
+    image:p[5]
   }));
 
-  renderCategories();
   renderProducts();
+  renderProductList();
+  renderStockDropdown();
 }
 
-/* CATEGORY */
-function renderCategories(){
-  let cats=["All",...new Set(products.map(p=>p.category))];
-
-  categories.innerHTML=cats.map(c=>`
-    <div onclick="setCat('${c}')" class="cat ${c===activeCat?'active':''}">
-      ${c}
-    </div>
-  `).join("");
-}
-
-function setCat(c){
-  activeCat=c;
-  renderCategories();
-  renderProducts();
-}
-
-/* PRODUCTS */
+/* CASHIER */
 function renderProducts(){
-  let list=products.filter(p=>activeCat==="All"||p.category===activeCat);
-
-  productsGrid.innerHTML=list.map(p=>`
-    <div class="card product p-2" onclick="add('${p.name}')">
-      <img src="${p.image||'https://via.placeholder.com/150'}" class="w-full h-24 object-cover rounded">
-      <div class="text-sm">${p.name}</div>
-      <div class="text-green-600 text-sm">Rp ${p.sell}</div>
-      <div class="text-xs text-gray-400">Stock: ${p.stock}</div>
+  document.getElementById("productsGrid").innerHTML=products.map(p=>`
+    <div class="card cursor-pointer" onclick="addToCart('${p.name}')">
+      <img src="${p.image||'https://via.placeholder.com/100'}"
+        class="w-full h-24 object-cover rounded">
+      <div>${p.name}</div>
+      <div class="text-green-600">Rp ${p.sell}</div>
     </div>
   `).join("");
 }
 
-/* CART */
-function add(name){
+function addToCart(name){
   let p=products.find(x=>x.name===name);
   let ex=cart.find(i=>i.name===name);
 
@@ -177,75 +193,102 @@ function add(name){
 function renderCart(){
   let t=0;
 
-  cartItems.innerHTML=cart.map(i=>{
+  document.getElementById("cartItems").innerHTML=cart.map(i=>{
     let sub=i.qty*i.price;
     t+=sub;
     return `<div>${i.name} x${i.qty} = ${sub}</div>`;
   }).join("");
 
-  total.innerText=t;
-  mTotal.innerText=t;
+  document.getElementById("total").innerText=t;
 }
 
-/* CHECKOUT */
 async function checkout(){
-
   if(cart.length===0) return alert("Cart empty");
-
-  let copy=[...cart];
 
   await fetch(API,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
       type:"addTransaction",
-      items:JSON.stringify(copy),
-      total:total.innerText,
+      items:JSON.stringify(cart),
+      total:document.getElementById("total").innerText,
       profit:0,
       customer:"-"
     })
   });
 
-  showReceipt(copy);
-
   cart=[];
   renderCart();
 }
 
-/* RECEIPT */
-function showReceipt(data){
-  receiptModal.classList.remove("hidden");
+/* PRODUCTS PAGE */
+async function addProduct(){
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      type:"addProduct",
+      name:pName.value,
+      sell:pSell.value,
+      cost:pCost.value,
+      stock:pStock.value,
+      image:pImg.value
+    })
+  });
 
-  rDate.innerText=new Date().toLocaleString();
+  load();
+}
 
-  rItems.innerHTML=data.map(i=>`
-    <div>${i.name} x${i.qty} ${i.qty*i.price}</div>
+function renderProductList(){
+  document.getElementById("productList").innerHTML=products.map(p=>`
+    <div class="card flex justify-between">
+      ${p.name} (${p.stock})
+      <button onclick="deleteProduct('${p.name}')">❌</button>
+    </div>
   `).join("");
-
-  rTotal.innerText=data.reduce((a,b)=>a+(b.qty*b.price),0);
 }
 
-/* NAV */
-function showPage(p){
-  cashierPage.classList.toggle("hidden",p!=="cashier");
-  analyticsPage.classList.toggle("hidden",p!=="analytics");
+async function deleteProduct(name){
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({type:"deleteProduct",name})
+  });
 
-  if(p==="analytics") loadChart();
+  load();
 }
 
-/* CHART */
-async function loadChart(){
+/* STOCK */
+function renderStockDropdown(){
+  document.getElementById("stockProduct").innerHTML=
+    products.map(p=>`<option>${p.name}</option>`).join("");
+}
+
+async function updateStock(){
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      type:"updateStock",
+      name:stockProduct.value,
+      qty:+stockQty.value,
+      action:"ADD"
+    })
+  });
+
+  load();
+}
+
+/* ANALYTICS */
+async function loadAnalytics(){
   let res=await fetch(API+"?type=transactions");
   let data=await res.json();
 
-  let ctx=document.getElementById("chart").getContext("2d");
-  ctx.clearRect(0,0,300,200);
+  let total=0;
+  data.slice(1).forEach(r=>total+=+r[2]);
 
-  let values=data.slice(1).map(r=>+r[2]);
-
-  values.forEach((v,i)=>{
-    ctx.fillRect(i*30,200-v/10,20,v/10);
-  });
+  document.getElementById("report").innerHTML=
+    `<b>Total Revenue:</b> Rp ${total}`;
 }
 
 /* INIT */
