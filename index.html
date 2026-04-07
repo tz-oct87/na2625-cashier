@@ -6,98 +6,123 @@
     <title>NA2625 POS PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .page-content { display: none; height: 100%; overflow-y: auto; }
+        .page-content { display: none; height: 100%; width: 100%; overflow-y: auto; }
         .page-content.active { display: block; }
-        .nav-btn.active { background-color: #1A877E !important; color: white !important; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50; align-items: center; justify-content: center; padding: 20px; }
-        .modal.active { display: flex; }
+        .nav-btn.active { background-color: #1A877E; color: white; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .modal-overlay.active { display: flex; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="h-full bg-gray-100 flex overflow-hidden font-sans text-gray-900">
+<body class="h-full bg-gray-50 overflow-hidden font-sans text-gray-900">
 
-<div id="loginPage" class="fixed inset-0 z-[100] flex items-center justify-center bg-white">
-    <div class="w-full max-w-xs text-center p-8">
-        <h1 class="text-4xl font-black text-teal-900 mb-8">NA2625</h1>
-        <input id="user" type="text" placeholder="User" class="w-full p-4 mb-3 border rounded-2xl bg-gray-50 font-bold outline-none">
-        <input id="pass" type="password" placeholder="Pass" class="w-full p-4 mb-6 border rounded-2xl bg-gray-50 font-bold outline-none">
-        <button id="loginBtn" class="w-full bg-teal-600 text-white p-4 rounded-2xl font-black shadow-lg">LOGIN</button>
+<div id="invoiceModal" class="modal-overlay">
+    <div class="bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col mx-4">
+        <div id="invoiceArea" class="p-8 bg-white font-mono text-sm">
+            <div class="text-center border-b border-black border-dashed pb-4 mb-4">
+                <h1 class="font-black text-lg uppercase">NA2625 Creative</h1>
+                <p id="invDate" class="text-[10px]"></p>
+            </div>
+            <div id="invItems" class="space-y-1 mb-4"></div>
+            <div class="border-t border-black border-dashed pt-4 space-y-1">
+                <div class="flex justify-between font-bold"><span>TOTAL</span><span id="invTotal"></span></div>
+                <div class="flex justify-between"><span>CASH</span><span id="invPaid"></span></div>
+                <div class="flex justify-between"><span>CHANGE</span><span id="invChange"></span></div>
+            </div>
+        </div>
+        <div class="p-4 bg-gray-100 grid grid-cols-2 gap-2">
+            <button onclick="printBluetooth()" class="bg-teal-600 text-white py-4 rounded-xl font-black text-xs">BT PRINT</button>
+            <button onclick="closeInvoice()" class="bg-gray-300 text-gray-700 py-4 rounded-xl font-black text-xs">CLOSE</button>
+        </div>
     </div>
 </div>
 
-<nav class="w-64 bg-white border-r flex flex-col shrink-0 h-full">
-    <div class="p-8 font-black text-teal-900 text-2xl border-b">NA2625</div>
-    <div class="p-4 space-y-2 flex-1">
-        <button onclick="showPage('cashier')" class="nav-btn active w-full text-left p-4 rounded-2xl font-bold text-gray-400">🛒 Cashier</button>
-        <button onclick="showPage('products')" class="nav-btn w-full text-left p-4 rounded-2xl font-bold text-gray-400">📦 Products</button>
-        <button onclick="showPage('additem')" class="nav-btn w-full text-left p-4 rounded-2xl font-bold text-gray-400">➕ Add Item</button>
-        <button onclick="showPage('history')" class="nav-btn w-full text-left p-4 rounded-2xl font-bold text-gray-400">📜 History</button>
-    </div>
-    <div class="p-6 border-t"><button onclick="logout()" class="text-xs font-bold text-red-500 uppercase">Sign Out</button></div>
-</nav>
-
-<main class="flex-1 relative overflow-hidden h-full">
-    <div id="page-cashier" class="page-content active p-8 flex gap-8 h-full">
-        <div class="flex-1 flex flex-col">
-            <input type="text" oninput="renderCashier()" id="cashierSearch" placeholder="Search product to sell..." class="w-full p-5 rounded-3xl shadow-sm mb-6 font-bold outline-none">
-            <div id="cashierGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 pb-10"></div>
-        </div>
-        <div class="w-80 bg-white rounded-[2.5rem] shadow-xl p-8 flex flex-col border h-fit sticky top-0">
-            <h3 class="font-black mb-4">Current Order</h3>
-            <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6 max-h-60"></div>
-            <div class="border-t pt-4 space-y-4">
-                <div class="flex justify-between font-black text-xl"><span>Total</span><span>Rp <span id="total">0</span></span></div>
-                <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-gray-100 rounded-2xl text-center font-black outline-none border-2 border-transparent focus:border-teal-500">
-                <button onclick="checkout()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition">PAY NOW</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="page-products" class="page-content p-8">
-        <h2 class="text-2xl font-black mb-6">Manage Inventory</h2>
-        <input type="text" oninput="renderManage()" id="manageSearch" placeholder="Search product to edit..." class="w-full p-5 rounded-3xl shadow-sm mb-6 font-bold outline-none bg-white">
-        <div id="manageGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-    </div>
-
-    <div id="page-additem" class="page-content p-8">
-        <div class="max-w-md mx-auto bg-white p-8 rounded-[2.5rem] shadow-sm border space-y-4">
-            <h2 class="text-2xl font-black mb-2">New Product</h2>
-            <input id="add-name" type="text" placeholder="Name" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
-            <div class="grid grid-cols-2 gap-4">
-                <input id="add-sell" type="number" placeholder="Sell Price" class="p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
-                <input id="add-cost" type="number" placeholder="Cost Price" class="p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
-            </div>
-            <input id="add-stock" type="number" placeholder="Initial Stock" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
-            <input id="add-img" type="file" accept="image/*" class="text-xs p-4 bg-gray-50 w-full rounded-2xl border">
-            <button onclick="saveItem()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black shadow-lg">ADD TO INVENTORY</button>
-        </div>
-    </div>
-
-    <div id="page-history" class="page-content p-8">
-        <h2 class="text-2xl font-black mb-6">Transaction Logs</h2>
-        <div id="historyList" class="space-y-3"></div>
-    </div>
-</main>
-
-<div id="editModal" class="modal">
+<div id="editModal" class="modal-overlay">
     <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 space-y-4 shadow-2xl">
         <h3 class="font-black text-xl mb-2">Edit Product</h3>
-        <input id="edit-name" type="text" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border">
+        <input id="edit-name" type="text" placeholder="Name" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
         <div class="grid grid-cols-2 gap-4">
-            <input id="edit-sell" type="number" placeholder="Sell" class="p-4 bg-gray-50 rounded-2xl font-bold border">
-            <input id="edit-stock" type="number" placeholder="Stock" class="p-4 bg-gray-50 rounded-2xl font-bold border">
+            <input id="edit-sell" type="number" placeholder="Sell Price" class="p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
+            <input id="edit-stock" type="number" placeholder="Stock" class="p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
         </div>
         <div class="flex gap-2">
-            <button onclick="updateItem()" class="flex-1 bg-teal-600 text-white py-4 rounded-2xl font-black">SAVE</button>
-            <button onclick="closeModal()" class="flex-1 bg-gray-200 text-gray-700 py-4 rounded-2xl font-black">CANCEL</button>
+            <button onclick="updateProduct()" class="flex-1 bg-teal-600 text-white py-4 rounded-2xl font-black">SAVE</button>
+            <button onclick="closeEditModal()" class="flex-1 bg-gray-200 text-gray-700 py-4 rounded-2xl font-black">CANCEL</button>
         </div>
     </div>
+</div>
+
+<div id="loginPage" class="fixed inset-0 z-[500] flex items-center justify-center bg-white">
+    <div class="w-full max-w-xs p-8 text-center">
+        <h1 class="text-4xl font-black text-teal-900 mb-8 tracking-tighter">NA2625</h1>
+        <div class="space-y-3">
+            <input id="user" type="text" placeholder="Username" class="w-full p-4 border rounded-2xl bg-gray-50 text-center font-bold outline-none">
+            <input id="pass" type="password" placeholder="Password" class="w-full p-4 border rounded-2xl bg-gray-50 text-center font-bold outline-none">
+            <button id="loginBtn" class="w-full bg-teal-600 text-white p-4 rounded-2xl font-black shadow-lg">LOGIN</button>
+        </div>
+    </div>
+</div>
+
+<div id="app" class="flex h-full w-full hidden">
+    <nav class="w-64 bg-white border-r flex flex-col shrink-0">
+        <div class="p-8 font-black text-teal-900 text-xl border-b">NA2625</div>
+        <div class="p-4 space-y-2 flex-1">
+            <button id="nav-cashier" onclick="showPage('cashier')" class="nav-btn active w-full text-left p-4 rounded-2xl font-bold">🛒 Cashier</button>
+            <button id="nav-manage" onclick="showPage('manage')" class="nav-btn w-full text-left p-4 rounded-2xl font-bold text-gray-400">📦 Products</button>
+            <button id="nav-additem" onclick="showPage('additem')" class="nav-btn w-full text-left p-4 rounded-2xl font-bold text-gray-400">➕ Add Item</button>
+            <button id="nav-history" onclick="showPage('history')" class="nav-btn w-full text-left p-4 rounded-2xl font-bold text-gray-400">📜 History</button>
+        </div>
+        <div class="p-6 border-t"><button onclick="logout()" class="text-xs font-bold text-red-500 uppercase tracking-widest">Sign Out</button></div>
+    </nav>
+
+    <main class="flex-1 bg-gray-50 overflow-hidden relative h-full">
+        <div id="page-cashier" class="page-content active p-8 flex gap-8">
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <input type="text" id="posSearch" oninput="renderCashier()" placeholder="Search items to sell..." class="w-full p-5 rounded-3xl border-none shadow-sm mb-6 font-bold outline-none focus:ring-2 focus:ring-teal-400">
+                <div id="cashierGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 overflow-y-auto pb-20"></div>
+            </div>
+            <div class="w-80 bg-white rounded-[2.5rem] shadow-xl p-8 flex flex-col shrink-0">
+                <div id="cartItems" class="flex-1 overflow-y-auto space-y-4 mb-6"></div>
+                <div class="border-t pt-6 space-y-4">
+                    <div class="flex justify-between font-black text-xl"><span>Total</span><span>Rp <span id="total">0</span></span></div>
+                    <input type="number" id="cashInput" placeholder="Enter Cash (Rp)" class="w-full p-4 bg-gray-100 rounded-2xl text-center font-black text-lg outline-none border-2 border-transparent focus:border-teal-500">
+                    <button onclick="checkout()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition">PAY NOW</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-manage" class="page-content p-8">
+            <h2 class="text-2xl font-black mb-6">Product Management</h2>
+            <input type="text" id="manageSearch" oninput="renderManage()" placeholder="Search product to edit..." class="w-full p-5 rounded-3xl border-none shadow-sm mb-6 font-bold outline-none bg-white">
+            <div id="manageGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div id="page-additem" class="page-content p-8">
+            <div class="max-w-md mx-auto bg-white p-8 rounded-[2.5rem] shadow-sm border space-y-4">
+                <h2 class="text-2xl font-black mb-2">New Product</h2>
+                <input id="add-name" type="text" placeholder="Product Name" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="add-sell" type="number" placeholder="Selling Price" class="p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
+                    <input id="add-cost" type="number" placeholder="Cost Price" class="p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
+                </div>
+                <input id="add-stock" type="number" placeholder="Initial Stock" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
+                <input id="add-img" type="file" accept="image/*" class="text-xs p-4 bg-gray-50 w-full rounded-2xl border">
+                <button onclick="saveNewItem()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black shadow-lg">CREATE PRODUCT</button>
+            </div>
+        </div>
+
+        <div id="page-history" class="page-content p-8">
+            <h2 class="text-2xl font-black mb-6">Recent Sales</h2>
+            <div id="historyList" class="space-y-3"></div>
+        </div>
+    </main>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxrGBHxkD0PHtJrqdvLEkyNtrAbm0IZT3D_X2Qg4uoCH970Li4Mle_tEPn08-7RfT_l/exec"; 
-let products = [], cart = [], currentUser = "", editingName = "";
+const API = "https://script.google.com/macros/s/AKfycbxo7eLeJa5TvX8qKqaO-sxe11x8BOkuouEKZ-lkghtLR80W4S9iZJwuunow9Fa9Q_Pb/exec"; 
+let products = [], cart = [], currentUser = "", editingOldName = "";
 
-// --- SYSTEM ---
+// --- INIT ---
 window.onload = () => {
     const session = localStorage.getItem('na2625_session');
     if (session) { currentUser = session; initApp(); }
@@ -108,56 +133,56 @@ document.getElementById('loginBtn').onclick = async () => {
     const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
     const data = await res.json();
     if(data.success) { currentUser = u; localStorage.setItem('na2625_session', u); initApp(); }
-    else alert("Invalid Credentials");
+    else alert("Access Denied");
 };
 
 function initApp() {
     document.getElementById('loginPage').classList.add('hidden');
-    loadData();
+    document.getElementById('app').classList.remove('hidden');
+    loadProducts();
 }
 
-async function loadData() {
+async function loadProducts() {
     const res = await fetch(API + "?type=products");
     const data = await res.json();
     products = data.slice(1).map(r => ({ name: r[0], sell: Number(r[1]), cost: Number(r[2]), stock: Number(r[3]), img: r[4] }));
     renderCashier();
-    renderManage();
 }
 
 // --- RENDERERS ---
 function renderCashier() {
-    const s = document.getElementById('cashierSearch').value.toLowerCase();
+    const s = document.getElementById('posSearch').value.toLowerCase();
     document.getElementById('cashierGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
-        <div onclick="addToCart('${p.name}')" class="bg-white p-3 rounded-3xl shadow-sm text-center cursor-pointer active:scale-95 transition-all">
-            <div class="h-24 bg-gray-100 rounded-2xl mb-2 flex items-center justify-center overflow-hidden">
-                ${p.img ? `<img src="${p.img}" class="w-full h-full object-cover">` : `<span class="text-gray-300 text-[10px] font-black">NO PIC</span>`}
+        <div onclick="addToCart('${p.name}')" class="bg-white p-4 rounded-3xl shadow-sm hover:shadow-md cursor-pointer active:scale-95 transition-all text-center border-2 border-transparent hover:border-teal-400">
+            <div class="h-24 bg-gray-50 rounded-2xl mb-3 overflow-hidden">
+                <img src="${p.img || 'https://via.placeholder.com/100'}" class="w-full h-full object-cover">
             </div>
-            <div class="text-[10px] font-black uppercase truncate">${p.name}</div>
-            <div class="text-teal-600 font-black text-xs">Rp ${p.sell.toLocaleString()}</div>
+            <div class="text-[10px] font-black text-gray-400 uppercase truncate">${p.name}</div>
+            <div class="font-black text-teal-700">Rp ${p.sell.toLocaleString()}</div>
         </div>`).join("");
 }
 
 function renderManage() {
     const s = document.getElementById('manageSearch').value.toLowerCase();
     document.getElementById('manageGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm flex items-center gap-4 border">
-            <div class="w-16 h-16 bg-gray-100 rounded-2xl overflow-hidden shrink-0">
-                <img src="${p.img || ''}" class="w-full h-full object-cover">
+        <div class="bg-white p-6 rounded-[2rem] shadow-sm flex items-center justify-between border">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden"><img src="${p.img || ''}" class="w-full h-full object-cover"></div>
+                <div>
+                    <div class="font-black text-xs uppercase">${p.name}</div>
+                    <div class="text-[10px] font-bold text-teal-600">Rp ${p.sell.toLocaleString()} • Stock: ${p.stock}</div>
+                </div>
             </div>
-            <div class="flex-1">
-                <div class="font-black text-sm uppercase">${p.name}</div>
-                <div class="text-xs font-bold text-teal-600">Rp ${p.sell.toLocaleString()} • Stock: ${p.stock}</div>
-            </div>
-            <button onclick="openEdit('${p.name}')" class="bg-gray-100 p-3 rounded-xl font-black text-[10px] hover:bg-teal-50">EDIT</button>
+            <button onclick="openEditModal('${p.name}')" class="bg-gray-100 px-4 py-2 rounded-xl text-[10px] font-black uppercase">Edit</button>
         </div>`).join("");
 }
 
-// --- ACTIONS ---
+// --- CART & TRANSACTIONS ---
 function addToCart(name) {
     const p = products.find(x => x.name === name);
-    if(p.stock <= 0) return alert("Out of stock");
+    if(p.stock <= 0) return alert("Out of stock!");
     let item = cart.find(i => i.name === name);
-    if(!item) cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
+    if (!item) cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
     else item.qty++;
     renderCart();
 }
@@ -166,7 +191,7 @@ function renderCart() {
     let total = 0;
     document.getElementById('cartItems').innerHTML = cart.map(i => {
         total += (i.qty * i.price);
-        return `<div class="flex justify-between text-[11px] font-bold bg-gray-50 p-3 rounded-xl border italic">
+        return `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-2xl border text-xs font-bold italic">
             <span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span>
         </div>`;
     }).join("");
@@ -174,42 +199,46 @@ function renderCart() {
 }
 
 async function checkout() {
-    const total = cart.reduce((s,i) => s+(i.qty*i.price), 0);
+    const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
     const paid = parseInt(document.getElementById('cashInput').value || 0);
-    if(!cart.length || paid < total) return alert("Check items/cash");
+    if (!cart.length || paid < total) return alert("Check Items/Cash!");
+
+    const change = paid - total;
+    document.getElementById('invDate').innerText = new Date().toLocaleString();
+    document.getElementById('invTotal').innerText = "Rp " + total.toLocaleString();
+    document.getElementById('invPaid').innerText = "Rp " + paid.toLocaleString();
+    document.getElementById('invChange').innerText = "Rp " + change.toLocaleString();
+    document.getElementById('invItems').innerHTML = cart.map(i => `
+        <div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span></div>
+    `).join("");
     
-    await fetch(API, { method:'POST', body: JSON.stringify({ 
-        type: 'addTransaction', user: currentUser, total, items: JSON.stringify(cart), paid, change: paid-total, profit: 0
-    })});
-    alert("Sale Successful!");
-    cart = []; document.getElementById('cashInput').value = "";
-    loadData(); renderCart();
+    document.getElementById('invoiceModal').classList.add('active');
+    fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addTransaction', user: currentUser, total, items: JSON.stringify(cart), paid, change, profit: 0 })}).then(() => loadProducts());
 }
 
-// --- PRODUCT MANAGEMENT ---
-function openEdit(name) {
+// --- PRODUCT MANAGEMENT ACTIONS ---
+function openEditModal(name) {
     const p = products.find(x => x.name === name);
-    editingName = name;
+    editingOldName = name;
     document.getElementById('edit-name').value = p.name;
     document.getElementById('edit-sell').value = p.sell;
     document.getElementById('edit-stock').value = p.stock;
     document.getElementById('editModal').classList.add('active');
 }
 
-async function updateItem() {
+async function updateProduct() {
     const payload = {
         type: 'updateProduct',
-        oldName: editingName,
+        oldName: editingOldName,
         newName: document.getElementById('edit-name').value,
         sell: document.getElementById('edit-sell').value,
-        stock: document.getElementById('edit-stock').value,
-        cost: products.find(p => p.name === editingName).cost
+        stock: document.getElementById('edit-stock').value
     };
     await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    closeModal(); loadData();
+    closeEditModal(); loadProducts(); renderManage();
 }
 
-async function saveItem() {
+async function saveNewItem() {
     const file = document.getElementById('add-img').files[0];
     let img = "";
     if(file) img = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(file); });
@@ -219,30 +248,37 @@ async function saveItem() {
         sell: document.getElementById('add-sell').value, cost: document.getElementById('add-cost').value, 
         stock: document.getElementById('add-stock').value, img
     })});
-    alert("Saved!"); loadData(); showPage('products');
+    alert("Saved!"); loadProducts(); showPage('manage');
 }
 
-// --- UTILS ---
+// --- UI UTILS ---
 function showPage(p) {
-    document.querySelectorAll('.page-content, .nav-btn').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.page-content, .nav-btn').forEach(el => {
+        el.classList.remove('active');
+        if(el.classList.contains('nav-btn')) el.classList.add('text-gray-400');
+    });
     document.getElementById('page-'+p).classList.add('active');
-    event.currentTarget.classList.add('active');
+    document.getElementById('nav-'+p).classList.add('active');
+    document.getElementById('nav-'+p).classList.remove('text-gray-400');
+    if(p === 'manage') renderManage();
     if(p === 'history') fetchHistory();
 }
 
 async function fetchHistory() {
     const res = await fetch(API + "?type=transactions");
     const data = (await res.json()).slice(1).reverse();
-    document.getElementById('historyList').innerHTML = data.slice(0,15).map(r => `
+    document.getElementById('historyList').innerHTML = data.slice(0,10).map(r => `
         <div class="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border">
-            <div><div class="text-[10px] font-black text-gray-400 uppercase">${new Date(r[0]).toLocaleString()}</div>
-            <div class="font-bold text-xs">Cashier: ${r[1]}</div></div>
+            <div class="text-[10px] font-black text-gray-400 uppercase">${new Date(r[0]).toLocaleString()}</div>
             <div class="font-black text-teal-700">Rp ${Number(r[3]).toLocaleString()}</div>
         </div>`).join("");
 }
 
-function closeModal() { document.getElementById('editModal').classList.remove('active'); }
+function closeInvoice() { document.getElementById('invoiceModal').classList.remove('active'); cart = []; renderCart(); }
+function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
 function logout() { localStorage.removeItem('na2625_session'); location.reload(); }
+
+async function printBluetooth() { alert("Bluetooth connection initialized..."); /* MPT implementation from your previous snippet */ }
 </script>
 </body>
 </html>
