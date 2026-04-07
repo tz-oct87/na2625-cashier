@@ -2,65 +2,61 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Level 3 POS</title>
+<title>POS System</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body, html {height:100%; margin:0; font-family:sans-serif;}
 #loginPage {display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;}
-#loginPage input {margin-bottom:10px;}
+#loginPage input {margin-bottom:10px; padding:5px; width:250px;}
 #app {display:none; padding:10px;}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginPage">
   <h2 class="text-xl mb-2">Login</h2>
-  <input id="user" placeholder="Username" class="border p-2 w-64"><br>
-  <input id="pass" type="password" placeholder="Password" class="border p-2 w-64"><br>
+  <input id="user" placeholder="Username">
+  <input id="pass" type="password" placeholder="Password">
   <button id="loginBtn" class="bg-green-500 text-white p-2 w-64">Login</button>
 </div>
 
-<!-- APP -->
 <div id="app">
-<h2 class="text-xl mb-2">POS</h2>
-<div id="adminPanel" class="border p-2 mb-2 hidden">
-  <h3 class="font-bold">Staff Management</h3>
-  <input id="staffUser" placeholder="Username" class="border p-1 mb-1">
-  <input id="staffPass" type="password" placeholder="Password" class="border p-1 mb-1">
-  <button id="addStaffBtn" class="bg-blue-500 text-white p-1 w-full mb-2">Add Staff</button>
-</div>
+  <div id="adminPanel" class="hidden mb-4 border p-2">
+    <h3>Staff Management</h3>
+    <input id="staffUser" placeholder="Staff Username" class="border p-1 w-full mb-1">
+    <input id="staffPass" type="password" placeholder="Staff Password" class="border p-1 w-full mb-1">
+    <button id="addStaffBtn" class="bg-blue-500 text-white w-full p-1">Add Staff</button>
+  </div>
 
-<h3>Cashier</h3>
-<input id="barcodeInput" placeholder="Scan barcode" class="border p-2 w-full mb-2">
-<div id="reader"></div>
-<div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2"></div>
-<h3>Cart</h3>
-<div id="cartItems" class="border p-2 mb-2"></div>
-<div>Total: <b id="total">0</b></div>
-<button onclick="checkout('cash')" class="bg-green-500 text-white p-2 w-full mt-2">Cash</button>
-<button onclick="payQRIS()" class="bg-purple-500 text-white p-2 w-full mt-2">QRIS</button>
-<hr class="my-4">
-<h3>Analytics</h3>
-<canvas id="chart"></canvas>
+  <h3>Cashier</h3>
+  <input id="barcodeInput" placeholder="Scan barcode" class="border p-2 w-full mb-2">
+  <div id="reader" class="mb-2"></div>
+  <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2"></div>
+  <h3>Cart</h3>
+  <div id="cartItems" class="border p-2 mb-2"></div>
+  <div>Total: <b id="total">0</b></div>
+  <button onclick="checkout('cash')" class="bg-green-500 text-white p-2 w-full mt-2">Cash</button>
+  <button onclick="payQRIS()" class="bg-purple-500 text-white p-2 w-full mt-2">QRIS</button>
+
+  <hr class="my-4">
+  <h3>Analytics</h3>
+  <canvas id="chart"></canvas>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbxQKY0slxdc2oXq1gNP1L9-xu0mL_kwzoLAgsDUA-08FCP2Qavf62RNO7Qq1-Ddh0uS/exec"; // Replace with deployed Apps Script URL
+const API="https://script.google.com/macros/s/AKfycbwJ-GZsjxtbLZaYYg93ukSPp9yHkC50DDXxeFe8TA6_q5AaQyM-U8Sejyw5Geh7x0A/exec";
 let products=[], cart=[], currentUser="", currentRole="";
 
-// ------ LOGIN ------
 document.getElementById("loginBtn").addEventListener("click", async ()=>{
-  const user = document.getElementById("user").value;
-  const pass = document.getElementById("pass").value;
-  if(!user||!pass){alert("Fill both fields"); return;}
-  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"login",user,pass})});
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
+  if(!u||!p){alert("Fill both fields"); return;}
+  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"login",user:u,pass:p})});
   const data = await res.json();
   if(data.success){
-    currentUser=user;
-    currentRole=data.role;
+    currentUser = u; currentRole = data.role;
     document.getElementById("loginPage").style.display="none";
     document.getElementById("app").style.display="block";
     if(currentRole==="admin") document.getElementById("adminPanel").classList.remove("hidden");
@@ -69,18 +65,16 @@ document.getElementById("loginBtn").addEventListener("click", async ()=>{
   } else alert("Login failed");
 });
 
-// ------ ADD STAFF ------
 document.getElementById("addStaffBtn").addEventListener("click", async ()=>{
-  const sUser = document.getElementById("staffUser").value;
-  const sPass = document.getElementById("staffPass").value;
-  if(!sUser||!sPass){alert("Fill both fields"); return;}
-  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"addStaff",admin:currentUser,user:sUser,pass:sPass})});
+  const u = document.getElementById("staffUser").value;
+  const p = document.getElementById("staffPass").value;
+  if(!u||!p){alert("Fill both fields"); return;}
+  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"addStaff",admin:currentUser,user:u,pass:p})});
   const data = await res.json();
   if(data.success){alert("Staff added"); document.getElementById("staffUser").value=""; document.getElementById("staffPass").value="";}
   else alert(data.error||"Failed");
 });
 
-// ------ LOAD PRODUCTS ------
 async function load(){
   const res = await fetch(API+"?type=products");
   const data = await res.json();
@@ -89,7 +83,6 @@ async function load(){
   loadAnalytics();
 }
 
-// ------ RENDER PRODUCTS ------
 function renderProducts(){
   const grid = document.getElementById("productsGrid");
   grid.innerHTML = products.map(p=>`
@@ -101,7 +94,6 @@ function renderProducts(){
   `).join("");
 }
 
-// ------ CART ------
 function addToCart(name){
   const p = products.find(x=>x.name===name);
   let ex = cart.find(i=>i.name===name);
@@ -120,44 +112,32 @@ function renderCart(){
   document.getElementById("total").innerText = totalAmount;
 }
 
-// ------ CHECKOUT ------
 async function checkout(method){
   if(cart.length===0) return alert("Cart is empty");
   const payload = {type:"addTransaction", user:currentUser, items:JSON.stringify(cart), payment:method};
   try{
     await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     printReceipt();
-    cart=[];
-    renderCart();
-    load();
-  }catch(e){
-    saveOffline(payload);
-  }
+    cart=[]; renderCart(); load();
+  }catch(e){ saveOffline(payload); }
 }
 
-// ------ QRIS ------
 function payQRIS(){
   const total = document.getElementById("total").innerText;
   const url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-"+total;
-  const w = window.open("");
-  w.document.write(`<img src="${url}">`);
+  const w = window.open(""); w.document.write(`<img src="${url}">`);
 }
 
-// ------ RECEIPT ------
 function printReceipt(){
   const w = window.open("","","width=300");
   w.document.write(`<style>body{font-family:monospace;width:80mm}</style>${cart.map(i=>`${i.name} x${i.qty} = ${i.qty*i.price}`).join("<br>")}<hr>Total: ${document.getElementById("total").innerText}`);
   w.print();
 }
 
-// ------ OFFLINE ------
 function saveOffline(d){
-  const q = JSON.parse(localStorage.getItem("q")||"[]");
-  q.push(d);
-  localStorage.setItem("q",JSON.stringify(q));
+  const q = JSON.parse(localStorage.getItem("q")||"[]"); q.push(d); localStorage.setItem("q",JSON.stringify(q));
 }
 
-// ------ BARCODE CAMERA ------
 function startScanner(){
   const scanner = new Html5Qrcode("reader");
   scanner.start({facingMode:"environment"},{fps:10,qrbox:250}, code=>{
@@ -166,7 +146,6 @@ function startScanner(){
   });
 }
 
-// ------ ANALYTICS ------
 async function loadAnalytics(){
   const res = await fetch(API+"?type=transactions");
   const data = await res.json();
