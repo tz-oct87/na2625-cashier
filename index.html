@@ -10,55 +10,38 @@
         .page-content { display: none; height: 100%; overflow-y: auto; }
         .page-content.active { display: block; }
         .nav-btn.active { background: #1e293b; color: #2dd4bf; border-left: 4px solid #2dd4bf; }
-        
-        /* Centered Modal Styling */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal.active { display: flex; }
-
-        /* Spinner Animation */
-        .spinner {
-            width: 18px; height: 18px; border: 2px solid transparent; border-top-color: currentColor;
-            border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px;
-        }
+        #toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 1rem 2.5rem; border-radius: 1rem; background: #1e293b; border: 1px solid #334155; color: #2dd4bf; font-weight: 800; z-index: 200; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+        #toast.show { opacity: 1; transform: translate(-50%, -60%); }
+        .spinner { width: 14px; height: 14px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Custom Toast */
-        #toast {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            padding: 1rem 2rem; border-radius: 1rem; background: #1e293b; border: 1px solid #334155;
-            color: #2dd4bf; font-weight: bold; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        #toast.show { opacity: 1; }
     </style>
 </head>
 <body class="h-full overflow-hidden font-sans">
 
-<div id="toast">Action Successful</div>
+<div id="toast">SUCCESS</div>
 
 <div id="loginPage" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950">
-    <div class="w-full max-w-sm p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl text-center">
+    <div class="w-full max-w-sm p-10 bg-slate-900 rounded-3xl border border-slate-800 text-center">
         <h1 class="text-3xl font-black text-teal-400 mb-8">NA2625</h1>
         <div class="space-y-4">
             <input id="user" type="text" placeholder="Username" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center">
             <input id="pass" type="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center">
-            <button id="loginBtn" class="w-full bg-teal-600 p-4 rounded-xl font-bold transition hover:bg-teal-500 flex items-center justify-center">
-                <span id="loginText">SIGN IN</span>
-            </button>
+            <button id="loginBtn" onclick="doLogin()" class="w-full bg-teal-600 p-4 rounded-xl font-bold transition hover:bg-teal-500 flex items-center justify-center">SIGN IN</button>
         </div>
     </div>
 </div>
 
 <div id="app" class="flex h-full hidden">
-    <nav class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
+    <nav class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0">
         <div class="p-8 text-xl font-black text-white border-b border-slate-800">NA2625 <span class="text-teal-400">POS</span></div>
         <div class="flex-1 p-4 space-y-1">
             <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">🛒 Cashier</button>
             <button onclick="showPage('manage')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">📦 Inventory</button>
             <button onclick="showPage('history')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">📜 History</button>
         </div>
-        <div class="p-6 border-t border-slate-800">
-            <button onclick="logout()" class="w-full text-xs font-bold text-red-400 uppercase tracking-widest py-2">Logout</button>
-        </div>
+        <div class="p-6 border-t border-slate-800"><button onclick="logout()" class="w-full text-xs font-bold text-red-400 uppercase tracking-widest">Logout</button></div>
     </nav>
 
     <main class="flex-1 bg-slate-950 p-8 overflow-hidden flex flex-col">
@@ -69,11 +52,11 @@
                     <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto pr-2"></div>
                 </div>
                 <div class="w-80 bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col">
-                    <h3 class="font-bold text-slate-500 text-[10px] uppercase mb-4 tracking-widest">Cart</h3>
+                    <h3 class="font-bold text-slate-500 text-[10px] mb-4 uppercase tracking-widest">Cart</h3>
                     <div id="cartItems" class="flex-1 overflow-y-auto space-y-2 mb-4"></div>
                     <div class="border-t border-slate-800 pt-4 space-y-4">
                         <div class="flex justify-between text-xl font-black"><span>Total</span><span>Rp<span id="total">0</span></span></div>
-                        <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold">
+                        <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold outline-none border border-slate-700">
                         <button id="checkoutBtn" onclick="checkout()" class="w-full bg-teal-600 p-4 rounded-xl font-black flex items-center justify-center">CHECKOUT</button>
                     </div>
                 </div>
@@ -82,24 +65,20 @@
 
         <div id="page-manage" class="page-content">
             <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 mb-8">
-                <h3 class="text-teal-400 font-black mb-4">ADD NEW PRODUCT</h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input id="new-name" placeholder="Item Name" class="bg-slate-800 p-3 rounded-lg text-sm border border-slate-700 outline-none">
-                    <input id="new-sell" type="number" placeholder="Sell Price" class="bg-slate-800 p-3 rounded-lg text-sm border border-slate-700 outline-none">
-                    <input id="new-cost" type="number" placeholder="Cost Price" class="bg-slate-800 p-3 rounded-lg text-sm border border-slate-700 outline-none">
-                    <input id="new-stock" type="number" placeholder="Stock" class="bg-slate-800 p-3 rounded-lg text-sm border border-slate-700 outline-none">
+                <h3 class="text-teal-400 font-black mb-4 uppercase text-xs">New Product</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <input id="new-name" placeholder="Name" class="bg-slate-800 p-3 rounded-lg text-sm outline-none">
+                    <input id="new-sell" type="number" placeholder="Price" class="bg-slate-800 p-3 rounded-lg text-sm outline-none">
+                    <input id="new-cost" type="number" placeholder="Cost" class="bg-slate-800 p-3 rounded-lg text-sm outline-none">
+                    <input id="new-stock" type="number" placeholder="Stock" class="bg-slate-800 p-3 rounded-lg text-sm outline-none">
                 </div>
-                <button id="addProductBtn" onclick="addNewProduct()" class="mt-4 w-full bg-teal-600 p-3 rounded-lg font-bold text-xs flex items-center justify-center">
-                    <span id="addBtnText">CREATE PRODUCT</span>
-                </button>
+                <button id="addProdBtn" onclick="addNewProduct()" class="mt-4 w-full bg-teal-600 p-3 rounded-lg font-bold text-xs flex items-center justify-center">ADD TO INVENTORY</button>
             </div>
-            
             <div id="manageList" class="space-y-4"></div>
-            
             <div class="flex justify-center items-center gap-6 mt-8">
-                <button onclick="changePage(-1)" class="text-teal-400 font-bold hover:underline">← Previous</button>
+                <button onclick="changePage(-1)" class="text-teal-400 font-bold">← Prev</button>
                 <span id="pageInfo" class="text-xs font-mono text-slate-500">Page 1</span>
-                <button onclick="changePage(1)" class="text-teal-400 font-bold hover:underline">Next →</button>
+                <button onclick="changePage(1)" class="text-teal-400 font-bold">Next →</button>
             </div>
         </div>
 
@@ -109,29 +88,210 @@
     </main>
 </div>
 
+<div id="invoiceModal" class="modal">
+    <div class="bg-white text-slate-900 w-80 p-6 rounded-xl">
+        <div id="receiptArea" class="p-2 text-center">
+            <h2 class="font-black text-xl mb-4 border-b border-dashed pb-2">NA2625</h2>
+            <div id="receiptItems" class="text-[11px] space-y-1 mb-4 text-left"></div>
+            <div class="border-t border-dashed pt-2 text-xs font-bold flex justify-between"><span>TOTAL</span><span id="recTotal"></span></div>
+        </div>
+        <button onclick="closeModal('invoiceModal')" class="w-full mt-6 bg-slate-200 p-3 rounded-lg font-bold text-xs uppercase">Close</button>
+    </div>
+</div>
+
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyGrSpJGaOXLx-PyVSDVqU4caHKnUBJ_5xk8QEPcw4e1qBBZl4dLcsXPmNUqeaTM5-x/exec";
+const API = "https://script.google.com/macros/s/AKfycbynqfEErrTuCsM15I83m9PqF15LD86BZsp9fQw9RmmU99AYUDE0QJ9hqMg2Mllt8Ik/exec";
 let products = [], cart = [], currentUser = "", historyData = [];
 let currentPage = 1, itemsPerPage = 10;
 
-// HELPER: UI BLOCKER & SPINNER
-function setBtnLoading(btnId, isLoading, originalText) {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    btn.disabled = isLoading;
-    btn.innerHTML = isLoading ? `<span class="spinner"></span> Processing...` : originalText;
-    btn.classList.toggle('opacity-50', isLoading);
-    btn.classList.toggle('cursor-not-allowed', isLoading);
+// UTILS
+function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.style.color = isError ? '#f87171' : '#2dd4bf';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-// HELPER: CUSTOM CENTERED NOTIFICATION
-function showToast(msg, isError = false) {
-    const toast = document.getElementById('toast');
-    toast.innerText = msg;
-    toast.style.color = isError ? '#f87171' : '#2dd4bf';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
+function setBtnLoading(id, isLoading, text) {
+    const b = document.getElementById(id);
+    b.disabled = isLoading;
+    b.innerHTML = isLoading ? `<span class="spinner"></span> Processing...` : text;
+    b.style.opacity = isLoading ? "0.6" : "1";
 }
+
+// AUTH
+async function doLogin() {
+    const u = document.getElementById('user').value, p = document.getElementById('pass').value;
+    setBtnLoading('loginBtn', true, 'SIGN IN');
+    try {
+        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
+        const data = await res.json();
+        if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
+        else showToast("INVALID LOGIN", true);
+    } catch(e) { showToast("API ERROR", true); }
+    setBtnLoading('loginBtn', false, 'SIGN IN');
+}
+
+function logout() { localStorage.removeItem('NA_POS_USER'); location.reload(); }
+
+// DATA
+async function loadProducts() {
+    const res = await fetch(API + "?type=products");
+    products = await res.json();
+    renderProducts();
+}
+
+function renderProducts() {
+    const s = document.getElementById('posSearch').value.toLowerCase();
+    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
+        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hover:border-teal-500 cursor-pointer text-center group">
+            <p class="font-bold text-[10px] text-white truncate uppercase mb-1">${p.name}</p>
+            <p class="text-teal-400 font-black">Rp${p.sell.toLocaleString()}</p>
+            <div class="mt-2 text-[9px] ${p.stock < 5 ? 'text-red-500' : 'text-slate-500'} font-bold">STOCK: ${p.stock}</div>
+        </div>`).join("");
+}
+
+// CART
+function addToCart(name) {
+    const p = products.find(x => x.name === name);
+    if(p.stock <= 0) return showToast("NO STOCK", true);
+    let item = cart.find(i => i.name === name);
+    if (item) {
+        if(item.qty >= p.stock) return showToast("STOCK LIMIT", true);
+        item.qty++;
+    } else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
+    renderCart();
+}
+
+function changeQty(name, delta) {
+    let item = cart.find(i => i.name === name);
+    if (!item) return;
+    const p = products.find(x => x.name === name);
+    if (delta > 0 && item.qty >= p.stock) return showToast("STOCK LIMIT", true);
+    item.qty += delta;
+    if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
+    renderCart();
+}
+
+function renderCart() {
+    let total = 0;
+    document.getElementById('cartItems').innerHTML = cart.map(i => {
+        total += i.qty * i.price;
+        return `<div class="flex justify-between bg-slate-800 p-2 rounded-xl text-[10px] items-center">
+            <span class="truncate w-24 uppercase font-bold">${i.name}</span>
+            <div class="flex items-center gap-2">
+                <button onclick="changeQty('${i.name}', -1)" class="bg-slate-700 w-5 h-5 rounded hover:bg-red-500">-</button>
+                <span class="w-4 text-center">${i.qty}</span>
+                <button onclick="changeQty('${i.name}', 1)" class="bg-slate-700 w-5 h-5 rounded hover:bg-teal-500">+</button>
+            </div>
+        </div>`;
+    }).join("");
+    document.getElementById('total').innerText = total.toLocaleString();
+}
+
+async function checkout() {
+    const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
+    const paid = Number(document.getElementById('cashInput').value || 0);
+    if (cart.length === 0) return showToast("CART EMPTY", true);
+    if (paid < total) return showToast("CASH SHORT", true);
+
+    setBtnLoading('checkoutBtn', true, 'CHECKOUT');
+    try {
+        const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
+        await fetch(API, { method: 'POST', body: JSON.stringify({ 
+            type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total 
+        })});
+        showToast("TRANSACTION SAVED");
+        cart = []; document.getElementById('cashInput').value = "";
+        await loadProducts(); renderCart();
+    } catch(e) { showToast("SAVE ERROR", true); }
+    setBtnLoading('checkoutBtn', false, 'CHECKOUT');
+}
+
+// INVENTORY
+async function addNewProduct() {
+    const n = document.getElementById('new-name').value;
+    const s = Number(document.getElementById('new-sell').value);
+    const c = Number(document.getElementById('new-cost').value);
+    const st = Number(document.getElementById('new-stock').value);
+    if(!n || !s) return showToast("FILL REQ FIELDS", true);
+
+    setBtnLoading('addProdBtn', true, 'ADD TO INVENTORY');
+    await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addProduct', name: n, sell: s, cost: c, stock: st }) });
+    document.querySelectorAll('#page-manage input').forEach(i => i.value="");
+    await loadProducts(); renderManage();
+    setBtnLoading('addProdBtn', false, 'ADD TO INVENTORY');
+    showToast("PRODUCT CREATED");
+}
+
+function renderManage() {
+    const start = (currentPage - 1) * itemsPerPage;
+    const paginated = products.slice(start, start + itemsPerPage);
+    document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${Math.ceil(products.length / itemsPerPage)}`;
+    document.getElementById('manageList').innerHTML = paginated.map((p, idx) => `
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+            <p class="font-bold text-[10px] uppercase w-full md:w-1/4">${p.name}</p>
+            <div class="flex flex-1 gap-2 justify-end">
+                <div class="flex flex-col"><label class="text-[8px] text-slate-500">PRICE</label><input id="prc-${idx}" type="number" value="${p.sell}" class="w-20 bg-slate-800 p-2 rounded text-[10px] outline-none"></div>
+                <div class="flex flex-col"><label class="text-[8px] text-slate-500">STOCK</label><input id="stk-${idx}" type="number" value="${p.stock}" class="w-16 bg-slate-800 p-2 rounded text-[10px] outline-none"></div>
+                <button id="upd-${idx}" onclick="updateItem('${p.name}', ${idx})" class="self-end bg-teal-600 px-4 py-2 rounded text-[9px] font-bold">SAVE</button>
+            </div>
+        </div>`).join("");
+}
+
+async function updateItem(name, idx) {
+    const p = products.find(x => x.name === name);
+    const newPrice = Number(document.getElementById(`prc-${idx}`).value);
+    const newStock = Number(document.getElementById(`stk-${idx}`).value);
+    
+    setBtnLoading(`upd-${idx}`, true, '...');
+    await fetch(API, { method: 'POST', body: JSON.stringify({ 
+        type: 'editProduct', oldName: name, name: name, sell: newPrice, cost: p.cost, stock: newStock 
+    })});
+    showToast("UPDATED");
+    await loadProducts(); renderManage();
+}
+
+function changePage(delta) {
+    const max = Math.ceil(products.length / itemsPerPage);
+    currentPage = Math.max(1, Math.min(currentPage + delta, max));
+    renderManage();
+}
+
+// HISTORY
+async function fetchHistory() {
+    const res = await fetch(API + "?type=transactions");
+    historyData = (await res.json()).reverse();
+    document.getElementById('historyList').innerHTML = historyData.map((r, idx) => `
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div>
+                <p class="text-[9px] text-slate-500 font-mono uppercase">${new Date(r[0]).toLocaleTimeString()}</p>
+                <p class="font-black text-teal-400">Rp${Number(r[3]).toLocaleString()}</p>
+            </div>
+            <button onclick="viewInvoice(${idx})" class="text-[9px] bg-slate-800 px-4 py-2 rounded border border-slate-700 font-bold uppercase hover:bg-slate-700">View More</button>
+        </div>`).join("");
+}
+
+function viewInvoice(idx) {
+    const r = historyData[idx];
+    const items = JSON.parse(r[5]);
+    document.getElementById('recTotal').innerText = "Rp" + Number(r[3]).toLocaleString();
+    document.getElementById('receiptItems').innerHTML = items.map(i => `
+        <div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span></div>
+    `).join("");
+    document.getElementById('invoiceModal').classList.add('active');
+}
+
+function showPage(p) {
+    document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+    document.getElementById('page-'+p).classList.add('active');
+    if(p === 'history') fetchHistory();
+    if(p === 'manage') renderManage();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
 window.onload = () => {
     const saved = localStorage.getItem('NA_POS_USER');
@@ -142,154 +302,6 @@ window.onload = () => {
         loadProducts();
     }
 };
-
-document.getElementById('loginBtn').onclick = async () => {
-    const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    if(!u || !p) return showToast("Enter credentials", true);
-    
-    setBtnLoading('loginBtn', true, 'SIGN IN');
-    try {
-        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
-        const data = await res.json();
-        if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
-        else showToast("Login Failed", true);
-    } catch(e) { showToast("Connection Error", true); }
-    setBtnLoading('loginBtn', false, 'SIGN IN');
-};
-
-async function loadProducts() {
-    try {
-        const res = await fetch(API + "?type=products");
-        products = await res.json();
-        renderProducts();
-    } catch(e) { showToast("Failed to load products", true); }
-}
-
-function renderProducts() {
-    const s = document.getElementById('posSearch').value.toLowerCase();
-    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
-        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hover:border-teal-500 cursor-pointer text-center group">
-            <p class="font-bold text-[10px] text-white truncate uppercase mb-1">${p.name}</p>
-            <p class="text-teal-400 font-black">Rp${p.sell.toLocaleString()}</p>
-            <div class="mt-2 py-1 px-2 bg-slate-800 rounded text-[9px] font-bold text-slate-400 group-hover:text-teal-300">
-                Stock: ${p.stock}
-            </div>
-        </div>`).join("");
-}
-
-async function addNewProduct() {
-    const name = document.getElementById('new-name').value;
-    const sell = Number(document.getElementById('new-sell').value);
-    const cost = Number(document.getElementById('new-cost').value);
-    const stock = Number(document.getElementById('new-stock').value);
-
-    if(!name || !sell) return showToast("Name and Price required", true);
-
-    setBtnLoading('addProductBtn', true, 'CREATE PRODUCT');
-    try {
-        await fetch(API, { 
-            method: 'POST', 
-            body: JSON.stringify({ type: 'addProduct', name, sell, cost, stock }) 
-        });
-        document.querySelectorAll('#page-manage input').forEach(i => i.value = "");
-        await loadProducts();
-        renderManage();
-        showToast("Product Created!");
-    } catch(e) { showToast("Save Failed", true); }
-    setBtnLoading('addProductBtn', false, 'CREATE PRODUCT');
-}
-
-async function checkout() {
-    const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
-    const paid = Number(document.getElementById('cashInput').value || 0);
-    
-    if (cart.length === 0) return showToast("Cart is empty", true);
-    if (paid < total) return showToast("Insufficient Cash", true);
-
-    setBtnLoading('checkoutBtn', true, 'CHECKOUT');
-    try {
-        const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
-        await fetch(API, { method: 'POST', body: JSON.stringify({ 
-            type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total 
-        })});
-        
-        cart = [];
-        document.getElementById('cashInput').value = "";
-        await loadProducts();
-        renderCart();
-        showToast("Transaction Recorded!");
-    } catch(e) { showToast("Checkout Failed", true); }
-    setBtnLoading('checkoutBtn', false, 'CHECKOUT');
-}
-
-// ... Rest of Logic (Pagination, Manage, Cart qty) remains same ...
-function changePage(delta) {
-    const maxPages = Math.ceil(products.length / itemsPerPage);
-    currentPage = Math.max(1, Math.min(currentPage + delta, maxPages));
-    renderManage();
-}
-
-function renderManage() {
-    const start = (currentPage - 1) * itemsPerPage;
-    const paginatedItems = products.slice(start, start + itemsPerPage);
-    document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${Math.ceil(products.length / itemsPerPage)}`;
-    document.getElementById('manageList').innerHTML = paginatedItems.map((p, idx) => `
-        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-            <p class="font-bold text-xs uppercase w-1/3">${p.name}</p>
-            <div class="flex gap-2 w-2/3 justify-end">
-                <input id="stk-${idx}" type="number" value="${p.stock}" class="w-16 bg-slate-800 p-2 rounded text-xs border border-slate-700">
-                <button onclick="updateItem('${p.name}', ${idx})" class="bg-teal-600 px-4 py-2 rounded text-[10px] font-bold">SAVE</button>
-            </div>
-        </div>`).join("");
-}
-
-function addToCart(name) {
-    const p = products.find(x => x.name === name);
-    if(p.stock <= 0) return showToast("Out of stock!", true);
-    let item = cart.find(i => i.name === name);
-    if (item) {
-        if (item.qty >= p.stock) return showToast("Stock limit reached", true);
-        item.qty++;
-    } else {
-        cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
-    }
-    renderCart();
-}
-
-function changeQty(name, delta) {
-    let item = cart.find(i => i.name === name);
-    const p = products.find(x => x.name === name);
-    if (item) {
-        if (delta > 0 && item.qty >= p.stock) return showToast("No more stock", true);
-        item.qty += delta;
-        if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
-    }
-    renderCart();
-}
-
-function renderCart() {
-    let total = 0;
-    document.getElementById('cartItems').innerHTML = cart.map(i => {
-        total += i.qty * i.price;
-        return `<div class="flex justify-between bg-slate-800 p-2 rounded-xl text-[10px] items-center">
-            <span class="truncate w-24">${i.name}</span>
-            <div class="flex items-center gap-2">
-                <button onclick="changeQty('${i.name}', -1)" class="bg-slate-700 w-5 h-5 rounded">-</button>
-                <span class="w-4 text-center">${i.qty}</span>
-                <button onclick="changeQty('${i.name}', 1)" class="bg-slate-700 w-5 h-5 rounded">+</button>
-            </div>
-        </div>`;
-    }).join("");
-    document.getElementById('total').innerText = total.toLocaleString();
-}
-
-function showPage(p) {
-    document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-    document.getElementById('page-'+p).classList.add('active');
-    if(p === 'history') fetchHistory();
-    if(p === 'manage') renderManage();
-}
 </script>
 </body>
 </html>
