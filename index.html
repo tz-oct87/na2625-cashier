@@ -12,8 +12,8 @@
         .nav-btn.active { background: #1e293b; color: #2dd4bf; border-left: 4px solid #2dd4bf; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal.active { display: flex; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
 <body class="h-full overflow-hidden font-sans">
@@ -30,7 +30,7 @@
     <div class="bg-white text-slate-900 w-80 p-6 rounded-xl shadow-2xl">
         <div id="receiptArea" class="p-2">
             <div class="text-center border-b border-dashed border-slate-300 pb-4 mb-4">
-                <h2 class="font-black text-xl">NA2625</h2>
+                <h2 class="font-black text-xl text-slate-900">NA2625</h2>
                 <p class="text-[10px] uppercase text-slate-500">Official Receipt</p>
             </div>
             <div id="receiptItems" class="text-xs space-y-2 mb-4"></div>
@@ -112,7 +112,8 @@
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbw2m1FmVMJXHAJJ1iltjtlsjS3VRZ0dvxxjmMnKUeI9f-mE_x89ImgGqdE6taKym1c-/exec";
+// REPLACE WITH YOUR GOOGLE WEB APP URL
+const API = "https://script.google.com/macros/s/AKfycbzlHx7tLmlhTeoTkYi3zRcZfPwU4d7ucemuw_N98nlm6G9s_A_xSd01s2OM4FrQTRBd/exec";
 let products = [], cart = [], currentUser = "";
 
 window.onload = () => {
@@ -133,16 +134,17 @@ function showPage(p) {
     if(p === 'history') fetchHistory();
     if(p === 'manage') renderManage();
 }
-
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
 // AUTH
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
-    const data = await res.json();
-    if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
-    else alert("Login Failed");
+    try {
+        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
+        const data = await res.json();
+        if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
+        else alert("Login Failed");
+    } catch(e) { alert("API Error: Check if deployment is set to 'Anyone'"); }
 };
 
 async function loadProducts() {
@@ -176,19 +178,16 @@ function addToCart(name) {
     renderCart();
 }
 
-// QUANTITY HANDLERS (+ / -)
-function updateCartQty(name, delta) {
-    let item = cart.find(i => i.name === name);
+// QUANTITY ADJUSTERS
+function changeQty(name, delta) {
+    const item = cart.find(i => i.name === name);
     const p = products.find(x => x.name === name);
-    
-    if (item) {
-        if (delta > 0 && item.qty >= p.stock) return alert("Maximum stock reached");
-        item.qty += delta;
-        if (item.qty <= 0) {
-            cart = cart.filter(i => i.name !== name);
-        }
-        renderCart();
-    }
+    if (!item) return;
+
+    if (delta > 0 && item.qty >= p.stock) return alert("Insufficient Stock");
+    item.qty += delta;
+    if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
+    renderCart();
 }
 
 function renderCart() {
@@ -197,14 +196,14 @@ function renderCart() {
         total += i.qty * i.price;
         return `
         <div class="flex items-center justify-between bg-slate-800 p-3 rounded-xl border border-slate-700">
-            <div class="flex-1 min-w-0 mr-2">
+            <div class="flex-1 overflow-hidden pr-2">
                 <p class="text-[10px] font-bold text-white truncate uppercase">${i.name}</p>
-                <p class="text-[10px] text-teal-400 font-black">Rp${(i.qty * i.price).toLocaleString()}</p>
+                <p class="text-[10px] text-teal-400 font-bold">Rp${(i.qty * i.price).toLocaleString()}</p>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="updateCartQty('${i.name}', -1)" class="w-6 h-6 flex items-center justify-center bg-slate-700 rounded-md text-white hover:bg-red-900 transition">-</button>
+                <button onclick="changeQty('${i.name}', -1)" class="w-6 h-6 bg-slate-700 rounded hover:bg-red-500 text-xs">-</button>
                 <span class="text-xs font-bold w-4 text-center">${i.qty}</span>
-                <button onclick="updateCartQty('${i.name}', 1)" class="w-6 h-6 flex items-center justify-center bg-slate-700 rounded-md text-white hover:bg-teal-900 transition">+</button>
+                <button onclick="changeQty('${i.name}', 1)" class="w-6 h-6 bg-slate-700 rounded hover:bg-teal-500 text-xs">+</button>
             </div>
         </div>`;
     }).join("");
@@ -250,15 +249,15 @@ function renderManage() {
         <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col gap-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <img id="img-preview-${idx}" onclick="changeProductPic('${p.name}', ${idx})" src="${p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-lg object-cover bg-slate-950 cursor-pointer hover:opacity-50 border border-slate-700">
+                    <img onclick="changeProductPic('${p.name}', ${idx})" src="${p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-lg object-cover bg-slate-950 cursor-pointer hover:opacity-50 border border-slate-700">
                     <p class="font-black text-white uppercase">${p.name}</p>
                 </div>
-                <button onclick="updateExistingProduct('${p.name}', ${idx})" class="bg-teal-600 px-4 py-2 rounded-lg text-xs font-bold">Update Item</button>
+                <button onclick="updateExistingProduct('${p.name}', ${idx})" class="bg-teal-600 px-4 py-2 rounded-lg text-xs font-bold transition hover:bg-teal-500">Update Item</button>
             </div>
             <div class="grid grid-cols-3 gap-4">
-                <div><label class="text-[9px] text-slate-500 uppercase">Stock</label><input id="editStock-${idx}" type="number" value="${p.stock}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700 focus:border-teal-500"></div>
-                <div><label class="text-[9px] text-slate-500 uppercase">Price</label><input id="editSell-${idx}" type="number" value="${p.sell}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700 focus:border-teal-500"></div>
-                <div><label class="text-[9px] text-slate-500 uppercase">Cost</label><input id="editCost-${idx}" type="number" value="${p.cost}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700 focus:border-teal-500"></div>
+                <div><label class="text-[9px] text-slate-500 uppercase">Stock</label><input id="editStock-${idx}" type="number" value="${p.stock}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700"></div>
+                <div><label class="text-[9px] text-slate-500 uppercase">Price</label><input id="editSell-${idx}" type="number" value="${p.sell}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700"></div>
+                <div><label class="text-[9px] text-slate-500 uppercase">Cost</label><input id="editCost-${idx}" type="number" value="${p.cost}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700"></div>
             </div>
         </div>`).join("");
 }
@@ -303,28 +302,35 @@ async function changeProductPic(pName, idx) {
         const file = e.target.files[0];
         const reader = new FileReader();
         reader.onload = async () => {
-            const base64String = reader.result;
-            // Update UI preview immediately
-            document.getElementById(`img-preview-${idx}`).src = base64String;
-            
+            const base64Data = reader.result;
             try {
-                const resImg = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'uploadImage', base64: base64String }) });
-                const dataImg = await resImg.json();
+                const resImg = await fetch(API, { 
+                    method: 'POST', 
+                    mode: 'no-cors', // Helpful if still hitting CORS issues
+                    body: JSON.stringify({ type: 'uploadImage', base64: base64Data }) 
+                });
+                // Note: with 'no-cors', you won't be able to read dataImg.imgId immediately.
+                // It is better to ensure deployment is set to 'Anyone'.
+                
+                // standard fetch (pre-flight required)
+                const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'uploadImage', base64: base64Data }) });
+                const dataImg = await res.json();
+                
                 if(dataImg.success) {
                     const prod = products.find(x => x.name === pName);
                     await fetch(API, { method: 'POST', body: JSON.stringify({ 
-                        type: 'editProduct', 
-                        oldName: pName, 
-                        name: pName, 
+                        type: 'editProduct', oldName: pName, name: pName, 
                         sell: Number(document.getElementById(`editSell-${idx}`).value), 
                         stock: Number(document.getElementById(`editStock-${idx}`).value), 
                         cost: Number(document.getElementById(`editCost-${idx}`).value), 
                         imgId: dataImg.imgId 
                     }) });
                     loadProducts();
+                    renderManage();
+                    alert("Image Updated!");
                 }
             } catch (err) {
-                alert("Upload failed. Check your internet or API.");
+                alert("Upload failed. Verify that your GAS deployment allows access to 'Anyone'.");
             }
         };
         reader.readAsDataURL(file);
