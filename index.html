@@ -19,7 +19,7 @@
         @media print {
             body * { visibility: hidden; }
             #receiptArea, #receiptArea * { visibility: visible; }
-            #receiptArea { position: absolute; left: 0; top: 0; width: 100%; border: none !important; }
+            #receiptArea { position: absolute; left: 0; top: 0; width: 100%; }
             .no-print { display: none !important; }
         }
     </style>
@@ -61,7 +61,7 @@
                     <div id="cartItems" class="flex-1 overflow-y-auto space-y-2 mb-4"></div>
                     <div class="border-t border-slate-800 pt-4 space-y-4">
                         <div class="flex justify-between text-xl font-black"><span>Total</span><span>Rp<span id="total">0</span></span></div>
-                        <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold outline-none border border-slate-700">
+                        <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold outline-none">
                         <button id="checkoutBtn" onclick="checkout()" class="w-full bg-teal-600 p-4 rounded-xl font-black flex items-center justify-center">CHECKOUT</button>
                     </div>
                 </div>
@@ -88,25 +88,45 @@
         </div>
 
         <div id="page-history" class="page-content">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-slate-900 p-6 rounded-3xl border border-slate-800">
+                <div><h2 class="text-teal-400 font-black uppercase text-xl">History</h2></div>
+                <div class="flex gap-2">
+                    <select id="historyFilter" onchange="filterHistory()" class="bg-slate-800 text-[10px] font-bold p-3 rounded-xl border border-slate-700 outline-none uppercase">
+                        <option value="today">Today Only</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="3month">Last 3 Months</option>
+                    </select>
+                    <button onclick="exportStatement()" class="bg-teal-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase">Export PDF</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                    <p class="text-[9px] text-slate-500 font-bold uppercase">Revenue</p>
+                    <p id="sumRevenue" class="text-xl font-black text-white">Rp0</p>
+                </div>
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                    <p class="text-[9px] text-slate-500 font-bold uppercase">Profit</p>
+                    <p id="sumProfit" class="text-xl font-black text-teal-400">Rp0</p>
+                </div>
+            </div>
             <div id="historyList" class="space-y-3"></div>
         </div>
 
         <div id="page-settings" class="page-content">
             <div class="max-w-md mx-auto bg-slate-900 p-8 rounded-3xl border border-slate-800">
-                <h2 class="text-teal-400 font-black mb-6 uppercase tracking-widest">Store Settings</h2>
-                <div class="space-y-4">
-                    <input id="set-name" placeholder="Store Name" class="w-full bg-slate-800 p-4 rounded-xl outline-none">
-                    <textarea id="set-addr" placeholder="Address" class="w-full bg-slate-800 p-4 rounded-xl outline-none h-24"></textarea>
-                    <input id="set-note" placeholder="Footer Note" class="w-full bg-slate-800 p-4 rounded-xl outline-none">
-                    <button onclick="saveSettings()" class="w-full bg-teal-600 p-4 rounded-xl font-black">SAVE SETTINGS</button>
-                </div>
+                <h2 class="text-teal-400 font-black mb-6 uppercase">Settings</h2>
+                <input id="set-name" placeholder="Store Name" class="w-full bg-slate-800 p-4 rounded-xl outline-none mb-4">
+                <textarea id="set-addr" placeholder="Address" class="w-full bg-slate-800 p-4 rounded-xl outline-none h-24 mb-4"></textarea>
+                <input id="set-note" placeholder="Invoice Footer" class="w-full bg-slate-800 p-4 rounded-xl outline-none mb-4">
+                <button onclick="saveSettings()" class="w-full bg-teal-600 p-4 rounded-xl font-black">SAVE</button>
             </div>
         </div>
     </main>
 </div>
 
 <div id="invoiceModal" class="modal">
-    <div class="bg-white text-slate-900 w-80 p-6 rounded-xl shadow-2xl">
+    <div class="bg-white text-slate-900 w-80 p-6 rounded-xl">
         <div id="receiptArea" class="p-2 text-center bg-white">
             <h2 id="invStoreName" class="font-black text-xl uppercase leading-none">NA2625</h2>
             <p id="invStoreAddr" class="text-[9px] text-slate-500 mb-4 whitespace-pre-wrap">STORE ADDRESS</p>
@@ -119,42 +139,37 @@
                 <div class="flex justify-between text-[10px]"><span>PAID</span><span id="recPaid">0</span></div>
                 <div class="flex justify-between text-[10px] font-bold"><span>CHANGE</span><span id="recChange">0</span></div>
             </div>
-            <p id="invNote" class="mt-6 text-[10px] italic border-t border-dashed pt-4">Thank you!</p>
+            <p id="invNote" class="mt-6 text-[10px] italic border-t border-dashed pt-4 text-center">Thank you!</p>
         </div>
         <div class="grid grid-cols-2 gap-2 mt-6 no-print">
             <button onclick="window.print()" class="bg-teal-600 text-white p-3 rounded-lg font-bold text-[10px] uppercase">Print</button>
             <button onclick="saveInvoiceImage()" class="bg-slate-800 text-white p-3 rounded-lg font-bold text-[10px] uppercase">PNG</button>
-            <button onclick="closeModal('invoiceModal')" class="col-span-2 bg-slate-200 p-3 rounded-lg font-bold text-[10px] uppercase text-slate-600">Close</button>
+            <button onclick="closeModal('invoiceModal')" class="col-span-2 bg-slate-200 p-3 rounded-lg font-bold text-[10px] uppercase">Close</button>
         </div>
     </div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzyqsAt8auGOjzIpsoIMI842UqYyburz8xxmRLC5YTH2_yZhr7t3JN-Dy1YTJhaR1BN/exec"; // RE-PASTE YOUR DEPLOYMENT URL HERE
-let products = [], cart = [], currentUser = "", historyData = [];
+const API = "https://script.google.com/macros/s/AKfycbweov-VD-18mMRdQJ6IbAv6Mcx2Oesq8naGvDfHpDQkdbVYlMh6VKlqFdb30tsdd59p/exec"; 
+let products = [], cart = [], currentUser = "", historyData = [], filteredHistory = [];
 let currentPage = 1, itemsPerPage = 10;
 
 // HELPERS
 function showToast(msg, isError=false) {
     const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.style.color = isError ? '#f87171' : '#2dd4bf';
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2000);
+    t.innerText = msg; t.style.color = isError ? '#f87171' : '#2dd4bf';
+    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
 }
 
 function setBtnLoading(id, isLoading, text) {
     const b = document.getElementById(id);
-    if(!b) return;
-    b.disabled = isLoading;
+    if(!b) return; b.disabled = isLoading;
     b.innerHTML = isLoading ? `<span class="spinner"></span> Processing...` : text;
-    b.style.opacity = isLoading ? "0.6" : "1";
 }
 
 // AUTH
 async function doLogin() {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    if(!u || !p) return showToast("FILL CREDENTIALS", true);
     setBtnLoading('loginBtn', true, 'SIGN IN');
     try {
         const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
@@ -167,99 +182,54 @@ async function doLogin() {
 
 function logout() { localStorage.removeItem('NA_POS_USER'); location.reload(); }
 
-// SETTINGS
-function saveSettings() {
-    const data = {
-        name: document.getElementById('set-name').value,
-        addr: document.getElementById('set-addr').value,
-        note: document.getElementById('set-note').value
-    };
-    localStorage.setItem('NA_POS_SETTINGS', JSON.stringify(data));
-    showToast("Settings Saved");
+// HISTORY LOGIC
+async function fetchHistory() {
+    const res = await fetch(API + "?type=transactions");
+    historyData = (await res.json()).reverse();
+    filterHistory();
 }
 
-function loadSettings() {
-    const saved = localStorage.getItem('NA_POS_SETTINGS');
-    if (saved) {
-        const data = JSON.parse(saved);
-        document.getElementById('set-name').value = data.name || "";
-        document.getElementById('set-addr').value = data.addr || "";
-        document.getElementById('set-note').value = data.note || "";
-    }
+function filterHistory() {
+    const mode = document.getElementById('historyFilter').value;
+    const now = new Date();
+    filteredHistory = historyData.filter(row => {
+        const d = new Date(row[0]);
+        if (mode === 'today') return d.toDateString() === now.toDateString();
+        const diff = (now - d) / (1000 * 3600 * 24);
+        if (mode === 'weekly') return diff <= 7;
+        if (mode === 'monthly') return diff <= 30;
+        if (mode === '3month') return diff <= 90;
+        return true;
+    });
+    renderHistoryList();
 }
 
-// POS LOGIC
-async function loadProducts() {
-    try {
-        const res = await fetch(API + "?type=products");
-        products = await res.json();
-        renderProducts();
-    } catch(e) { showToast("LOAD ERROR", true); }
-}
-
-function renderProducts() {
-    const s = document.getElementById('posSearch').value.toLowerCase();
-    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
-        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hover:border-teal-500 cursor-pointer text-center">
-            <p class="font-bold text-[10px] text-white truncate mb-1 uppercase">${p.name}</p>
-            <p class="text-teal-400 font-black">Rp${p.sell.toLocaleString()}</p>
-            <div class="mt-2 text-[9px] ${p.stock < 5 ? 'text-red-500' : 'text-slate-500'} font-bold uppercase">Stock: ${p.stock}</div>
-        </div>`).join("");
-}
-
-function addToCart(name) {
-    const p = products.find(x => x.name === name);
-    if(p.stock <= 0) return showToast("NO STOCK", true);
-    let item = cart.find(i => i.name === name);
-    if (item) {
-        if(item.qty >= p.stock) return showToast("LIMIT REACHED", true);
-        item.qty++;
-    } else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
-    renderCart();
-}
-
-function renderCart() {
-    let total = 0;
-    document.getElementById('cartItems').innerHTML = cart.map(i => {
-        total += i.qty * i.price;
-        return `<div class="flex justify-between bg-slate-800 p-2 rounded-xl text-[10px] items-center">
-            <span class="truncate w-24 font-bold uppercase">${i.name}</span>
-            <div class="flex items-center gap-2">
-                <button onclick="changeQty('${i.name}', -1)" class="bg-slate-700 w-5 h-5 rounded">-</button>
-                <span>${i.qty}</span>
-                <button onclick="changeQty('${i.name}', 1)" class="bg-slate-700 w-5 h-5 rounded">+</button>
-            </div>
+function renderHistoryList() {
+    let rev = 0, prof = 0;
+    document.getElementById('historyList').innerHTML = filteredHistory.map((r, idx) => {
+        rev += Number(r[3]); prof += Number(r[4]);
+        return `<div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div><p class="text-[9px] text-slate-500 font-mono">${new Date(r[0]).toLocaleString()}</p>
+            <p class="font-black text-white">Rp${Number(r[3]).toLocaleString()}</p></div>
+            <button onclick="viewFromFilter(${idx})" class="text-[9px] bg-slate-800 px-4 py-2 rounded font-bold uppercase">Details</button>
         </div>`;
     }).join("");
-    document.getElementById('total').innerText = total.toLocaleString();
+    document.getElementById('sumRevenue').innerText = "Rp" + rev.toLocaleString();
+    document.getElementById('sumProfit').innerText = "Rp" + prof.toLocaleString();
 }
 
-function changeQty(name, delta) {
-    let item = cart.find(i => i.name === name);
-    const p = products.find(x => x.name === name);
-    if (delta > 0 && item.qty >= p.stock) return showToast("NO STOCK", true);
-    item.qty += delta;
-    if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
-    renderCart();
+function viewFromFilter(idx) {
+    const r = filteredHistory[idx];
+    showInvoice(r[1], JSON.parse(r[5]), r[3], r[6], r[7], new Date(r[0]).toLocaleString());
 }
 
-async function checkout() {
-    const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
-    const paid = Number(document.getElementById('cashInput').value || 0);
-    if (cart.length === 0) return showToast("CART EMPTY", true);
-    if (paid < total) return showToast("SHORT PAYMENT", true);
-
-    setBtnLoading('checkoutBtn', true, 'CHECKOUT');
-    try {
-        const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
-        await fetch(API, { method: 'POST', body: JSON.stringify({ 
-            type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total 
-        })});
-        showInvoice(currentUser, cart, total, paid, paid-total);
-        cart = []; document.getElementById('cashInput').value = "";
-        await loadProducts(); renderCart();
-    } catch(e) { showToast("CHECKOUT FAIL", true); }
-    setBtnLoading('checkoutBtn', false, 'CHECKOUT');
+function exportStatement() {
+    const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
+    const mode = document.getElementById('historyFilter').value.toUpperCase();
+    const win = window.open('', '_blank');
+    const rows = filteredHistory.map(r => `<tr><td style="border-bottom:1px solid #ddd;padding:8px">${new Date(r[0]).toLocaleDateString()}</td><td style="border-bottom:1px solid #ddd;padding:8px;text-align:right">Rp${Number(r[3]).toLocaleString()}</td></tr>`).join("");
+    win.document.write(`<html><body style="font-family:sans-serif;padding:40px"><center><h1>${set.name || 'NA2625'}</h1><p>${set.addr || ''}</p><hr><h2>STATEMENT: ${mode}</h2></center><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f0f0f0"><th>DATE</th><th style="text-align:right">TOTAL</th></tr></thead><tbody>${rows}</tbody></table><h3 style="text-align:right">TOTAL REVENUE: ${document.getElementById('sumRevenue').innerText}</h3></body></html>`);
+    win.document.close(); win.print();
 }
 
 // INVOICE UI
@@ -270,46 +240,99 @@ function showInvoice(user, items, total, paid, change, dateStr = null) {
     document.getElementById('invNote').innerText = set.note || "Thank you!";
     document.getElementById('invDate').innerText = dateStr || new Date().toLocaleString();
     document.getElementById('invUser').innerText = "BY: " + user;
-    document.getElementById('recTotal').innerText = "Rp" + total.toLocaleString();
-    document.getElementById('recPaid').innerText = "Rp" + paid.toLocaleString();
-    document.getElementById('recChange').innerText = "Rp" + change.toLocaleString();
-    document.getElementById('receiptItems').innerHTML = items.map(i => `
-        <div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span></div>
-    `).join("");
+    document.getElementById('recTotal').innerText = "Rp" + Number(total).toLocaleString();
+    document.getElementById('recPaid').innerText = "Rp" + Number(paid).toLocaleString();
+    document.getElementById('recChange').innerText = "Rp" + Number(change).toLocaleString();
+    document.getElementById('receiptItems').innerHTML = items.map(i => `<div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span></div>`).join("");
     document.getElementById('invoiceModal').classList.add('active');
 }
 
-function saveInvoiceImage() {
-    html2canvas(document.querySelector("#receiptArea")).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Invoice_${Date.now()}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-    });
+// POS LOGIC
+async function loadProducts() {
+    const res = await fetch(API + "?type=products");
+    products = await res.json(); renderProducts();
+}
+
+function renderProducts() {
+    const s = document.getElementById('posSearch').value.toLowerCase();
+    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
+        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hover:border-teal-500 cursor-pointer text-center">
+            <p class="font-bold text-[10px] text-white truncate mb-1 uppercase">${p.name}</p>
+            <p class="text-teal-400 font-black">Rp${p.sell.toLocaleString()}</p>
+            <div class="mt-2 text-[9px] ${p.stock < 5 ? 'text-red-500' : 'text-slate-500'} font-bold">STOCK: ${p.stock}</div>
+        </div>`).join("");
+}
+
+function addToCart(name) {
+    const p = products.find(x => x.name === name);
+    if(p.stock <= 0) return showToast("NO STOCK", true);
+    let item = cart.find(i => i.name === name);
+    if (item) { if(item.qty >= p.stock) return showToast("LIMIT", true); item.qty++; }
+    else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
+    renderCart();
+}
+
+function renderCart() {
+    let t = 0;
+    document.getElementById('cartItems').innerHTML = cart.map(i => {
+        t += i.qty * i.price;
+        return `<div class="flex justify-between bg-slate-800 p-2 rounded-xl text-[10px] items-center">
+            <span class="truncate w-24 uppercase font-bold">${i.name}</span>
+            <div class="flex items-center gap-2">
+                <button onclick="changeQty('${i.name}',-1)" class="bg-slate-700 w-5 h-5 rounded">-</button>
+                <span>${i.qty}</span>
+                <button onclick="changeQty('${i.name}',1)" class="bg-slate-700 w-5 h-5 rounded">+</button>
+            </div>
+        </div>`;
+    }).join("");
+    document.getElementById('total').innerText = t.toLocaleString();
+}
+
+function changeQty(n, d) {
+    let i = cart.find(x => x.name === n); const p = products.find(x => x.name === n);
+    if (d > 0 && i.qty >= p.stock) return showToast("LIMIT", true);
+    i.qty += d; if (i.qty <= 0) cart = cart.filter(x => x.name !== n);
+    renderCart();
+}
+
+async function checkout() {
+    const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
+    const paid = Number(document.getElementById('cashInput').value || 0);
+    if (cart.length === 0 || paid < total) return showToast("CHECK INPUT", true);
+    setBtnLoading('checkoutBtn', true, 'CHECKOUT');
+    try {
+        const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
+        await fetch(API, { method: 'POST', body: JSON.stringify({ 
+            type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total 
+        })});
+        showInvoice(currentUser, cart, total, paid, paid-total);
+        cart = []; document.getElementById('cashInput').value = "";
+        await loadProducts(); renderCart();
+    } catch(e) { showToast("ERROR", true); }
+    setBtnLoading('checkoutBtn', false, 'CHECKOUT');
 }
 
 // INVENTORY
 async function addNewProduct() {
     const n = document.getElementById('new-name').value, s = Number(document.getElementById('new-sell').value);
     const c = Number(document.getElementById('new-cost').value), st = Number(document.getElementById('new-stock').value);
-    if(!n || !s) return showToast("MISSING INFO", true);
-    setBtnLoading('addProdBtn', true, 'ADD TO INVENTORY');
+    if(!n || !s) return showToast("FILL REQ", true);
+    setBtnLoading('addProdBtn', true, '...');
     await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addProduct', name: n, sell: s, cost: c, stock: st }) });
     document.querySelectorAll('#page-manage input').forEach(i => i.value="");
-    await loadProducts(); renderManage();
-    setBtnLoading('addProdBtn', false, 'ADD TO INVENTORY');
+    await loadProducts(); renderManage(); setBtnLoading('addProdBtn', false, 'ADD TO INVENTORY');
 }
 
 function renderManage() {
     const start = (currentPage - 1) * itemsPerPage;
-    const paginated = products.slice(start, start + itemsPerPage);
-    document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${Math.ceil(products.length / itemsPerPage)}`;
-    document.getElementById('manageList').innerHTML = paginated.map((p, idx) => `
-        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
-            <p class="font-bold text-[10px] uppercase w-full md:w-1/4">${p.name}</p>
-            <div class="flex flex-1 gap-2 justify-end">
-                <input id="prc-${idx}" type="number" value="${p.sell}" class="w-20 bg-slate-800 p-2 rounded text-[10px] outline-none border border-slate-700">
-                <input id="stk-${idx}" type="number" value="${p.stock}" class="w-16 bg-slate-800 p-2 rounded text-[10px] outline-none border border-slate-700">
+    const pag = products.slice(start, start + itemsPerPage);
+    document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${Math.ceil(products.length/itemsPerPage)}`;
+    document.getElementById('manageList').innerHTML = pag.map((p, idx) => `
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+            <p class="font-bold text-[10px] uppercase">${p.name}</p>
+            <div class="flex gap-2">
+                <input id="prc-${idx}" type="number" value="${p.sell}" class="w-20 bg-slate-800 p-2 rounded text-[10px] outline-none">
+                <input id="stk-${idx}" type="number" value="${p.stock}" class="w-16 bg-slate-800 p-2 rounded text-[10px] outline-none">
                 <button id="upd-${idx}" onclick="updateItem('${p.name}', ${idx})" class="bg-teal-600 px-4 py-2 rounded text-[9px] font-bold">SAVE</button>
             </div>
         </div>`).join("");
@@ -317,52 +340,48 @@ function renderManage() {
 
 async function updateItem(name, idx) {
     const p = products.find(x => x.name === name);
-    const newPrice = Number(document.getElementById(`prc-${idx}`).value);
-    const newStock = Number(document.getElementById(`stk-${idx}`).value);
+    const nP = Number(document.getElementById(`prc-${idx}`).value);
+    const nS = Number(document.getElementById(`stk-${idx}`).value);
     setBtnLoading(`upd-${idx}`, true, '...');
-    await fetch(API, { method: 'POST', body: JSON.stringify({ 
-        type: 'editProduct', oldName: name, name: name, sell: newPrice, cost: p.cost, stock: newStock 
-    })});
-    await loadProducts(); renderManage();
-    showToast("UPDATED");
+    await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'editProduct', oldName: name, name: name, sell: nP, cost: p.cost, stock: nS })});
+    await loadProducts(); renderManage(); showToast("SAVED");
 }
 
-function changePage(delta) {
+function changePage(d) {
     const max = Math.ceil(products.length / itemsPerPage);
-    currentPage = Math.max(1, Math.min(currentPage + delta, max));
-    renderManage();
+    currentPage = Math.max(1, Math.min(currentPage + d, max)); renderManage();
 }
 
-// HISTORY
-async function fetchHistory() {
-    const res = await fetch(API + "?type=transactions");
-    historyData = (await res.json()).reverse();
-    document.getElementById('historyList').innerHTML = historyData.map((r, idx) => `
-        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
-            <div>
-                <p class="text-[9px] text-slate-500 font-mono">${new Date(r[0]).toLocaleString()}</p>
-                <p class="font-black text-teal-400">Rp${Number(r[3]).toLocaleString()}</p>
-            </div>
-            <button onclick="viewInvoice(${idx})" class="text-[9px] bg-slate-800 px-4 py-2 rounded border border-slate-700 font-bold uppercase">Details</button>
-        </div>`).join("");
+// SETTINGS
+function saveSettings() {
+    localStorage.setItem('NA_POS_SETTINGS', JSON.stringify({
+        name: document.getElementById('set-name').value,
+        addr: document.getElementById('set-addr').value,
+        note: document.getElementById('set-note').value
+    })); showToast("SAVED");
 }
 
-function viewInvoice(idx) {
-    const r = historyData[idx];
-    showInvoice(r[1], JSON.parse(r[5]), r[3], r[6], r[7], new Date(r[0]).toLocaleString());
-}
-
-// NAVIGATION
 function showPage(p) {
     document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
     document.getElementById('page-'+p).classList.add('active');
     if(p === 'history') fetchHistory();
-    if(p === 'settings') loadSettings();
     if(p === 'manage') renderManage();
+    if(p === 'settings') {
+        const s = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
+        document.getElementById('set-name').value = s.name || "";
+        document.getElementById('set-addr').value = s.addr || "";
+        document.getElementById('set-note').value = s.note || "";
+    }
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function saveInvoiceImage() {
+    html2canvas(document.querySelector("#receiptArea")).then(c => {
+        const a = document.createElement('a'); a.download = `Inv_${Date.now()}.png`;
+        a.href = c.toDataURL(); a.click();
+    });
+}
 
 window.onload = () => {
     const saved = localStorage.getItem('NA_POS_USER');
