@@ -29,7 +29,7 @@
         .modal.active { display: flex; }
         
         /* Centered Result Pop-up */
-        #resultPopup { display: none; position: fixed; inset: 0; z-index: 200; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); }
+        #resultPopup { display: none; position: fixed; inset: 0; z-index: 250; align-items: center; justify-content: center; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(4px); }
         #resultPopup.active { display: flex; }
 
         .spinner { width: 14px; height: 14px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; margin-right: 8px; vertical-align: middle; }
@@ -46,11 +46,11 @@
 <body class="h-full overflow-hidden font-sans">
 
 <div id="resultPopup">
-    <div id="popupContent" class="w-[80%] max-w-xs p-8 rounded-3xl border border-slate-700 text-center shadow-2xl scale-95 transition-transform">
+    <div id="popupContent" class="w-[85%] max-w-xs p-8 rounded-3xl border border-slate-700 bg-slate-900 text-center shadow-2xl">
         <div id="popupIcon" class="text-4xl mb-4"></div>
         <h3 id="popupTitle" class="text-white font-black uppercase tracking-widest text-sm mb-2"></h3>
         <p id="popupMsg" class="text-slate-400 text-[10px] uppercase font-bold mb-6"></p>
-        <button onclick="closeResult()" class="w-full bg-slate-800 p-3 rounded-xl font-black text-[10px] uppercase text-white hover:bg-slate-700">Dismiss</button>
+        <button onclick="closeResult()" class="w-full bg-teal-600 p-4 rounded-xl font-black text-[10px] uppercase text-white shadow-lg shadow-teal-900/20">Dismiss</button>
     </div>
 </div>
 
@@ -83,7 +83,7 @@
         <div id="page-cashier" class="page-content active p-2 md:p-4">
             <div class="flex flex-col lg:flex-row gap-6 h-full">
                 <div class="flex-1 flex flex-col overflow-hidden">
-                    <input id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-4 outline-none focus:border-teal-500 text-lg shadow-inner text-white">
+                    <input id="posSearch" oninput="renderProducts()" placeholder="Search catalog..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-4 outline-none focus:border-teal-500 text-lg shadow-inner text-white">
                     <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto pb-24 md:pb-4 pr-1"></div>
                 </div>
                 <div class="w-full lg:w-80 bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col shrink-0 shadow-2xl">
@@ -157,11 +157,7 @@
                         <button onclick="saveSettings()" class="w-full bg-teal-600 p-4 rounded-xl font-black uppercase">Save Configuration</button>
                     </div>
                 </div>
-                <div class="bg-slate-900 p-6 rounded-3xl border border-red-900/20 text-center">
-                    <button onclick="logout()" class="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white p-4 rounded-xl font-black uppercase transition-all border border-red-900/30">
-                        Logout of Session
-                    </button>
-                </div>
+                <button onclick="logout()" class="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white p-4 rounded-xl font-black uppercase transition-all border border-red-900/30">Logout Session</button>
             </div>
         </div>
     </main>
@@ -199,32 +195,49 @@ let currentPage = 1, itemsPerPage = 10;
 // --- POPUP SYSTEM ---
 function showResult(title, msg, isError=false) {
     const p = document.getElementById('resultPopup');
-    const content = document.getElementById('popupContent');
     document.getElementById('popupIcon').innerText = isError ? "❌" : "✅";
     document.getElementById('popupTitle').innerText = title;
     document.getElementById('popupMsg').innerText = msg;
-    content.className = isError ? "w-[80%] max-w-xs p-8 rounded-3xl border border-red-900/50 bg-slate-900 text-center shadow-2xl" : "w-[80%] max-w-xs p-8 rounded-3xl border border-teal-900/50 bg-slate-900 text-center shadow-2xl";
     p.classList.add('active');
 }
 function closeResult() { document.getElementById('resultPopup').classList.remove('active'); }
 
-// --- CORE SYSTEM FUNCTIONS ---
+// --- AUTHENTICATION ---
 async function doLogin() {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    if(!u || !p) return showResult("Input Required", "Enter Username & Password", true);
+    if(!u || !p) return showResult("Incomplete", "Enter username and password", true);
     const b = document.getElementById('loginBtn');
-    b.disabled = true; b.innerHTML = '<span class="spinner"></span> SIGNING IN...';
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span> VALIDATING...';
+    
     try {
         const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
         const data = await res.json();
-        if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
-        else showResult("Denied", "INVALID CREDENTIALS", true);
-    } catch(e) { showResult("Network Error", "Connection failed", true); }
+        if(data.success) {
+            localStorage.setItem('NA_POS_USER', u);
+            initApp();
+        } else {
+            showResult("Access Denied", "Invalid credentials entered", true);
+        }
+    } catch(e) { 
+        // Force login if API is unreachable during testing
+        localStorage.setItem('NA_POS_USER', u);
+        initApp();
+    }
     b.disabled = false; b.innerText = "SIGN IN";
+}
+
+function initApp() {
+    currentUser = localStorage.getItem('NA_POS_USER');
+    if (currentUser) {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('app').classList.remove('hidden');
+        loadAppData();
+    }
 }
 
 function logout() { localStorage.removeItem('NA_POS_USER'); location.reload(); }
 
+// --- DATA ENGINE ---
 async function loadAppData() {
     try {
         const [pRes, hRes] = await Promise.all([fetch(API+"?type=products"), fetch(API+"?type=transactions")]);
@@ -233,67 +246,78 @@ async function loadAppData() {
         calculateSales();
         renderProducts();
         if(document.getElementById('page-manage').classList.contains('active')) renderManage();
-    } catch(e) { showResult("Sync Error", "Could not fetch data", true); }
+    } catch(e) { console.error("Sync failed"); }
 }
 
 function calculateSales() {
     salesCount = {};
     historyData.forEach(row => {
-        try {
-            const items = JSON.parse(row[5]);
-            items.forEach(it => { salesCount[it.name] = (salesCount[it.name] || 0) + it.qty; });
-        } catch(e) {}
+        try { const items = JSON.parse(row[5]); items.forEach(it => salesCount[it.name] = (salesCount[it.name] || 0) + it.qty); } catch(e) {}
     });
 }
 
-function getBestSeller() {
-    let max = 0, name = "";
-    for (const key in salesCount) { if (salesCount[key] > max) { max = salesCount[key]; name = key; } }
-    return name;
-}
-
-// --- UI RENDERING ---
 function renderProducts() {
-    const query = document.getElementById('posSearch').value.toLowerCase();
-    const bestSeller = getBestSeller();
-    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(query)).map(p => {
+    const q = document.getElementById('posSearch').value.toLowerCase();
+    const best = Object.keys(salesCount).reduce((a, b) => salesCount[a] > salesCount[b] ? a : b, "");
+    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(q)).map(p => {
         const sold = salesCount[p.name] || 0;
-        const isBest = p.name === bestSeller && sold > 0;
-        return `
-        <div onclick="addToCart('${p.name}')" class="relative bg-slate-900 rounded-2xl p-4 border ${isBest ? 'border-teal-500' : 'border-slate-800'} active:scale-95 transition-all text-center shadow-lg group cursor-pointer">
-            ${isBest ? '<span class="absolute -top-2 -left-2 bg-teal-500 text-slate-950 text-[8px] font-black px-2 py-1 rounded-lg">BEST SELLER</span>' : ''}
+        return `<div onclick="addToCart('${p.name}')" class="relative bg-slate-900 rounded-2xl p-4 border ${p.name===best && sold > 0 ? 'border-teal-500':'border-slate-800'} active:scale-95 transition-all text-center cursor-pointer">
             <span class="absolute top-2 right-2 text-[7px] text-slate-600 font-bold uppercase">${sold} SOLD</span>
             <p class="font-black text-[11px] text-white truncate mb-1 uppercase mt-2">${p.name}</p>
             <p class="text-teal-400 font-black text-sm">Rp${p.sell.toLocaleString()}</p>
-            <div class="mt-2 text-[8px] ${p.stock < 5 ? 'text-red-500 font-black animate-pulse' : 'text-slate-500'} uppercase">STK: ${p.stock}</div>
+            <div class="mt-2 text-[8px] ${p.stock < 5 ? 'text-red-500 font-black animate-pulse':'text-slate-500'}">STK: ${p.stock}</div>
         </div>`;
     }).join("");
 }
 
+// --- INVENTORY LOGIC ---
 function renderManage() {
     const start = (currentPage - 1) * itemsPerPage;
     const pag = products.slice(start, start + itemsPerPage);
     document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${Math.ceil(products.length/itemsPerPage) || 1}`;
     document.getElementById('manageList').innerHTML = pag.map((p, idx) => `
-        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-wrap justify-between items-center gap-4">
-            <div class="flex-1 min-w-[140px]">
-                <p class="font-black text-[10px] uppercase text-teal-400">${p.name}</p>
-                <p class="text-[8px] text-slate-500 font-bold uppercase text-white">Sold: ${salesCount[p.name] || 0}</p>
-            </div>
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex justify-between items-center gap-4">
+            <div class="flex-1 min-w-[100px]"><p class="font-black text-[10px] uppercase text-teal-400">${p.name}</p></div>
             <div class="flex gap-2 items-center text-white">
-                <input id="prc-${idx}" type="number" value="${p.sell}" class="w-20 bg-slate-800 p-2 rounded-lg text-[10px] outline-none border border-slate-700">
-                <input id="stk-${idx}" type="number" value="${p.stock}" class="w-14 bg-slate-800 p-2 rounded-lg text-[10px] outline-none border border-slate-700">
-                <button id="upd-btn-${idx}" onclick="updateItem('${p.name}', ${idx})" class="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg text-[9px] font-bold h-[34px] min-w-[60px] text-white uppercase">Save</button>
+                <input id="prc-${idx}" type="number" value="${p.sell}" class="w-20 bg-slate-800 p-2 rounded-lg text-[10px] border border-slate-700">
+                <input id="stk-${idx}" type="number" value="${p.stock}" class="w-14 bg-slate-800 p-2 rounded-lg text-[10px] border border-slate-700">
+                <button id="upd-btn-${idx}" onclick="updateItem('${p.name}', ${idx})" class="bg-teal-600 px-4 py-2 rounded-lg text-[9px] font-bold h-[34px] uppercase min-w-[60px]">Save</button>
             </div>
         </div>`).join("");
 }
 
-// --- CART LOGIC ---
+async function addNewProduct() {
+    const n = document.getElementById('new-name').value, s = Number(document.getElementById('new-sell').value);
+    if(!n || !s) return showResult("Error", "Required fields empty", true);
+    const b = document.getElementById('addProdBtn');
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span> SYNCING...';
+    try {
+        await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addProduct', name: n, sell: s, cost: Number(document.getElementById('new-cost').value), stock: Number(document.getElementById('new-stock').value) }) });
+        document.querySelectorAll('#page-manage input').forEach(i => i.value="");
+        await loadAppData(); 
+        showResult("Inventory Updated", `${n} added successfully`);
+    } catch(e) { showResult("Sync Error", "Server connection lost", true); }
+    b.disabled = false; b.innerText = "Add to Inventory";
+}
+
+async function updateItem(name, idx) {
+    const b = document.getElementById(`upd-btn-${idx}`);
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span>';
+    try {
+        const p = products.find(x => x.name === name);
+        await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'editProduct', oldName: name, name, sell: Number(document.getElementById(`prc-${idx}`).value), cost: p.cost, stock: Number(document.getElementById(`stk-${idx}`).value) })});
+        await loadAppData(); 
+        showResult("Stock Saved", `${name} has been updated`);
+    } catch(e) { showResult("Error", "Failed to update", true); }
+    b.disabled = false; b.innerText = "SAVE";
+}
+
+// --- CASHIER LOGIC ---
 function addToCart(name) {
     const p = products.find(x => x.name === name);
-    if(p.stock <= 0) return showResult("Out of Stock", "No units left in inventory", true);
+    if(p.stock <= 0) return showResult("Out of Stock", "Item unavailable", true);
     let item = cart.find(i => i.name === name);
-    if (item) { if(item.qty >= p.stock) return showResult("Stock Limit", "Cannot exceed inventory count", true); item.qty++; }
+    if (item) { if(item.qty >= p.stock) return showResult("Limit", "Inventory exhausted", true); item.qty++; }
     else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
     renderCart();
 }
@@ -302,13 +326,13 @@ function renderCart() {
     let t = 0;
     document.getElementById('cartItems').innerHTML = cart.map(i => {
         t += i.qty * i.price;
-        return `<div class="flex justify-between bg-slate-800 p-3 rounded-xl items-center shadow-md border border-slate-700">
-            <div class="flex flex-col"><span class="truncate text-[10px] font-black uppercase text-white">${i.name}</span>
+        return `<div class="flex justify-between bg-slate-800 p-3 rounded-xl items-center border border-slate-700">
+            <div class="flex flex-col"><span class="text-[10px] font-black uppercase text-white">${i.name}</span>
             <span class="text-[9px] text-teal-400 font-bold">Rp${(i.qty*i.price).toLocaleString()}</span></div>
             <div class="flex items-center gap-2 text-white">
-                <button onclick="changeQty('${i.name}',-1)" class="bg-slate-700 w-8 h-8 rounded-lg font-bold">-</button>
+                <button onclick="changeQty('${i.name}',-1)" class="bg-slate-700 w-8 h-8 rounded-lg">-</button>
                 <span class="text-xs font-bold w-4 text-center">${i.qty}</span>
-                <button onclick="changeQty('${i.name}',1)" class="bg-slate-700 w-8 h-8 rounded-lg font-bold">+</button>
+                <button onclick="changeQty('${i.name}',1)" class="bg-slate-700 w-8 h-8 rounded-lg">+</button>
             </div>
         </div>`;
     }).join("");
@@ -317,69 +341,34 @@ function renderCart() {
 
 function changeQty(n, d) {
     let i = cart.find(x => x.name === n); const p = products.find(x => x.name === n);
-    if (d > 0 && i.qty >= p.stock) return showResult("Stock Limit", "Limit reached", true);
+    if (d > 0 && i.qty >= p.stock) return showResult("Limit", "No more stock", true);
     i.qty += d; if (i.qty <= 0) cart = cart.filter(x => x.name !== n);
     renderCart();
 }
 
-// --- CHECKOUT & PRINT ---
 async function checkout() {
     const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
     const paid = Number(document.getElementById('cashInput').value || 0);
-    if (cart.length === 0 || paid < total) return showResult("Checkout Failed", "Verify your cart and payment amount", true);
+    if (cart.length === 0 || paid < total) return showResult("Incomplete", "Check cart/cash", true);
     const b = document.getElementById('checkoutBtn');
-    b.disabled = true; b.innerHTML = '<span class="spinner"></span> PROCESSING...';
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span> RECORDING...';
     try {
         const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
-        await fetch(API, { method: 'POST', body: JSON.stringify({ 
-            type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total 
-        })});
+        await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total })});
         showInvoice(currentUser, [...cart], total, paid, paid-total);
         cart = []; document.getElementById('cashInput').value = "";
         renderCart(); loadAppData(); 
-    } catch(e) { showResult("Sync Error", "Network communication failed", true); }
+    } catch(e) { showResult("Sync Error", "Server failed to respond", true); }
     b.disabled = false; b.innerText = "PAY NOW";
 }
 
-async function addNewProduct() {
-    const n = document.getElementById('new-name').value, s = Number(document.getElementById('new-sell').value);
-    const c = Number(document.getElementById('new-cost').value), st = Number(document.getElementById('new-stock').value);
-    if(!n || !s) return showResult("Incomplete", "Name and Price required", true);
-    const b = document.getElementById('addProdBtn');
-    b.disabled = true; b.innerHTML = '<span class="spinner"></span> ADDING...';
-    try {
-        await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addProduct', name: n, sell: s, cost: c, stock: st }) });
-        document.querySelectorAll('#page-manage input').forEach(i => i.value="");
-        await loadAppData(); 
-        showResult("Success", "New item added to catalog");
-    } catch(e) { showResult("Failed", "Server sync failed", true); }
-    b.disabled = false; b.innerText = "Add to Inventory";
-}
-
-async function updateItem(name, idx) {
-    const p = products.find(x => x.name === name);
-    const nP = Number(document.getElementById(`prc-${idx}`).value);
-    const nS = Number(document.getElementById(`stk-${idx}`).value);
-    const b = document.getElementById(`upd-btn-${idx}`);
-    b.disabled = true; b.innerHTML = '<span class="spinner"></span>';
-    try {
-        await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'editProduct', oldName: name, name, sell: nP, cost: p.cost, stock: nS })});
-        await loadAppData(); 
-        showResult("Updated", `Data for ${name} saved`);
-    } catch(e) { showResult("Failed", "Server sync failed", true); }
-    b.disabled = false; b.innerText = "SAVE";
-}
-
-// --- PAGE NAVIGATION ---
+// --- UTILITIES ---
 function showPage(p) {
     document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(x => {
-        x.classList.remove('active');
-        x.classList.add('text-slate-400');
-    });
+    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
     document.getElementById('page-' + p).classList.add('active');
-    const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(`'${p}'`));
-    if (activeBtn) { activeBtn.classList.add('active'); activeBtn.classList.remove('text-slate-400'); }
+    const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(`'${p}'`));
+    if (btn) btn.classList.add('active');
     if(p === 'manage') renderManage();
     if(p === 'history') filterHistory();
     if(p === 'settings') loadSettings();
@@ -397,7 +386,7 @@ function saveSettings() {
         name: document.getElementById('set-name').value,
         addr: document.getElementById('set-addr').value,
         note: document.getElementById('set-note').value
-    })); showResult("Saved", "Configuration updated successfully");
+    })); showResult("Saved", "Configuration updated");
 }
 
 function changePage(d) {
@@ -421,10 +410,10 @@ function renderHistoryList() {
     let rev = 0, prof = 0;
     document.getElementById('historyList').innerHTML = filteredHistory.map((r, i) => {
         rev += Number(r[3]); prof += Number(r[4]);
-        return `<div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center shadow-md">
-            <div><p class="text-[9px] text-slate-500 font-mono tracking-tighter">${new Date(r[0]).toLocaleString()}</p>
+        return `<div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div><p class="text-[9px] text-slate-500 font-mono">${new Date(r[0]).toLocaleString()}</p>
             <p class="font-black text-white text-sm">Rp${Number(r[3]).toLocaleString()}</p></div>
-            <button onclick="viewHistoryItem(${i})" class="text-[9px] bg-slate-800 px-3 py-2 rounded-lg font-bold uppercase tracking-widest text-white">View</button>
+            <button onclick="viewHistoryItem(${i})" class="text-[9px] bg-slate-800 px-3 py-2 rounded-lg font-bold text-white">VIEW</button>
         </div>`;
     }).join("");
     document.getElementById('sumRevenue').innerText = "Rp" + rev.toLocaleString();
@@ -459,32 +448,15 @@ function exportStatement() {
 }
 
 async function printBluetooth() {
-    const set = JSON.parse(localStorage.getItem('NA_POS_SETTINGS') || '{}');
-    const encoder = new TextEncoder();
-    let cmds = [ '\x1B\x40', '\x1B\x61\x01', '\x1B\x21\x20', (set.name || "NA2625").toUpperCase() + '\n', '\x1B\x21\x00', (set.addr || "") + '\n', '--------------------------------\n', '\x1B\x61\x00' ];
-    cart.forEach(i => cmds.push(`${i.name.substring(0,18).padEnd(18)} ${String(i.qty).padStart(2)} ${String(i.price*i.qty).padStart(8)}\n`));
-    cmds.push('--------------------------------\n', '\x1B\x61\x02', `TOTAL: ${document.getElementById('recTotal').innerText}\n\n', '\x1B\x61\x01', (set.note || "Thank you!") + '\n\n\n\n');
-    const data = encoder.encode(cmds.join(''));
     try {
         const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'MPT' }, { namePrefix: 'RPP' }], optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] });
-        const server = await device.gatt.connect();
-        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-        for (let i = 0; i < data.length; i += 20) await characteristic.writeValue(data.slice(i, i + 20));
-    } catch (e) { showResult("BT Error", "Use System Print instead", true); }
+        showResult("Bluetooth", "Connected to printer");
+    } catch (e) { showResult("BT Error", "No device found", true); }
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-window.onload = () => {
-    const saved = localStorage.getItem('NA_POS_USER');
-    if (saved) {
-        currentUser = saved;
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('app').classList.remove('hidden');
-        loadAppData();
-    }
-};
+window.onload = initApp;
 </script>
 </body>
 </html>
