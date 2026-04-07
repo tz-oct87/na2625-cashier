@@ -11,30 +11,11 @@
         .nav-btn.active { background-color: #1A877E !important; color: white !important; }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .modal-overlay.active { display: flex; }
+        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-pulse-red { animation: pulse-red 1s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
 <body class="h-full bg-gray-50 overflow-hidden font-sans text-gray-900">
-
-<div id="invoiceModal" class="modal-overlay">
-    <div class="bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col mx-4 p-8">
-        <div id="invoiceArea" class="font-mono text-sm">
-            <div class="text-center border-b border-dashed pb-4 mb-4">
-                <h1 class="font-black text-lg">NA2625 CREATIVE</h1>
-                <p id="invDate" class="text-[10px]"></p>
-            </div>
-            <div id="invItems" class="space-y-1 mb-4"></div>
-            <div class="border-t border-dashed pt-4 space-y-1">
-                <div class="flex justify-between font-bold"><span>TOTAL</span><span id="invTotal"></span></div>
-                <div class="flex justify-between"><span>CASH</span><span id="invPaid"></span></div>
-                <div class="flex justify-between"><span>CHANGE</span><span id="invChange"></span></div>
-            </div>
-        </div>
-        <div class="mt-6 flex gap-2">
-            <button onclick="printBluetooth()" class="flex-1 bg-teal-600 text-white py-4 rounded-xl font-black text-xs">PRINT</button>
-            <button onclick="closeInvoice()" class="flex-1 bg-gray-200 text-gray-700 py-4 rounded-xl font-black text-xs">CLOSE</button>
-        </div>
-    </div>
-</div>
 
 <div id="loginPage" class="fixed inset-0 z-[500] flex items-center justify-center bg-white">
     <div class="w-full max-w-xs p-8 text-center">
@@ -59,57 +40,80 @@
     </nav>
 
     <main class="flex-1 bg-gray-50 overflow-hidden relative">
-        <div id="page-cashier" class="page-content p-8 flex gap-8 h-full">
+        <div id="page-cashier" class="page-content p-8 flex gap-8 h-full active">
             <div class="flex-1 flex flex-col">
-                <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search items..." class="w-full p-5 rounded-3xl border-none shadow-sm mb-6 font-bold">
+                <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search items..." class="w-full p-5 rounded-3xl border-none shadow-sm mb-6 font-bold outline-none">
                 <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 overflow-y-auto"></div>
             </div>
-            <div class="w-80 bg-white rounded-[2.5rem] shadow-xl p-8 flex flex-col">
+            <div class="w-80 bg-white rounded-[2.5rem] shadow-xl p-8 flex flex-col border">
                 <div id="cartItems" class="flex-1 overflow-y-auto space-y-4 mb-6"></div>
                 <div class="border-t pt-6 space-y-4">
                     <div class="flex justify-between font-black text-xl"><span>Total</span><span>Rp <span id="total">0</span></span></div>
-                    <input type="number" id="cashInput" placeholder="Cash (Rp)" class="w-full p-4 bg-gray-100 rounded-2xl text-center font-black">
+                    <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-gray-100 rounded-2xl text-center font-black">
                     <button onclick="checkout()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black">PAY NOW</button>
                 </div>
             </div>
         </div>
 
         <div id="page-manage" class="page-content p-8">
-            <h2 class="text-2xl font-black mb-6">Inventory List</h2>
+            <h2 class="text-2xl font-black mb-6 text-teal-900">Inventory Status</h2>
             <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden">
                 <table class="w-full text-left">
-                    <thead class="bg-gray-50 text-[10px] uppercase font-black text-gray-400">
-                        <tr><th class="p-5">Product</th><th class="p-5">Price</th><th class="p-5">Stock</th></tr>
+                    <thead class="bg-gray-50 text-[10px] uppercase font-black text-gray-400 border-b">
+                        <tr><th class="p-5">Product</th><th class="p-5">Price</th><th class="p-5 text-center">Stock</th></tr>
                     </thead>
                     <tbody id="inventoryTable"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="page-inventory" class="page-content p-8 max-w-xl mx-auto">
-            <h2 class="text-2xl font-black mb-6">Add New Product</h2>
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-sm space-y-4">
-                <input id="new-name" type="text" placeholder="Product Name" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border">
-                <div class="grid grid-cols-2 gap-4">
-                    <input id="new-sell" type="number" placeholder="Selling Price" class="p-4 bg-gray-50 rounded-2xl font-bold border">
-                    <input id="new-cost" type="number" placeholder="Cost Price" class="p-4 bg-gray-50 rounded-2xl font-bold border">
+        <div id="page-inventory" class="page-content p-8">
+            <div class="max-w-md mx-auto">
+                <h2 class="text-2xl font-black mb-6 text-teal-900">New Product</h2>
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm space-y-4 border">
+                    <input id="new-name" type="text" placeholder="Product Name" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input id="new-sell" type="number" placeholder="Sell Price" class="p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
+                        <input id="new-cost" type="number" placeholder="Cost Price" class="p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
+                    </div>
+                    <input id="new-stock" type="number" placeholder="Initial Stock" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border outline-none">
+                    <div class="p-4 border-2 border-dashed rounded-2xl text-center bg-gray-50">
+                        <p class="text-[10px] font-black text-gray-400 mb-2 uppercase">Product Photo</p>
+                        <input id="new-img" type="file" accept="image/*" class="text-xs w-full">
+                    </div>
+                    <button onclick="saveNewProduct()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black shadow-lg">CREATE PRODUCT</button>
                 </div>
-                <input id="new-stock" type="number" placeholder="Initial Stock" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border">
-                <div class="p-4 border-2 border-dashed rounded-2xl text-center">
-                    <p class="text-xs font-bold text-gray-400 mb-2">Upload Product Image</p>
-                    <input id="new-img" type="file" accept="image/*" class="text-xs">
-                </div>
-                <button onclick="saveNewProduct()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black">SAVE PRODUCT</button>
             </div>
         </div>
     </main>
 </div>
 
+<div id="invoiceModal" class="modal-overlay">
+    <div class="bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl p-8 mx-4">
+        <div id="invoiceArea" class="font-mono text-sm">
+            <div class="text-center border-b border-dashed pb-4 mb-4">
+                <h1 class="font-black text-lg">NA2625</h1>
+                <p id="invDate" class="text-[10px]"></p>
+            </div>
+            <div id="invItems" class="space-y-1 mb-4"></div>
+            <div class="border-t border-dashed pt-4 space-y-1">
+                <div class="flex justify-between font-bold"><span>TOTAL</span><span id="invTotal"></span></div>
+                <div class="flex justify-between"><span>CASH</span><span id="invPaid"></span></div>
+                <div class="flex justify-between font-black text-teal-600"><span>CHANGE</span><span id="invChange"></span></div>
+            </div>
+        </div>
+        <div class="mt-6 flex gap-2">
+            <button onclick="window.print()" class="flex-1 bg-gray-800 text-white py-4 rounded-xl font-black text-xs">PRINT</button>
+            <button onclick="closeInvoice()" class="flex-1 bg-gray-200 text-gray-700 py-4 rounded-xl font-black text-xs">DONE</button>
+        </div>
+    </div>
+</div>
+
 <script>
-const API = "https://script.google.com/macros/s/AKfycbx-BK-miVWC6vyI6c2eoHtlpW8tULCxHF4vBgz31VVmEV7aMUdDKQEv771POZBocp0K/exec"; 
+const API = "https://script.google.com/macros/s/AKfycbyYbI1iH6FL3d2VuZ8B9pYEebySxT996X9ni_TLE7oVocwCq__RIhbVez3-3imdEzk-/exec"; 
 let products = [], cart = [], currentUser = "";
 
-// --- LOGIN & SESSION ---
+// --- LOGIN & SESSION ENGINE ---
 window.onload = () => {
     const session = localStorage.getItem('na2625_session');
     if (session) { currentUser = session; initApp(); }
@@ -117,13 +121,14 @@ window.onload = () => {
 
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
+    if(!u || !p) return alert("Fill credentials");
     const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
     const data = await res.json();
     if(data.success) { 
         currentUser = u; 
         localStorage.setItem('na2625_session', u);
         initApp();
-    } else { alert("Login Failed"); }
+    } else { alert("Login failed!"); }
 };
 
 function initApp() {
@@ -139,6 +144,7 @@ function logout() { localStorage.removeItem('na2625_session'); location.reload()
 async function loadProducts() {
     const res = await fetch(API + "?type=products");
     const data = await res.json();
+    // Headers: Name, Sell, Cost, Stock, Image
     products = data.slice(1).map(r => ({ name: r[0], sell: Number(r[1]), cost: Number(r[2]), stock: Number(r[3]), img: r[4] }));
     renderProducts();
     renderInventory();
@@ -146,37 +152,69 @@ async function loadProducts() {
 
 function renderProducts() {
     const s = document.getElementById('posSearch').value.toLowerCase();
-    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
-        <div onclick="addToCart('${p.name}')" class="bg-white p-3 rounded-2xl shadow-sm text-center cursor-pointer active:scale-95 transition-all">
+    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => {
+        const isLow = p.stock < 5;
+        return `
+        <div onclick="addToCart('${p.name}')" class="bg-white p-3 rounded-2xl shadow-sm text-center cursor-pointer active:scale-95 transition-all relative border-2 ${isLow ? 'border-red-100' : 'border-transparent'}">
+            ${isLow ? `<div class="absolute top-2 right-2 bg-red-500 text-white text-[8px] font-black px-2 py-1 rounded-lg animate-pulse-red uppercase">LOW: ${p.stock}</div>` : ''}
             <div class="h-20 bg-gray-100 rounded-xl mb-2 overflow-hidden flex items-center justify-center">
-                ${p.img ? `<img src="${p.img}" class="w-full h-full object-cover">` : `<span class="text-[10px] text-gray-300 font-bold uppercase">No Pic</span>`}
+                ${p.img ? `<img src="${p.img}" class="w-full h-full object-cover">` : `<span class="text-[10px] text-gray-300 font-bold">NO PIC</span>`}
             </div>
             <div class="text-[10px] font-black uppercase truncate">${p.name}</div>
             <div class="text-teal-600 font-black text-xs">Rp ${p.sell.toLocaleString()}</div>
-        </div>`).join("");
+        </div>`;
+    }).join("");
 }
 
 function renderInventory() {
     document.getElementById('inventoryTable').innerHTML = products.map(p => `
-        <tr class="border-t">
+        <tr class="border-b last:border-0">
             <td class="p-5 font-bold text-sm">${p.name}</td>
             <td class="p-5 text-sm">Rp ${p.sell.toLocaleString()}</td>
-            <td class="p-5"><span class="px-3 py-1 rounded-full text-[10px] font-black ${p.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-teal-100 text-teal-600'}">${p.stock}</span></td>
+            <td class="p-5 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black ${p.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-teal-100 text-teal-600'}">${p.stock}</span></td>
         </tr>`).join("");
 }
 
-// --- ADD NEW PRODUCT (WITH IMAGE UPLOAD) ---
+// --- CART LOGIC ---
+function addToCart(name) {
+    const p = products.find(x => x.name === name);
+    if (p.stock <= 0) return alert("OUT OF STOCK!");
+    
+    let item = cart.find(i => i.name === name);
+    if (!item) cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
+    else {
+        if (item.qty >= p.stock) return alert("No more stock available!");
+        item.qty++;
+    }
+    renderCart();
+}
+
+function renderCart() {
+    let total = 0;
+    document.getElementById('cartItems').innerHTML = cart.map(i => {
+        total += (i.qty * i.price);
+        return `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border text-xs font-bold">
+            <div class="w-32 truncate">${i.name}</div>
+            <div>x${i.qty}</div>
+            <div>${(i.qty * i.price).toLocaleString()}</div>
+        </div>`;
+    }).join("");
+    document.getElementById('total').innerText = total.toLocaleString();
+}
+
+// --- ACTIONS ---
 async function saveNewProduct() {
     const name = document.getElementById('new-name').value;
     const sell = document.getElementById('new-sell').value;
     const cost = document.getElementById('new-cost').value;
     const stock = document.getElementById('new-stock').value;
-    const file = document.getElementById('new-img').files[0];
+    const fileInput = document.getElementById('new-img');
 
-    if(!name || !sell) return alert("Please fill Name and Price");
+    if(!name || !sell) return alert("Name and Sell Price are required!");
 
     let imgBase64 = "";
-    if (file) {
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
         const reader = new FileReader();
         imgBase64 = await new Promise(res => {
             reader.onload = () => res(reader.result);
@@ -189,45 +227,23 @@ async function saveNewProduct() {
     const result = await res.json();
     
     if(result.success) {
-        alert("Product Saved!");
+        alert("Product Added!");
+        // Clear form
+        document.getElementById('new-name').value = "";
+        document.getElementById('new-sell').value = "";
+        document.getElementById('new-cost').value = "";
+        document.getElementById('new-stock').value = "";
+        fileInput.value = "";
         loadProducts();
         showPage('manage');
     }
 }
 
-// --- NAVIGATION ---
-function showPage(p) {
-    document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-    document.getElementById('page-'+p).classList.add('active');
-    document.getElementById('btn-'+p).classList.add('active');
-}
-
-// --- CART & CHECKOUT (REUSE PREVIOUS WORKING LOGIC) ---
-function addToCart(name) {
-    let item = cart.find(i => i.name === name);
-    const p = products.find(x => x.name === name);
-    if (!item) cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
-    else item.qty++;
-    renderCart();
-}
-
-function renderCart() {
-    let total = 0;
-    document.getElementById('cartItems').innerHTML = cart.map(i => {
-        total += (i.qty * i.price);
-        return `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border text-xs font-bold">
-            <span>${i.name} x${i.qty}</span>
-            <span>${(i.qty * i.price).toLocaleString()}</span>
-        </div>`;
-    }).join("");
-    document.getElementById('total').innerText = total.toLocaleString();
-}
-
 async function checkout() {
     const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
     const paid = parseInt(document.getElementById('cashInput').value || 0);
-    if (!cart.length || paid < total) return alert("Check items/cash");
+    if (!cart.length) return alert("Cart is empty");
+    if (paid < total) return alert("Cash amount too low");
 
     const change = paid - total;
     document.getElementById('invDate').innerText = new Date().toLocaleString();
@@ -249,6 +265,13 @@ function closeInvoice() {
     cart = [];
     document.getElementById('cashInput').value = "";
     renderCart();
+}
+
+function showPage(p) {
+    document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+    document.getElementById('page-'+p).classList.add('active');
+    document.getElementById('btn-'+p).classList.add('active');
 }
 </script>
 </body>
