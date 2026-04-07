@@ -2,146 +2,67 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NA2625 POS v26</title>
 <script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-body{background:#f1f5f9;font-family:sans-serif}
-
-/* SIDEBAR */
-.sidebar{background:#020617}
-.navBtn{display:block;width:100%;padding:10px;border-radius:8px;text-align:left}
-.navBtn:hover{background:#1e293b}
-
-/* CARD */
-.card{background:white;border-radius:12px;padding:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08)}
-
-/* PAGE */
-.page{display:none}
-.page.active{display:block}
-
-/* MOBILE MENU */
-@keyframes slide{
-  from{transform:translateX(-100%)}
-  to{transform:translateX(0)}
-}
-.animate-slide{animation:slide 0.2s ease}
-</style>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body>
+<body class="p-4">
 
-<!-- HEADER -->
-<div class="bg-green-600 text-white p-4 flex items-center gap-3">
-  <button onclick="toggleMenu()" class="text-xl md:hidden">☰</button>
-  <div class="font-bold">NA2625 POS</div>
+<!-- LOGIN -->
+<div id="loginPage">
+  <h2 class="text-xl mb-2">Login</h2>
+  <input id="user" placeholder="Username" class="border p-2"><br><br>
+  <input id="pass" type="password" placeholder="Password" class="border p-2"><br><br>
+  <button onclick="login()" class="bg-green-500 text-white p-2">Login</button>
 </div>
 
-<!-- MOBILE MENU -->
-<div id="mobileMenu" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white w-64 h-full p-4 animate-slide">
-    <div class="flex justify-between mb-4">
-      <b>Menu</b>
-      <button onclick="toggleMenu()">✖</button>
-    </div>
+<!-- APP -->
+<div id="app" style="display:none">
 
-    <button onclick="goPage('cashier')" class="navBtn">🧾 Cashier</button>
-    <button onclick="goPage('products')" class="navBtn">📦 Products</button>
-    <button onclick="goPage('stock')" class="navBtn">📥 Stock</button>
-    <button onclick="goPage('analytics')" class="navBtn">📊 Analytics</button>
-  </div>
-</div>
+<h1 class="text-xl mb-3">Cashier</h1>
 
-<!-- SIDEBAR -->
-<div class="sidebar text-white w-60 fixed h-full p-4 hidden md:block">
-  <div class="text-xl font-bold mb-6">NA2625</div>
+<input id="barcodeInput" placeholder="Scan barcode" class="border p-2 w-full mb-2">
 
-  <button onclick="showPage('cashier')" class="navBtn">🧾 Cashier</button>
-  <button onclick="showPage('products')" class="navBtn">📦 Products</button>
-  <button onclick="showPage('stock')" class="navBtn">📥 Stock</button>
-  <button onclick="showPage('analytics')" class="navBtn">📊 Analytics</button>
-</div>
+<div id="reader"></div>
 
-<!-- MAIN -->
-<div class="md:ml-64 p-4">
+<div id="productsGrid" class="grid grid-cols-2 gap-2"></div>
 
-<!-- CASHIER -->
-<div id="cashier" class="page active">
-  <h1 class="text-xl mb-3">Cashier</h1>
+<h2 class="mt-4">Cart</h2>
+<div id="cartItems"></div>
+<div>Total: <b id="total">0</b></div>
 
-  <div class="grid md:grid-cols-3 gap-4">
+<button onclick="checkout('cash')" class="bg-green-500 text-white p-2 w-full mt-2">Cash</button>
+<button onclick="payQRIS()" class="bg-purple-500 text-white p-2 w-full mt-2">QRIS</button>
 
-    <div class="md:col-span-2">
-      <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
-    </div>
+<hr class="my-4">
 
-    <div class="card">
-      <h2 class="font-bold">Cart</h2>
-      <div id="cartItems"></div>
-      <div class="mt-2">Total: <b id="total">0</b></div>
-      <button onclick="checkout()" class="bg-green-500 text-white w-full mt-2 p-2 rounded">Checkout</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- PRODUCTS -->
-<div id="products" class="page">
-  <h1 class="text-xl mb-3">Products</h1>
-
-  <div id="productForm" class="card grid grid-cols-2 md:grid-cols-5 gap-2">
-    <input id="pName" placeholder="Name" class="border p-2">
-    <input id="pSell" placeholder="Sell" class="border p-2">
-    <input id="pCost" placeholder="Cost" class="border p-2">
-    <input id="pStock" placeholder="Stock" class="border p-2">
-    <input id="pImg" placeholder="Image URL" class="border p-2">
-  </div>
-
-  <button id="addBtn" onclick="addProduct()" class="bg-green-500 text-white p-2 mt-2 rounded w-full">
-    Add Product
-  </button>
-
-  <div id="productList" class="mt-4 space-y-2"></div>
-</div>
-
-<!-- STOCK -->
-<div id="stock" class="page">
-  <h1 class="text-xl mb-3">Stock</h1>
-
-  <div class="card flex gap-2">
-    <select id="stockProduct" class="border p-2 flex-1"></select>
-    <input id="stockQty" type="number" class="border p-2 w-24">
-    <button onclick="updateStock()" class="bg-blue-500 text-white px-4 rounded">Update</button>
-  </div>
-</div>
-
-<!-- ANALYTICS -->
-<div id="analytics" class="page">
-  <h1 class="text-xl mb-3">Analytics</h1>
-  <div id="report" class="card"></div>
-</div>
+<h2>Analytics</h2>
+<canvas id="chart"></canvas>
 
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbyV9mWbPzSTb3HxWdETbqRgp-k9IDSoMDQRh5nDWcuHj3Rqpm4OmBhkelSrwDqQ_pN_/exec";
+const API="https://script.google.com/macros/s/AKfycbyAse_JAG2oxa0DmOq1Pfa-IUVBsHUQQ8GhGewRuhIJY3o03Zp-CayIwjwBxbLWYcP4/exec";
 
-let products=[],cart=[];
+let products=[],cart=[],currentUser="";
 
-/* NAV */
-function showPage(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-  if(id==="analytics") loadAnalytics();
-}
+/* LOGIN */
+async function login(){
+  let res=await fetch(API,{
+    method:"POST",
+    body:JSON.stringify({type:"login",user:user.value,pass:pass.value})
+  });
 
-function toggleMenu(){
-  document.getElementById("mobileMenu").classList.toggle("hidden");
-}
+  let data=await res.json();
 
-function goPage(id){
-  toggleMenu();
-  showPage(id);
+  if(data.success){
+    currentUser=user.value;
+    loginPage.style.display="none";
+    app.style.display="block";
+    load();
+    startScanner();
+  }else alert("Login failed");
 }
 
 /* LOAD */
@@ -150,154 +71,101 @@ async function load(){
   let data=await res.json();
 
   products=data.slice(1).map(p=>({
-    name:p[0],
-    sell:+p[1],
-    cost:+p[2],
-    stock:+p[3],
-    image:p[4] // FIXED
+    name:p[0],sell:+p[1],cost:+p[2],stock:+p[3],barcode:p[5]
   }));
 
   renderProducts();
-  renderProductList();
-  renderStockDropdown();
 }
 
-/* CASHIER */
+/* PRODUCTS */
 function renderProducts(){
   productsGrid.innerHTML=products.map(p=>`
-    <div class="card cursor-pointer" onclick="addToCart('${p.name}')">
-      <img src="${p.image||'https://via.placeholder.com/100'}"
-      class="w-full h-24 object-cover rounded">
-      <div>${p.name}</div>
-      <div class="text-green-600">Rp ${p.sell}</div>
+    <div onclick="addToCart('${p.name}')" class="border p-2">
+      ${p.name}<br>Rp ${p.sell}
     </div>
   `).join("");
 }
 
+/* CART */
 function addToCart(name){
   let p=products.find(x=>x.name===name);
   let ex=cart.find(i=>i.name===name);
+
   if(ex) ex.qty++; else cart.push({name:p.name,qty:1,price:p.sell});
+
   renderCart();
 }
 
 function renderCart(){
   let t=0;
+
   cartItems.innerHTML=cart.map(i=>{
     let sub=i.qty*i.price;
     t+=sub;
-    return `<div>${i.name} x${i.qty} = ${sub}</div>`;
+    return `${i.name} x${i.qty} = ${sub}<br>`;
   }).join("");
+
   total.innerText=t;
 }
 
-async function checkout(){
-  if(cart.length===0) return alert("Cart empty");
+/* CHECKOUT */
+async function checkout(method){
+  if(cart.length===0) return;
 
-  await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      type:"addTransaction",
-      items:JSON.stringify(cart),
-      total:total.innerText,
-      profit:0,
-      customer:"-"
-    })
-  });
-
-  cart=[];
-  renderCart();
-}
-
-/* PRODUCTS */
-async function addProduct(){
-  if(!pName.value || !pSell.value){
-    alert("Fill required fields");
-    return;
-  }
-
-  const btn = addBtn;
-
-  // hide form
-  productForm.style.display="none";
-
-  // spinner
-  btn.innerHTML = `<div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mx-auto"></div>`;
-  btn.disabled=true;
+  let payload={
+    type:"addTransaction",
+    user:currentUser,
+    items:JSON.stringify(cart),
+    payment:method
+  };
 
   try{
-    await fetch(API,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        type:"addProduct",
-        name:pName.value,
-        sell:pSell.value,
-        cost:pCost.value,
-        stock:pStock.value,
-        image:pImg.value
-      })
-    });
-
-    setTimeout(()=>{
-      btn.innerText="Add Another Product";
-      btn.disabled=false;
-      productForm.style.display="grid";
-
-      pName.value="";
-      pSell.value="";
-      pCost.value="";
-      pStock.value="";
-      pImg.value="";
-
-      load();
-    },3000);
-
+    await fetch(API,{method:"POST",body:JSON.stringify(payload)});
+    printReceipt();
+    cart=[];
+    renderCart();
   }catch(e){
-    alert("Failed");
-    btn.innerText="Add Product";
-    btn.disabled=false;
-    productForm.style.display="grid";
+    saveOffline(payload);
   }
 }
 
-function renderProductList(){
-  productList.innerHTML=products.map(p=>`
-    <div class="card flex justify-between">
-      ${p.name} (${p.stock})
-      <button onclick="deleteProduct('${p.name}')">❌</button>
-    </div>
-  `).join("");
+/* QRIS */
+function payQRIS(){
+  let url="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-"+total.innerText;
+  let w=window.open("");
+  w.document.write(`<img src="${url}">`);
 }
 
-async function deleteProduct(name){
-  await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({type:"deleteProduct",name})
-  });
-  load();
+/* RECEIPT */
+function printReceipt(){
+  let w=window.open("","","width=300");
+
+  w.document.write(`
+  <style>body{font-family:monospace;width:80mm}</style>
+  ${cart.map(i=>`${i.name} x${i.qty}=${i.qty*i.price}`).join("<br>")}
+  <hr>Total:${total.innerText}
+  `);
+
+  w.print();
 }
 
-/* STOCK */
-function renderStockDropdown(){
-  stockProduct.innerHTML=
-    products.map(p=>`<option>${p.name}</option>`).join("");
+/* OFFLINE */
+function saveOffline(d){
+  let q=JSON.parse(localStorage.getItem("q")||"[]");
+  q.push(d);
+  localStorage.setItem("q",JSON.stringify(q));
 }
 
-async function updateStock(){
-  await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      type:"updateStock",
-      name:stockProduct.value,
-      qty:+stockQty.value,
-      action:"ADD"
-    })
-  });
-  load();
+/* BARCODE CAMERA */
+function startScanner(){
+  const scanner=new Html5Qrcode("reader");
+
+  scanner.start({facingMode:"environment"},{fps:10,qrbox:250},
+    code=>{
+      let p=products.find(x=>x.barcode==code);
+      if(p) addToCart(p.name);
+    }
+  );
 }
 
 /* ANALYTICS */
@@ -305,13 +173,18 @@ async function loadAnalytics(){
   let res=await fetch(API+"?type=transactions");
   let data=await res.json();
 
-  let totalRev=0;
-  data.slice(1).forEach(r=>totalRev+=+r[2]);
+  let daily={};
 
-  report.innerHTML=`<b>Total Revenue:</b> Rp ${totalRev}`;
+  data.slice(1).forEach(r=>{
+    let d=new Date(r[0]).toLocaleDateString();
+    daily[d]=(daily[d]||0)+Number(r[3]);
+  });
+
+  new Chart(chart,{
+    type:"line",
+    data:{labels:Object.keys(daily),datasets:[{data:Object.values(daily)}]}
+  });
 }
-
-load();
 </script>
 
 </body>
