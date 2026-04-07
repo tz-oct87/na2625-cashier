@@ -21,7 +21,7 @@
   <h2 class="text-xl mb-2">Login</h2>
   <input id="user" placeholder="Username" class="border p-2 w-64"><br>
   <input id="pass" type="password" placeholder="Password" class="border p-2 w-64"><br>
-  <button onclick="login()" class="bg-green-500 text-white p-2 w-64 mb-2">Login</button>
+  <button id="loginBtn" class="bg-green-500 text-white p-2 w-64 mb-2">Login</button>
   <button onclick="openRegister()" class="bg-blue-500 text-white p-2 w-64">Register</button>
 </div>
 
@@ -35,14 +35,13 @@
       <option value="staff">Staff</option>
       <option value="admin">Admin</option>
     </select>
-    <button onclick="register()" class="bg-green-500 text-white p-2 w-full mb-2">Register</button>
+    <button id="registerBtn" class="bg-green-500 text-white p-2 w-full mb-2">Register</button>
     <button onclick="closeRegister()" class="bg-gray-500 text-white p-2 w-full">Cancel</button>
   </div>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none" class="p-4">
-
 <h1 class="text-xl mb-3">Cashier</h1>
 <input id="barcodeInput" placeholder="Scan barcode" class="border p-2 w-full mb-2">
 <div id="reader"></div>
@@ -57,7 +56,6 @@
 <hr class="my-4">
 <h2>Analytics</h2>
 <canvas id="chart"></canvas>
-
 </div>
 
 <script>
@@ -68,37 +66,37 @@ let products=[], cart=[], currentUser="";
 function openRegister(){document.getElementById("registerModal").style.display="flex";}
 function closeRegister(){document.getElementById("registerModal").style.display="none";}
 
-async function login(){
+document.getElementById("loginBtn").addEventListener("click", async ()=>{
+  const user = document.getElementById("user").value;
+  const pass = document.getElementById("pass").value;
   const res = await fetch(API,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({type:"login",user:document.getElementById("user").value,pass:document.getElementById("pass").value})
+    body:JSON.stringify({type:"login", user, pass})
   });
   const data = await res.json();
   if(data.success){
-    currentUser = document.getElementById("user").value;
+    currentUser = user;
     document.getElementById("loginPage").style.display="none";
     document.getElementById("app").style.display="block";
     load();
     startScanner();
   }else alert("Login failed");
-}
+});
 
-async function register(){
+document.getElementById("registerBtn").addEventListener("click", async ()=>{
+  const user = document.getElementById("rUser").value;
+  const pass = document.getElementById("rPass").value;
+  const role = document.getElementById("rRole").value;
   const res = await fetch(API,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      type:"register",
-      user:document.getElementById("rUser").value,
-      pass:document.getElementById("rPass").value,
-      role:document.getElementById("rRole").value
-    })
+    body:JSON.stringify({type:"register", user, pass, role})
   });
   const data = await res.json();
   if(data.success){alert("Registered! Please login."); closeRegister();}
-  else alert(data.error||"Failed");
-}
+  else alert(data.error || "Register failed");
+});
 
 /* LOAD PRODUCTS */
 async function load(){
@@ -192,6 +190,5 @@ async function loadAnalytics(){
   });
 }
 </script>
-
 </body>
 </html>
