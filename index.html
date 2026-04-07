@@ -4,14 +4,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="p-4">
 
 <!-- LOGIN -->
 <div id="loginPage">
-  <h2 class="text-xl mb-2">Login</h2>
+  <h2>Login</h2>
   <input id="user" placeholder="Username" class="border p-2"><br><br>
   <input id="pass" type="password" placeholder="Password" class="border p-2"><br><br>
   <button onclick="login()" class="bg-green-500 text-white p-2">Login</button>
@@ -20,44 +19,47 @@
 <!-- APP -->
 <div id="app" style="display:none">
 
-<h1 class="text-xl mb-3">Cashier</h1>
+<h2>Cashier</h2>
 
-<input id="barcodeInput" placeholder="Scan barcode" class="border p-2 w-full mb-2">
+<div id="reader" style="width:300px"></div>
 
-<div id="reader"></div>
+<div id="products"></div>
 
-<div id="productsGrid" class="grid grid-cols-2 gap-2"></div>
-
-<h2 class="mt-4">Cart</h2>
-<div id="cartItems"></div>
-<div>Total: <b id="total">0</b></div>
+<h3>Cart</h3>
+<div id="cart"></div>
+Total: <b id="total">0</b>
 
 <button onclick="checkout('cash')" class="bg-green-500 text-white p-2 w-full mt-2">Cash</button>
-<button onclick="payQRIS()" class="bg-purple-500 text-white p-2 w-full mt-2">QRIS</button>
 
-<hr class="my-4">
+<hr>
 
-<h2>Analytics</h2>
-<canvas id="chart"></canvas>
+<h3>Add Product</h3>
+<input id="pName" placeholder="Name"><br>
+<input id="pSell" placeholder="Sell"><br>
+<input id="pCost" placeholder="Cost"><br>
+<input id="pStock" placeholder="Stock"><br>
+<input id="pBarcode" placeholder="Barcode"><br>
+<button onclick="addProduct()">Add</button>
 
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbyAse_JAG2oxa0DmOq1Pfa-IUVBsHUQQ8GhGewRuhIJY3o03Zp-CayIwjwBxbLWYcP4/exec";
+const API="https://script.google.com/macros/s/AKfycbwjm3UYSNMIDtMr3-A-eKSbIrpShxUeJTl4WsBoOCFtlgpfaJJTIhgDJGbnJCrQVsvO/exec";
 
-let products=[],cart=[],currentUser="";
+let products=[],cart=[],userName="";
 
 /* LOGIN */
 async function login(){
   let res=await fetch(API,{
     method:"POST",
+    headers:{"Content-Type":"application/json"},
     body:JSON.stringify({type:"login",user:user.value,pass:pass.value})
   });
 
   let data=await res.json();
 
   if(data.success){
-    currentUser=user.value;
+    userName=user.value;
     loginPage.style.display="none";
     app.style.display="block";
     load();
@@ -71,17 +73,23 @@ async function load(){
   let data=await res.json();
 
   products=data.slice(1).map(p=>({
-    name:p[0],sell:+p[1],cost:+p[2],stock:+p[3],barcode:p[5]
+    name:p[0],
+    sell:+p[1],
+    cost:+p[2],
+    stock:+p[3],
+    barcode:p[5]
   }));
 
   renderProducts();
 }
 
-/* PRODUCTS */
+/* RENDER PRODUCTS */
 function renderProducts(){
-  productsGrid.innerHTML=products.map(p=>`
-    <div onclick="addToCart('${p.name}')" class="border p-2">
-      ${p.name}<br>Rp ${p.sell}
+  productsDiv=document.getElementById("products");
+
+  productsDiv.innerHTML=products.map(p=>`
+    <div onclick="addToCart('${p.name}')" class="border p-2 mb-2">
+      ${p.name} - Rp ${p.sell} (${p.stock})
     </div>
   `).join("");
 }
@@ -91,7 +99,8 @@ function addToCart(name){
   let p=products.find(x=>x.name===name);
   let ex=cart.find(i=>i.name===name);
 
-  if(ex) ex.qty++; else cart.push({name:p.name,qty:1,price:p.sell});
+  if(ex) ex.qty++;
+  else cart.push({name:p.name,qty:1,price:p.sell});
 
   renderCart();
 }
@@ -99,7 +108,9 @@ function addToCart(name){
 function renderCart(){
   let t=0;
 
-  cartItems.innerHTML=cart.map(i=>{
+  cartDiv=document.getElementById("cart");
+
+  cartDiv.innerHTML=cart.map(i=>{
     let sub=i.qty*i.price;
     t+=sub;
     return `${i.name} x${i.qty} = ${sub}<br>`;
@@ -112,51 +123,54 @@ function renderCart(){
 async function checkout(method){
   if(cart.length===0) return;
 
-  let payload={
-    type:"addTransaction",
-    user:currentUser,
-    items:JSON.stringify(cart),
-    payment:method
-  };
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      type:"addTransaction",
+      user:userName,
+      items:JSON.stringify(cart),
+      payment:method
+    })
+  });
 
-  try{
-    await fetch(API,{method:"POST",body:JSON.stringify(payload)});
-    printReceipt();
-    cart=[];
-    renderCart();
-  }catch(e){
-    saveOffline(payload);
-  }
+  printReceipt();
+
+  cart=[];
+  renderCart();
+  load();
 }
 
-/* QRIS */
-function payQRIS(){
-  let url="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-"+total.innerText;
-  let w=window.open("");
-  w.document.write(`<img src="${url}">`);
+/* ADD PRODUCT */
+async function addProduct(){
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      type:"addProduct",
+      name:pName.value,
+      sell:pSell.value,
+      cost:pCost.value,
+      stock:pStock.value,
+      barcode:pBarcode.value
+    })
+  });
+
+  alert("Added!");
+  load();
 }
 
 /* RECEIPT */
 function printReceipt(){
   let w=window.open("","","width=300");
 
-  w.document.write(`
-  <style>body{font-family:monospace;width:80mm}</style>
-  ${cart.map(i=>`${i.name} x${i.qty}=${i.qty*i.price}`).join("<br>")}
-  <hr>Total:${total.innerText}
-  `);
+  w.document.write(cart.map(i=>`${i.name} x${i.qty}`).join("<br>"));
+  w.document.write("<hr>Total: "+total.innerText);
 
   w.print();
 }
 
-/* OFFLINE */
-function saveOffline(d){
-  let q=JSON.parse(localStorage.getItem("q")||"[]");
-  q.push(d);
-  localStorage.setItem("q",JSON.stringify(q));
-}
-
-/* BARCODE CAMERA */
+/* SCANNER */
 function startScanner(){
   const scanner=new Html5Qrcode("reader");
 
@@ -166,24 +180,6 @@ function startScanner(){
       if(p) addToCart(p.name);
     }
   );
-}
-
-/* ANALYTICS */
-async function loadAnalytics(){
-  let res=await fetch(API+"?type=transactions");
-  let data=await res.json();
-
-  let daily={};
-
-  data.slice(1).forEach(r=>{
-    let d=new Date(r[0]).toLocaleDateString();
-    daily[d]=(daily[d]||0)+Number(r[3]);
-  });
-
-  new Chart(chart,{
-    type:"line",
-    data:{labels:Object.keys(daily),datasets:[{data:Object.values(daily)}]}
-  });
 }
 </script>
 
