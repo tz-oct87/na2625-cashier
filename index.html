@@ -4,182 +4,140 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>POS System</title>
 </head>
-
 <body class="p-4">
 
-<!-- LOGIN -->
+<!-- LOGIN PAGE -->
 <div id="loginPage">
   <h2>Login</h2>
   <input id="user" placeholder="Username" class="border p-2"><br><br>
   <input id="pass" type="password" placeholder="Password" class="border p-2"><br><br>
   <button onclick="login()" class="bg-green-500 text-white p-2">Login</button>
+  <p>Don't have account? <a href="#" onclick="showRegister()">Register</a></p>
+</div>
+
+<!-- REGISTER PAGE -->
+<div id="registerPage" style="display:none">
+  <h2>Register</h2>
+  <input id="rUser" placeholder="Username" class="border p-2"><br><br>
+  <input id="rPass" type="password" placeholder="Password" class="border p-2"><br><br>
+  <select id="rRole" class="border p-2 mb-2">
+    <option value="staff">Staff</option>
+    <option value="admin">Admin</option>
+  </select><br>
+  <button onclick="register()" class="bg-blue-500 text-white p-2">Register</button>
+  <p>Already have account? <a href="#" onclick="showLogin()">Login</a></p>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none">
 
 <h2>Cashier</h2>
-
 <div id="reader" style="width:300px"></div>
-
-<div id="products"></div>
+<div id="products" class="grid grid-cols-2 gap-2 my-2"></div>
 
 <h3>Cart</h3>
 <div id="cart"></div>
-Total: <b id="total">0</b>
-
+Total: <b id="total">0</b><br>
 <button onclick="checkout('cash')" class="bg-green-500 text-white p-2 w-full mt-2">Cash</button>
 
 <hr>
-
 <h3>Add Product</h3>
-<input id="pName" placeholder="Name"><br>
-<input id="pSell" placeholder="Sell"><br>
-<input id="pCost" placeholder="Cost"><br>
-<input id="pStock" placeholder="Stock"><br>
-<input id="pBarcode" placeholder="Barcode"><br>
-<button onclick="addProduct()">Add</button>
+<input id="pName" placeholder="Name" class="border p-1"><br>
+<input id="pSell" placeholder="Sell" class="border p-1"><br>
+<input id="pCost" placeholder="Cost" class="border p-1"><br>
+<input id="pStock" placeholder="Stock" class="border p-1"><br>
+<input id="pBarcode" placeholder="Barcode" class="border p-1"><br>
+<button onclick="addProduct()" class="bg-blue-500 text-white p-1 mt-1">Add</button>
 
+<hr>
+<h3>Analytics</h3>
+<canvas id="chart"></canvas>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbwjm3UYSNMIDtMr3-A-eKSbIrpShxUeJTl4WsBoOCFtlgpfaJJTIhgDJGbnJCrQVsvO/exec";
+const API="https://script.google.com/macros/s/AKfycbwWH_27M8Xgg8Dt2WQrQcusAb6r3urQQkNvrBfkvm-MvJmu0MiZ1B119iPz6JjdTqwz/exec";
 
-let products=[],cart=[],userName="";
+let products=[], cart=[], currentUser="";
 
-/* LOGIN */
+/* === LOGIN === */
 async function login(){
-  let res=await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({type:"login",user:user.value,pass:pass.value})
-  });
-
+  let res=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"login",user:user.value,pass:pass.value})});
   let data=await res.json();
-
-  if(data.success){
-    userName=user.value;
-    loginPage.style.display="none";
-    app.style.display="block";
-    load();
-    startScanner();
-  }else alert("Login failed");
+  if(data.success){currentUser=user.value; loginPage.style.display="none"; app.style.display="block"; loadProducts(); startScanner();}
+  else alert("Login failed");
 }
 
-/* LOAD */
-async function load(){
-  let res=await fetch(API+"?type=products");
+/* === REGISTER === */
+function showRegister(){loginPage.style.display="none"; registerPage.style.display="block";}
+function showLogin(){registerPage.style.display="none"; loginPage.style.display="block";}
+async function register(){
+  let res=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"register",user:rUser.value,pass:rPass.value,role:rRole.value})});
   let data=await res.json();
+  if(data.success){alert("Registered! Login now"); showLogin();} else alert(data.error);
+}
 
-  products=data.slice(1).map(p=>({
-    name:p[0],
-    sell:+p[1],
-    cost:+p[2],
-    stock:+p[3],
-    barcode:p[5]
-  }));
-
+/* === LOAD PRODUCTS === */
+async function loadProducts(){
+  let res=await fetch(API+"?type=products"); let data=await res.json();
+  products=data.slice(1).map(p=>({name:p[0],sell:+p[1],cost:+p[2],stock:+p[3],barcode:p[5]}));
   renderProducts();
 }
 
-/* RENDER PRODUCTS */
+/* === RENDER PRODUCTS === */
 function renderProducts(){
   productsDiv=document.getElementById("products");
-
-  productsDiv.innerHTML=products.map(p=>`
-    <div onclick="addToCart('${p.name}')" class="border p-2 mb-2">
-      ${p.name} - Rp ${p.sell} (${p.stock})
-    </div>
-  `).join("");
+  productsDiv.innerHTML=products.map(p=>`<div onclick="addToCart('${p.name}')" class="border p-2">${p.name} - Rp ${p.sell} (${p.stock})</div>`).join("");
 }
 
-/* CART */
+/* === CART === */
 function addToCart(name){
-  let p=products.find(x=>x.name===name);
-  let ex=cart.find(i=>i.name===name);
-
-  if(ex) ex.qty++;
-  else cart.push({name:p.name,qty:1,price:p.sell});
-
+  let p=products.find(x=>x.name===name); let ex=cart.find(i=>i.name===name);
+  if(ex) ex.qty++; else cart.push({name:p.name,qty:1,price:p.sell});
   renderCart();
 }
-
 function renderCart(){
   let t=0;
-
   cartDiv=document.getElementById("cart");
-
-  cartDiv.innerHTML=cart.map(i=>{
-    let sub=i.qty*i.price;
-    t+=sub;
-    return `${i.name} x${i.qty} = ${sub}<br>`;
-  }).join("");
-
+  cartDiv.innerHTML=cart.map(i=>{let sub=i.qty*i.price; t+=sub; return `${i.name} x${i.qty} = ${sub}<br>`}).join("");
   total.innerText=t;
 }
 
-/* CHECKOUT */
+/* === CHECKOUT === */
 async function checkout(method){
   if(cart.length===0) return;
-
-  await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      type:"addTransaction",
-      user:userName,
-      items:JSON.stringify(cart),
-      payment:method
-    })
-  });
-
-  printReceipt();
-
-  cart=[];
-  renderCart();
-  load();
+  await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"addTransaction",user:currentUser,items:JSON.stringify(cart),payment:method})});
+  printReceipt(); cart=[]; renderCart(); loadProducts(); loadAnalytics();
 }
 
-/* ADD PRODUCT */
+/* === ADD PRODUCT === */
 async function addProduct(){
-  await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      type:"addProduct",
-      name:pName.value,
-      sell:pSell.value,
-      cost:pCost.value,
-      stock:pStock.value,
-      barcode:pBarcode.value
-    })
-  });
-
-  alert("Added!");
-  load();
+  await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"addProduct",name:pName.value,sell:pSell.value,cost:pCost.value,stock:pStock.value,barcode:pBarcode.value})});
+  alert("Product Added!"); loadProducts();
 }
 
-/* RECEIPT */
+/* === RECEIPT === */
 function printReceipt(){
   let w=window.open("","","width=300");
-
   w.document.write(cart.map(i=>`${i.name} x${i.qty}`).join("<br>"));
   w.document.write("<hr>Total: "+total.innerText);
-
   w.print();
 }
 
-/* SCANNER */
+/* === BARCODE SCANNER === */
 function startScanner(){
   const scanner=new Html5Qrcode("reader");
+  scanner.start({facingMode:"environment"},{fps:10,qrbox:250}, code=>{let p=products.find(x=>x.barcode==code); if(p)addToCart(p.name);});
+}
 
-  scanner.start({facingMode:"environment"},{fps:10,qrbox:250},
-    code=>{
-      let p=products.find(x=>x.barcode==code);
-      if(p) addToCart(p.name);
-    }
-  );
+/* === ANALYTICS === */
+async function loadAnalytics(){
+  let res=await fetch(API+"?type=transactions"); let data=await res.json();
+  let daily={};
+  data.slice(1).forEach(r=>{let d=new Date(r[0]).toLocaleDateString(); daily[d]=(daily[d]||0)+Number(r[3]);});
+  new Chart(chart,{type:"line",data:{labels:Object.keys(daily),datasets:[{data:Object.values(daily),label:"Revenue"}]}});
 }
 </script>
 
