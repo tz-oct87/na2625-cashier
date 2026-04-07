@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NA2625 POS</title>
+<title>NA2625 POS v26</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
@@ -33,17 +33,13 @@ body{background:#f1f5f9;font-family:sans-serif}
 
 <!-- HEADER -->
 <div class="bg-green-600 text-white p-4 flex items-center gap-3">
-
-  <!-- BURGER -->
   <button onclick="toggleMenu()" class="text-xl md:hidden">☰</button>
-
   <div class="font-bold">NA2625 POS</div>
 </div>
 
 <!-- MOBILE MENU -->
 <div id="mobileMenu" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
   <div class="bg-white w-64 h-full p-4 animate-slide">
-
     <div class="flex justify-between mb-4">
       <b>Menu</b>
       <button onclick="toggleMenu()">✖</button>
@@ -53,11 +49,10 @@ body{background:#f1f5f9;font-family:sans-serif}
     <button onclick="goPage('products')" class="navBtn">📦 Products</button>
     <button onclick="goPage('stock')" class="navBtn">📥 Stock</button>
     <button onclick="goPage('analytics')" class="navBtn">📊 Analytics</button>
-
   </div>
 </div>
 
-<!-- SIDEBAR DESKTOP -->
+<!-- SIDEBAR -->
 <div class="sidebar text-white w-60 fixed h-full p-4 hidden md:block">
   <div class="text-xl font-bold mb-6">NA2625</div>
 
@@ -94,7 +89,7 @@ body{background:#f1f5f9;font-family:sans-serif}
 <div id="products" class="page">
   <h1 class="text-xl mb-3">Products</h1>
 
-  <div class="card grid grid-cols-2 md:grid-cols-5 gap-2">
+  <div id="productForm" class="card grid grid-cols-2 md:grid-cols-5 gap-2">
     <input id="pName" placeholder="Name" class="border p-2">
     <input id="pSell" placeholder="Sell" class="border p-2">
     <input id="pCost" placeholder="Cost" class="border p-2">
@@ -102,7 +97,7 @@ body{background:#f1f5f9;font-family:sans-serif}
     <input id="pImg" placeholder="Image URL" class="border p-2">
   </div>
 
-  <button onclick="addProduct()" class="bg-green-500 text-white p-2 mt-2 rounded">
+  <button id="addBtn" onclick="addProduct()" class="bg-green-500 text-white p-2 mt-2 rounded w-full">
     Add Product
   </button>
 
@@ -133,11 +128,10 @@ const API="https://script.google.com/macros/s/AKfycbyV9mWbPzSTb3HxWdETbqRgp-k9ID
 
 let products=[],cart=[];
 
-/* NAVIGATION */
+/* NAV */
 function showPage(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
-
   if(id==="analytics") loadAnalytics();
 }
 
@@ -160,7 +154,7 @@ async function load(){
     sell:+p[1],
     cost:+p[2],
     stock:+p[3],
-    image:p[5]
+    image:p[4] // FIXED
   }));
 
   renderProducts();
@@ -170,10 +164,10 @@ async function load(){
 
 /* CASHIER */
 function renderProducts(){
-  document.getElementById("productsGrid").innerHTML=products.map(p=>`
+  productsGrid.innerHTML=products.map(p=>`
     <div class="card cursor-pointer" onclick="addToCart('${p.name}')">
       <img src="${p.image||'https://via.placeholder.com/100'}"
-        class="w-full h-24 object-cover rounded">
+      class="w-full h-24 object-cover rounded">
       <div>${p.name}</div>
       <div class="text-green-600">Rp ${p.sell}</div>
     </div>
@@ -183,23 +177,18 @@ function renderProducts(){
 function addToCart(name){
   let p=products.find(x=>x.name===name);
   let ex=cart.find(i=>i.name===name);
-
-  if(ex) ex.qty++;
-  else cart.push({name:p.name,qty:1,price:p.sell});
-
+  if(ex) ex.qty++; else cart.push({name:p.name,qty:1,price:p.sell});
   renderCart();
 }
 
 function renderCart(){
   let t=0;
-
-  document.getElementById("cartItems").innerHTML=cart.map(i=>{
+  cartItems.innerHTML=cart.map(i=>{
     let sub=i.qty*i.price;
     t+=sub;
     return `<div>${i.name} x${i.qty} = ${sub}</div>`;
   }).join("");
-
-  document.getElementById("total").innerText=t;
+  total.innerText=t;
 }
 
 async function checkout(){
@@ -211,7 +200,7 @@ async function checkout(){
     body:JSON.stringify({
       type:"addTransaction",
       items:JSON.stringify(cart),
-      total:document.getElementById("total").innerText,
+      total:total.innerText,
       profit:0,
       customer:"-"
     })
@@ -221,26 +210,60 @@ async function checkout(){
   renderCart();
 }
 
-/* PRODUCTS PAGE */
+/* PRODUCTS */
 async function addProduct(){
-  await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      type:"addProduct",
-      name:pName.value,
-      sell:pSell.value,
-      cost:pCost.value,
-      stock:pStock.value,
-      image:pImg.value
-    })
-  });
+  if(!pName.value || !pSell.value){
+    alert("Fill required fields");
+    return;
+  }
 
-  load();
+  const btn = addBtn;
+
+  // hide form
+  productForm.style.display="none";
+
+  // spinner
+  btn.innerHTML = `<div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mx-auto"></div>`;
+  btn.disabled=true;
+
+  try{
+    await fetch(API,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        type:"addProduct",
+        name:pName.value,
+        sell:pSell.value,
+        cost:pCost.value,
+        stock:pStock.value,
+        image:pImg.value
+      })
+    });
+
+    setTimeout(()=>{
+      btn.innerText="Add Another Product";
+      btn.disabled=false;
+      productForm.style.display="grid";
+
+      pName.value="";
+      pSell.value="";
+      pCost.value="";
+      pStock.value="";
+      pImg.value="";
+
+      load();
+    },3000);
+
+  }catch(e){
+    alert("Failed");
+    btn.innerText="Add Product";
+    btn.disabled=false;
+    productForm.style.display="grid";
+  }
 }
 
 function renderProductList(){
-  document.getElementById("productList").innerHTML=products.map(p=>`
+  productList.innerHTML=products.map(p=>`
     <div class="card flex justify-between">
       ${p.name} (${p.stock})
       <button onclick="deleteProduct('${p.name}')">❌</button>
@@ -254,13 +277,12 @@ async function deleteProduct(name){
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({type:"deleteProduct",name})
   });
-
   load();
 }
 
 /* STOCK */
 function renderStockDropdown(){
-  document.getElementById("stockProduct").innerHTML=
+  stockProduct.innerHTML=
     products.map(p=>`<option>${p.name}</option>`).join("");
 }
 
@@ -275,7 +297,6 @@ async function updateStock(){
       action:"ADD"
     })
   });
-
   load();
 }
 
@@ -284,14 +305,12 @@ async function loadAnalytics(){
   let res=await fetch(API+"?type=transactions");
   let data=await res.json();
 
-  let total=0;
-  data.slice(1).forEach(r=>total+=+r[2]);
+  let totalRev=0;
+  data.slice(1).forEach(r=>totalRev+=+r[2]);
 
-  document.getElementById("report").innerHTML=
-    `<b>Total Revenue:</b> Rp ${total}`;
+  report.innerHTML=`<b>Total Revenue:</b> Rp ${totalRev}`;
 }
 
-/* INIT */
 load();
 </script>
 
