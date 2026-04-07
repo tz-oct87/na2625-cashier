@@ -9,39 +9,38 @@
         .page-content { display: none; height: 100%; width: 100%; overflow-y: auto; }
         .page-content.active { display: block; }
         .nav-btn.active { background-color: #1A877E; color: white; }
-        /* Modal Overlay */
         #detailModal { display: none; }
         #detailModal.active { display: flex; }
     </style>
 </head>
-<body class="h-full bg-gray-50 overflow-hidden font-sans">
+<body class="h-full bg-gray-50 overflow-hidden font-sans text-gray-900">
 
-<div id="loginPage" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
-    <div class="w-full max-w-sm p-8 bg-white border rounded-2xl shadow-2xl">
+<div id="loginPage" class="fixed inset-0 z-[100] flex items-center justify-center bg-white px-6">
+    <div class="w-full max-w-sm p-8 bg-white border rounded-3xl shadow-2xl">
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-black text-teal-800 tracking-tight">NA2625 CREATIVEWORKS</h1>
-            <p class="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">Cashier Apps</p>
+            <h1 class="text-2xl font-black text-teal-800">NA2625 CREATIVEWORKS</h1>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Cashier Apps</p>
         </div>
         <div class="space-y-4">
             <input id="user" type="text" placeholder="Username" class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-teal-500">
             <input id="pass" type="password" placeholder="Password" class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-teal-500">
-            <button id="loginBtn" class="w-full bg-teal-600 text-white p-4 rounded-xl font-bold hover:bg-teal-700 transition">SIGN IN</button>
+            <button id="loginBtn" class="w-full bg-teal-600 text-white p-4 rounded-xl font-bold hover:bg-teal-700 transition active:scale-95">SIGN IN</button>
         </div>
     </div>
 </div>
 
 <div id="app" class="flex h-full w-full hidden">
     <nav class="w-72 bg-white border-r flex flex-col h-full shrink-0">
-        <div class="p-6 border-b bg-teal-50/30">
-            <h2 class="text-lg font-black text-teal-900 leading-tight">NA2625<br>CREATIVEWORKS</h2>
-            <p id="userDisplay" class="text-[10px] text-teal-600 mt-2 uppercase font-black tracking-tighter"></p>
+        <div class="p-8 border-b">
+            <h2 class="text-xl font-black text-teal-900 leading-tight">NA2625<br>CREATIVEWORKS</h2>
+            <p id="userDisplay" class="text-[10px] text-teal-600 mt-2 font-black uppercase tracking-wider"></p>
         </div>
         <div class="flex-1 p-4 space-y-2">
-            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">🛒 Cashier</button>
-            <button onclick="showPage('inventory')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">➕ Add Product</button>
-            <button onclick="showPage('history')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">📜 Transactions</button>
+            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-5 py-4 rounded-2xl font-bold text-gray-500 hover:bg-gray-100 transition">🛒 Cashier</button>
+            <button onclick="showPage('inventory')" class="nav-btn w-full text-left px-5 py-4 rounded-2xl font-bold text-gray-500 hover:bg-gray-100 transition">📦 Add Product</button>
+            <button onclick="showPage('history')" class="nav-btn w-full text-left px-5 py-4 rounded-2xl font-bold text-gray-500 hover:bg-gray-100 transition">📜 Transactions</button>
         </div>
-        <div class="p-6 border-t"><button onclick="location.reload()" class="text-red-500 font-bold text-sm">Exit System</button></div>
+        <div class="p-6 border-t"><button onclick="location.reload()" class="text-red-500 font-bold text-sm">Log Out</button></div>
     </nav>
 
     <main class="flex-1 relative bg-gray-50 overflow-hidden">
@@ -49,50 +48,44 @@
             <div class="flex gap-8 h-full">
                 <div class="flex-1 flex flex-col">
                     <h2 class="text-3xl font-black mb-6">Terminal</h2>
-                    <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="p-4 rounded-xl border mb-6 shadow-sm outline-none focus:ring-2 focus:ring-teal-500">
+                    <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search items..." class="p-5 rounded-2xl border mb-6 shadow-sm outline-none focus:ring-2 focus:ring-teal-500">
                     <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto pr-2"></div>
                 </div>
-                <div class="w-96 bg-white rounded-3xl shadow-xl border border-gray-100 p-6 flex flex-col">
-                    <h3 class="font-black text-gray-800 mb-4 uppercase tracking-widest text-xs">Current Cart</h3>
-                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6 pr-2"></div>
+                <div class="w-96 bg-white rounded-[2.5rem] shadow-xl border border-gray-100 p-8 flex flex-col">
+                    <h3 class="font-black text-gray-400 text-[10px] uppercase tracking-widest mb-6">Current Cart</h3>
+                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-4 mb-6 pr-2"></div>
                     <div class="border-t pt-6">
-                        <div class="flex justify-between text-2xl font-black mb-6"><span>Total</span><span>Rp <span id="total">0</span></span></div>
-                        <button onclick="checkout('Cash')" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black text-lg hover:bg-teal-700 transition">PAY NOW</button>
+                        <div class="flex justify-between text-2xl font-black mb-8"><span>Total</span><span>Rp <span id="total">0</span></span></div>
+                        <button onclick="checkout('Cash')" class="w-full bg-teal-600 text-white p-6 rounded-2xl font-black text-lg hover:bg-teal-700 shadow-lg shadow-teal-100 active:scale-95 transition">PAY NOW</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="page-inventory" class="page-content p-12">
-            <div class="max-w-xl mx-auto bg-white p-10 rounded-3xl shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-black mb-8 text-teal-800">New Product Entry</h2>
-                <div class="space-y-5">
-                    <div><label class="block text-[10px] font-black text-gray-400 mb-1">PRODUCT NAME</label><input id="pName" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
+            <div class="max-w-xl mx-auto bg-white p-12 rounded-[2.5rem] shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-black mb-10 text-teal-800">Product Registration</h2>
+                <div class="space-y-6">
+                    <div><label class="block text-[10px] font-black text-gray-400 mb-2">PRODUCT NAME</label><input id="pName" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-teal-500"></div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div><label class="block text-[10px] font-black text-gray-400 mb-1">SELL PRICE</label><input id="pSell" type="number" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
-                        <div><label class="block text-[10px] font-black text-gray-400 mb-1">COST PRICE</label><input id="pCost" type="number" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
+                        <div><label class="block text-[10px] font-black text-gray-400 mb-2">SELL PRICE</label><input id="pSell" type="number" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-teal-500"></div>
+                        <div><label class="block text-[10px] font-black text-gray-400 mb-2">COST PRICE</label><input id="pCost" type="number" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-teal-500"></div>
                     </div>
-                    <div><label class="block text-[10px] font-black text-gray-400 mb-1">INITIAL STOCK</label><input id="pStock" type="number" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
-                    <div><label class="block text-[10px] font-black text-gray-400 mb-1">BARCODE</label><input id="pBar" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
-                    <button onclick="saveProduct()" id="saveBtn" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black mt-4 hover:bg-teal-700 transition">REGISTER PRODUCT</button>
+                    <div><label class="block text-[10px] font-black text-gray-400 mb-2">STOCK</label><input id="pStock" type="number" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-teal-500"></div>
+                    <button onclick="saveProduct()" id="saveBtn" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black mt-6 active:scale-95 transition">SAVE TO DATABASE</button>
                 </div>
             </div>
         </div>
 
         <div id="page-history" class="page-content p-12">
             <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-black">Transaction History</h2>
-                <input type="text" id="historySearch" oninput="renderHistory()" placeholder="Search by staff or date..." class="w-64 p-3 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-teal-500">
+                <h2 class="text-2xl font-black">History</h2>
+                <input type="text" id="historySearch" oninput="renderHistory()" placeholder="Search staff or date..." class="w-64 p-3 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-teal-500">
             </div>
-            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-                <table class="w-full text-left border-collapse">
+            <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
+                <table class="w-full text-left">
                     <thead class="bg-gray-50 border-b">
-                        <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                            <th class="p-5">Time</th>
-                            <th class="p-5">Staff</th>
-                            <th class="p-5">Total</th>
-                            <th class="p-5">Action</th>
-                        </tr>
+                        <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><th class="p-6">Date</th><th class="p-6">User</th><th class="p-6">Total</th><th class="p-6">Detail</th></tr>
                     </thead>
                     <tbody id="historyList" class="divide-y text-sm"></tbody>
                 </table>
@@ -101,27 +94,25 @@
     </main>
 </div>
 
-<div id="detailModal" class="fixed inset-0 z-[110] bg-black/50 items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col">
-        <div class="p-6 bg-teal-600 text-white">
+<div id="detailModal" class="fixed inset-0 z-[110] bg-black/60 items-center justify-center p-6 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col">
+        <div class="p-8 bg-teal-700 text-white">
             <div class="flex justify-between items-center">
-                <h3 class="font-black text-xl">Order Details</h3>
-                <button onclick="closeModal()" class="text-white/80 hover:text-white font-black">✕</button>
+                <h3 class="font-black text-xl">Order Receipt</h3>
+                <button onclick="closeModal()" class="text-white/50 hover:text-white text-2xl font-black">×</button>
             </div>
-            <p id="modalDate" class="text-xs text-teal-100 mt-1"></p>
+            <p id="modalDate" class="text-[10px] font-bold text-teal-200 mt-2 uppercase tracking-widest"></p>
         </div>
-        <div class="p-6 flex-1 overflow-y-auto max-h-[400px]">
-            <div id="modalItems" class="space-y-4"></div>
-        </div>
-        <div class="p-6 bg-gray-50 border-t flex justify-between items-center">
-            <span class="font-bold text-gray-500">Grand Total</span>
-            <span id="modalTotal" class="text-xl font-black text-teal-800"></span>
+        <div class="p-8 flex-1 overflow-y-auto max-h-[400px]" id="modalItems"></div>
+        <div class="p-8 bg-gray-50 border-t flex justify-between items-center font-black">
+            <span class="text-gray-400">GRAND TOTAL</span>
+            <span id="modalTotal" class="text-2xl text-teal-800"></span>
         </div>
     </div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyw2ojd14fijTIazKB2Wb1KBGImn6zsjqabyWsU83HF76p9j2ghBH-vIxxpX1ZJYP5h/exec"; 
+const API = "https://script.google.com/macros/s/AKfycbwafPnNGavCo-_Q-K4QZBNPRwqtNc2QPkfTj-IPS1cH8tMSiMN6ogBgM1iXx7rPGrQq/exec"; 
 let products = [], cart = [], historyData = [], currentUser = "";
 
 // --- NAVIGATION ---
@@ -135,36 +126,55 @@ function showPage(pageId) {
     if(pageId === 'history') fetchHistory();
 }
 
-// --- AUTH (Simplified) ---
+// --- AUTH ---
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
     const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
     const data = await res.json();
     if(data.success) {
         currentUser = u;
-        document.getElementById('userDisplay').innerText = "Officer: " + u;
+        document.getElementById('userDisplay').innerText = u;
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('app').classList.remove('hidden');
         loadProducts(); showPage('cashier');
-    } else alert("Access Denied");
+    } else alert("Invalid credentials.");
 };
 
-// --- POS & INVENTORY (Existing) ---
+// --- DATA ACTIONS ---
+async function saveProduct() {
+    const btn = document.getElementById('saveBtn'); btn.innerText = "..."; btn.disabled = true;
+    const payload = {
+        type: 'addProduct',
+        name: document.getElementById('pName').value,
+        sell: document.getElementById('pSell').value,
+        cost: document.getElementById('pCost').value,
+        stock: document.getElementById('pStock').value
+    };
+    await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+    alert("Saved.");
+    document.querySelectorAll('#page-inventory input').forEach(i => i.value = "");
+    btn.innerText = "SAVE TO DATABASE"; btn.disabled = false;
+    loadProducts();
+}
+
 async function loadProducts() {
     const res = await fetch(API + "?type=products");
     const data = await res.json();
     products = data.slice(1).map(r => ({ name: r[0], sell: +r[1], stock: +r[3] }));
     renderProducts();
 }
+
 function renderProducts() {
     const search = document.getElementById('posSearch').value.toLowerCase();
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = products.filter(p => p.name.toLowerCase().includes(search)).map(p => `
-        <div onclick="updateQuantity('${p.name}', 1)" class="bg-white p-5 rounded-2xl border border-gray-100 hover:border-teal-500 cursor-pointer shadow-sm active:scale-95 transition">
-            <div class="font-bold">${p.name}</div>
-            <div class="text-teal-600 font-black mt-1">Rp ${p.sell.toLocaleString()}</div>
+        <div onclick="updateQuantity('${p.name}', 1)" class="bg-white p-6 rounded-3xl border border-gray-100 hover:border-teal-500 cursor-pointer shadow-sm active:scale-95 transition">
+            <div class="font-bold text-gray-800">${p.name}</div>
+            <div class="text-teal-600 font-black mt-1 text-sm">Rp ${p.sell.toLocaleString()}</div>
         </div>`).join("");
 }
+
+// --- CART ---
 function updateQuantity(name, change) {
     let item = cart.find(i => i.name === name);
     if (!item && change > 0) {
@@ -176,22 +186,31 @@ function updateQuantity(name, change) {
     }
     renderCart();
 }
+
 function renderCart() {
     let total = 0;
-    document.getElementById('cartItems').innerHTML = cart.map(i => {
-        total += i.qty * i.price;
-        return `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100"><div class="text-xs font-black">${i.name} x${i.qty}</div><div class="flex items-center gap-2"><button onclick="updateQuantity('${i.name}', -1)" class="text-red-500 font-bold px-2">-</button><button onclick="updateQuantity('${i.name}', 1)" class="text-teal-600 font-bold px-2">+</button></div></div>`;
-    }).join("");
+    const itemsDiv = document.getElementById('cartItems');
+    if (!cart.length) { itemsDiv.innerHTML = '<p class="text-center text-gray-300 text-xs py-10">Cart is empty</p>'; }
+    else {
+        itemsDiv.innerHTML = cart.map(i => {
+            total += i.qty * i.price;
+            return `<div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border">
+                <div><div class="text-xs font-black">${i.name}</div><div class="text-[10px] font-bold text-teal-600">${i.price.toLocaleString()}</div></div>
+                <div class="flex items-center gap-3"><button onclick="updateQuantity('${i.name}',-1)" class="w-6 h-6 rounded-full bg-white border font-bold">-</button><span class="text-xs font-black">${i.qty}</span><button onclick="updateQuantity('${i.name}',1)" class="w-6 h-6 rounded-full bg-white border font-bold">+</button></div>
+            </div>`;
+        }).join("");
+    }
     document.getElementById('total').innerText = total.toLocaleString();
 }
+
 async function checkout(method) {
     if(!cart.length) return;
     const payload = { type: 'addTransaction', user: currentUser, payment: method, items: JSON.stringify(cart) };
     await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("Paid!"); cart = []; renderCart(); loadProducts();
+    alert("Checkout complete."); cart = []; renderCart(); loadProducts();
 }
 
-// --- HISTORY & MODAL LOGIC ---
+// --- HISTORY & MODAL ---
 async function fetchHistory() {
     const res = await fetch(API + "?type=transactions");
     const data = await res.json();
@@ -204,32 +223,25 @@ function renderHistory() {
     const list = document.getElementById('historyList');
     list.innerHTML = historyData.filter(r => r[1].toLowerCase().includes(search) || r[0].includes(search)).map((r, index) => `
         <tr>
-            <td class="p-5 text-gray-400 font-mono text-[9px]">${new Date(r[0]).toLocaleString()}</td>
-            <td class="p-5 font-bold">${r[1]}</td>
-            <td class="p-5 font-black text-teal-700">Rp ${Number(r[3]).toLocaleString()}</td>
-            <td class="p-5"><button onclick="viewDetails(${index})" class="bg-teal-50 text-teal-600 px-4 py-1.5 rounded-lg font-black text-[10px] hover:bg-teal-600 hover:text-white transition">VIEW ITEMS</button></td>
+            <td class="p-6 text-gray-400 font-mono text-[10px]">${new Date(r[0]).toLocaleDateString()}</td>
+            <td class="p-6 font-bold uppercase text-xs">${r[1]}</td>
+            <td class="p-6 font-black text-teal-700">Rp ${Number(r[3]).toLocaleString()}</td>
+            <td class="p-6"><button onclick="viewDetails(${index})" class="text-teal-600 font-black text-[10px] underline">VIEW MORE</button></td>
         </tr>`).join("");
 }
 
 function viewDetails(index) {
     const data = historyData[index];
-    const items = JSON.parse(data[5]); // Assuming Column F contains JSON string of items
-    
-    document.getElementById('modalDate').innerText = "Officer: " + data[1] + " | " + new Date(data[0]).toLocaleString();
+    const items = JSON.parse(data[5]);
+    document.getElementById('modalDate').innerText = new Date(data[0]).toLocaleString();
     document.getElementById('modalTotal').innerText = "Rp " + Number(data[3]).toLocaleString();
-    
     document.getElementById('modalItems').innerHTML = items.map(it => `
-        <div class="flex justify-between items-center border-b border-dashed pb-2">
-            <div>
-                <div class="text-sm font-black text-gray-800">${it.name}</div>
-                <div class="text-[10px] text-gray-400">Qty: ${it.qty} x ${it.price.toLocaleString()}</div>
-            </div>
-            <div class="font-bold text-teal-700 text-sm">Rp ${(it.qty * it.price).toLocaleString()}</div>
+        <div class="flex justify-between items-center mb-4 pb-4 border-b border-dashed">
+            <div><div class="font-black text-sm">${it.name}</div><div class="text-xs text-gray-400">Qty ${it.qty} × ${it.price.toLocaleString()}</div></div>
+            <div class="font-black text-teal-800">Rp ${(it.qty * it.price).toLocaleString()}</div>
         </div>`).join("");
-    
     document.getElementById('detailModal').classList.add('active');
 }
-
 function closeModal() { document.getElementById('detailModal').classList.remove('active'); }
 </script>
 </body>
