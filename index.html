@@ -3,49 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NA2625 | DARK POS PRO</title>
+    <title>NA2625 | POS PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         .page-content { display: none; height: 100%; overflow-y: auto; }
         .page-content.active { display: block; }
         .nav-btn.active { background: #1e293b; color: #2dd4bf; border-left: 4px solid #2dd4bf; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal.active { display: flex; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="h-full overflow-hidden font-sans">
-
-<div id="historyModal" class="modal">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-md p-8 rounded-3xl shadow-2xl">
-        <h3 class="text-xl font-black text-teal-400 mb-6">Order Details</h3>
-        <div id="historyDetailContent" class="space-y-3 mb-8 max-h-64 overflow-y-auto pr-2"></div>
-        <button onclick="closeModal('historyModal')" class="w-full bg-slate-800 p-4 rounded-xl font-bold">Close</button>
-    </div>
-</div>
-
-<div id="invoiceModal" class="modal">
-    <div class="bg-white text-slate-900 w-80 p-6 rounded-xl shadow-2xl">
-        <div id="receiptArea" class="p-2">
-            <div class="text-center border-b border-dashed border-slate-300 pb-4 mb-4">
-                <h2 class="font-black text-xl text-slate-900">NA2625</h2>
-                <p class="text-[10px] uppercase text-slate-500">Official Receipt</p>
-            </div>
-            <div id="receiptItems" class="text-xs space-y-2 mb-4"></div>
-            <div class="border-t border-dashed border-slate-300 pt-4 text-xs space-y-1">
-                <div class="flex justify-between font-bold"><span>TOTAL</span><span id="recTotal"></span></div>
-                <div class="flex justify-between"><span>PAID</span><span id="recPaid"></span></div>
-                <div class="flex justify-between text-teal-600 font-bold"><span>CHANGE</span><span id="recChange"></span></div>
-            </div>
-        </div>
-        <div class="flex gap-2 mt-6">
-            <button onclick="downloadReceipt()" class="flex-1 bg-teal-600 text-white p-3 rounded-lg font-bold text-xs">Save</button>
-            <button onclick="closeModal('invoiceModal')" class="flex-1 bg-slate-200 p-3 rounded-lg font-bold text-xs">Close</button>
-        </div>
-    </div>
-</div>
 
 <div id="loginPage" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950">
     <div class="w-full max-w-sm p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl text-center">
@@ -66,54 +37,64 @@
             <button onclick="showPage('manage')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">📦 Inventory</button>
             <button onclick="showPage('history')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">📜 History</button>
         </div>
-        <div class="p-6 border-t border-slate-800 text-center">
-            <button onclick="logout()" class="text-[10px] font-bold text-red-400 uppercase tracking-widest">Logout</button>
+        <div class="p-6 border-t border-slate-800">
+            <button onclick="logout()" class="w-full text-xs font-bold text-red-400 uppercase tracking-widest py-2">Logout</button>
         </div>
     </nav>
 
-    <main class="flex-1 bg-slate-950 p-10 overflow-hidden flex flex-col">
+    <main class="flex-1 bg-slate-950 p-8 overflow-hidden flex flex-col">
         <div id="page-cashier" class="page-content active h-full">
             <div class="flex gap-8 h-full">
                 <div class="flex-1 flex flex-col">
-                    <input id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-8 outline-none">
-                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6 overflow-y-auto"></div>
+                    <input id="posSearch" oninput="renderProducts()" placeholder="Search items..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-6 outline-none">
+                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto pr-2"></div>
                 </div>
-                <div class="w-80 bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col shrink-0">
-                    <h3 class="font-bold text-slate-500 uppercase text-[10px] mb-6 tracking-widest">Order</h3>
-                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6"></div>
-                    <div class="border-t border-slate-800 pt-6 space-y-4">
+                <div class="w-80 bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col">
+                    <h3 class="font-bold text-slate-500 text-[10px] uppercase mb-4 tracking-widest">Cart</h3>
+                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-2 mb-4"></div>
+                    <div class="border-t border-slate-800 pt-4 space-y-4">
                         <div class="flex justify-between text-xl font-black"><span>Total</span><span>Rp<span id="total">0</span></span></div>
                         <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold">
-                        <button onclick="checkout()" class="w-full bg-teal-600 p-4 rounded-xl font-black text-lg">CHECKOUT</button>
+                        <button onclick="checkout()" class="w-full bg-teal-600 p-4 rounded-xl font-black">CHECKOUT</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="page-manage" class="page-content">
-            <div class="mb-10 bg-slate-900 p-8 rounded-3xl border border-slate-800">
-                <h2 class="text-xl font-bold mb-6 text-teal-400">Add New Product</h2>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <input id="newPName" placeholder="Product Name" class="p-4 bg-slate-800 rounded-xl outline-none">
-                    <input id="newPStock" type="number" placeholder="Initial Stock" class="p-4 bg-slate-800 rounded-xl outline-none">
-                    <input id="newPSell" type="number" placeholder="Selling Price" class="p-4 bg-slate-800 rounded-xl outline-none">
-                    <input id="newPCost" type="number" placeholder="Factory Cost" class="p-4 bg-slate-800 rounded-xl outline-none">
-                </div>
-                <button onclick="addNewProduct()" class="w-full bg-teal-600 p-4 rounded-xl font-bold">Save New Product</button>
-            </div>
             <div id="manageList" class="grid gap-4"></div>
         </div>
 
         <div id="page-history" class="page-content">
-            <h2 class="text-3xl font-black mb-10">History</h2>
-            <div id="historyList" class="space-y-4"></div>
+            <div id="historyList" class="space-y-3"></div>
         </div>
     </main>
 </div>
 
+<div id="invoiceModal" class="modal">
+    <div class="bg-white text-slate-900 w-80 p-6 rounded-xl shadow-2xl">
+        <div id="receiptArea" class="p-2">
+            <div class="text-center border-b border-dashed border-slate-300 pb-4 mb-4">
+                <h2 class="font-black text-xl">NA2625</h2>
+                <p class="text-[10px] uppercase text-slate-500">Official Receipt</p>
+            </div>
+            <div id="receiptItems" class="text-xs space-y-2 mb-4"></div>
+            <div class="border-t border-dashed border-slate-300 pt-4 text-xs space-y-1">
+                <div class="flex justify-between font-bold"><span>TOTAL</span><span id="recTotal"></span></div>
+                <div class="flex justify-between"><span>PAID</span><span id="recPaid"></span></div>
+                <div class="flex justify-between text-teal-600 font-bold"><span>CHANGE</span><span id="recChange"></span></div>
+            </div>
+        </div>
+        <div class="flex gap-2 mt-6">
+            <button onclick="downloadReceipt()" class="flex-1 bg-teal-600 text-white p-3 rounded-lg font-bold text-xs">Save</button>
+            <button onclick="closeModal('invoiceModal')" class="flex-1 bg-slate-200 p-3 rounded-lg font-bold text-xs">Close</button>
+        </div>
+    </div>
+</div>
+
 <script>
-// REPLACE WITH YOUR GOOGLE WEB APP URL
-const API = "https://script.google.com/macros/s/AKfycbzlHx7tLmlhTeoTkYi3zRcZfPwU4d7ucemuw_N98nlm6G9s_A_xSd01s2OM4FrQTRBd/exec";
+// REPLACE WITH YOUR ACTUAL DEPLOYMENT URL
+const API = "https://script.google.com/macros/s/AKfycby8u_Okc10ueZFSN1iU6maw9B2Wy1Ue2lvobWKDwQLUln3EC-6LcDb-AS5cdOdG3y9l/exec";
 let products = [], cart = [], currentUser = "";
 
 window.onload = () => {
@@ -139,12 +120,10 @@ function closeModal(id) { document.getElementById(id).classList.remove('active')
 // AUTH
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    try {
-        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
-        const data = await res.json();
-        if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
-        else alert("Login Failed");
-    } catch(e) { alert("API Error: Check if deployment is set to 'Anyone'"); }
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
+    const data = await res.json();
+    if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
+    else alert("Login Failed");
 };
 
 async function loadProducts() {
@@ -158,10 +137,10 @@ function renderProducts() {
     document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => {
         const img = p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150';
         return `
-        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hover:border-teal-500 transition cursor-pointer">
-            <img src="${img}" class="w-full h-24 object-cover rounded-xl mb-4 bg-slate-950">
+        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-2xl p-3 border border-slate-800 hover:border-teal-500 transition cursor-pointer">
+            <img src="${img}" class="w-full h-24 object-cover rounded-xl mb-3 bg-slate-950">
             <div class="text-center">
-                <p class="font-bold text-[10px] text-slate-500 uppercase truncate">${p.name}</p>
+                <p class="font-bold text-[10px] text-slate-400 uppercase truncate">${p.name}</p>
                 <p class="text-teal-400 font-black">Rp${p.sell.toLocaleString()}</p>
                 <p class="text-[9px] text-slate-600 mt-1">Stock: ${p.stock}</p>
             </div>
@@ -178,13 +157,13 @@ function addToCart(name) {
     renderCart();
 }
 
-// QUANTITY ADJUSTERS
+// QUANTITY HANDLERS (+ / -)
 function changeQty(name, delta) {
-    const item = cart.find(i => i.name === name);
+    let item = cart.find(i => i.name === name);
     const p = products.find(x => x.name === name);
     if (!item) return;
 
-    if (delta > 0 && item.qty >= p.stock) return alert("Insufficient Stock");
+    if (delta > 0 && item.qty >= p.stock) return alert("Max stock reached");
     item.qty += delta;
     if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
     renderCart();
@@ -195,15 +174,15 @@ function renderCart() {
     document.getElementById('cartItems').innerHTML = cart.map(i => {
         total += i.qty * i.price;
         return `
-        <div class="flex items-center justify-between bg-slate-800 p-3 rounded-xl border border-slate-700">
-            <div class="flex-1 overflow-hidden pr-2">
-                <p class="text-[10px] font-bold text-white truncate uppercase">${i.name}</p>
-                <p class="text-[10px] text-teal-400 font-bold">Rp${(i.qty * i.price).toLocaleString()}</p>
+        <div class="flex items-center justify-between bg-slate-800 p-2 rounded-xl border border-slate-700">
+            <div class="flex-1 min-w-0 pr-2">
+                <p class="text-[9px] font-bold text-white truncate uppercase">${i.name}</p>
+                <p class="text-[9px] text-teal-400">Rp${(i.qty * i.price).toLocaleString()}</p>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="changeQty('${i.name}', -1)" class="w-6 h-6 bg-slate-700 rounded hover:bg-red-500 text-xs">-</button>
-                <span class="text-xs font-bold w-4 text-center">${i.qty}</span>
-                <button onclick="changeQty('${i.name}', 1)" class="w-6 h-6 bg-slate-700 rounded hover:bg-teal-500 text-xs">+</button>
+                <button onclick="changeQty('${i.name}', -1)" class="w-5 h-5 flex items-center justify-center bg-slate-700 rounded text-xs hover:bg-red-500">-</button>
+                <span class="text-[10px] font-bold w-4 text-center">${i.qty}</span>
+                <button onclick="changeQty('${i.name}', 1)" class="w-5 h-5 flex items-center justify-center bg-slate-700 rounded text-xs hover:bg-teal-500">+</button>
             </div>
         </div>`;
     }).join("");
@@ -249,48 +228,30 @@ function renderManage() {
         <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col gap-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <img onclick="changeProductPic('${p.name}', ${idx})" src="${p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-lg object-cover bg-slate-950 cursor-pointer hover:opacity-50 border border-slate-700">
+                    <img id="prev-${idx}" onclick="changeProductPic('${p.name}', ${idx})" src="${p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-lg object-cover bg-slate-950 cursor-pointer border border-slate-700 hover:opacity-50 transition">
                     <p class="font-black text-white uppercase">${p.name}</p>
                 </div>
-                <button onclick="updateExistingProduct('${p.name}', ${idx})" class="bg-teal-600 px-4 py-2 rounded-lg text-xs font-bold transition hover:bg-teal-500">Update Item</button>
+                <button onclick="updateItem('${p.name}', ${idx})" class="bg-teal-600 px-4 py-2 rounded-lg text-xs font-bold">Save Changes</button>
             </div>
             <div class="grid grid-cols-3 gap-4">
-                <div><label class="text-[9px] text-slate-500 uppercase">Stock</label><input id="editStock-${idx}" type="number" value="${p.stock}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700"></div>
-                <div><label class="text-[9px] text-slate-500 uppercase">Price</label><input id="editSell-${idx}" type="number" value="${p.sell}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700"></div>
-                <div><label class="text-[9px] text-slate-500 uppercase">Cost</label><input id="editCost-${idx}" type="number" value="${p.cost}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700"></div>
+                <div><label class="text-[9px] text-slate-500 uppercase">Stock</label><input id="stk-${idx}" type="number" value="${p.stock}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700"></div>
+                <div><label class="text-[9px] text-slate-500 uppercase">Price</label><input id="prc-${idx}" type="number" value="${p.sell}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700"></div>
+                <div><label class="text-[9px] text-slate-500 uppercase">Cost</label><input id="cst-${idx}" type="number" value="${p.cost}" class="w-full bg-slate-800 p-2 rounded-lg text-sm outline-none border border-slate-700"></div>
             </div>
         </div>`).join("");
 }
 
-async function addNewProduct() {
-    const payload = {
-        type: 'addProduct',
-        name: document.getElementById('newPName').value,
-        stock: Number(document.getElementById('newPStock').value),
-        sell: Number(document.getElementById('newPSell').value),
-        cost: Number(document.getElementById('newPCost').value),
-        imgId: ""
-    };
-    if(!payload.name) return alert("Enter Name");
-    await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("New Product Added!");
-    loadProducts();
-    renderManage();
-}
-
-async function updateExistingProduct(name, idx) {
+async function updateItem(name, idx) {
     const prod = products.find(p => p.name === name);
     const payload = {
-        type: 'editProduct',
-        oldName: name,
-        name: name,
-        stock: Number(document.getElementById(`editStock-${idx}`).value),
-        sell: Number(document.getElementById(`editSell-${idx}`).value),
-        cost: Number(document.getElementById(`editCost-${idx}`).value),
+        type: 'editProduct', oldName: name, name: name,
+        stock: Number(document.getElementById(`stk-${idx}`).value),
+        sell: Number(document.getElementById(`prc-${idx}`).value),
+        cost: Number(document.getElementById(`cst-${idx}`).value),
         imgId: prod.imgId
     };
     await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("Product Updated!");
+    alert("Updated!");
     loadProducts();
 }
 
@@ -300,37 +261,36 @@ async function changeProductPic(pName, idx) {
     input.accept = 'image/*';
     input.onchange = async (e) => {
         const file = e.target.files[0];
+        if (file.size > 2000000) return alert("File too big (max 2MB)");
+
         const reader = new FileReader();
         reader.onload = async () => {
-            const base64Data = reader.result;
+            const base64 = reader.result;
+            document.getElementById(`prev-${idx}`).src = base64; // Show preview immediately
+
             try {
-                const resImg = await fetch(API, { 
+                // Send the image to GAS
+                const res = await fetch(API, { 
                     method: 'POST', 
-                    mode: 'no-cors', // Helpful if still hitting CORS issues
-                    body: JSON.stringify({ type: 'uploadImage', base64: base64Data }) 
+                    body: JSON.stringify({ type: 'uploadImage', base64: base64 }) 
                 });
-                // Note: with 'no-cors', you won't be able to read dataImg.imgId immediately.
-                // It is better to ensure deployment is set to 'Anyone'.
+                const data = await res.json();
                 
-                // standard fetch (pre-flight required)
-                const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'uploadImage', base64: base64Data }) });
-                const dataImg = await res.json();
-                
-                if(dataImg.success) {
+                if (data.success) {
                     const prod = products.find(x => x.name === pName);
+                    // Now link the new ID to the product
                     await fetch(API, { method: 'POST', body: JSON.stringify({ 
                         type: 'editProduct', oldName: pName, name: pName, 
-                        sell: Number(document.getElementById(`editSell-${idx}`).value), 
-                        stock: Number(document.getElementById(`editStock-${idx}`).value), 
-                        cost: Number(document.getElementById(`editCost-${idx}`).value), 
-                        imgId: dataImg.imgId 
+                        stock: Number(document.getElementById(`stk-${idx}`).value),
+                        sell: Number(document.getElementById(`prc-${idx}`).value),
+                        cost: Number(document.getElementById(`cst-${idx}`).value),
+                        imgId: data.imgId 
                     }) });
+                    alert("Image Uploaded & Saved!");
                     loadProducts();
-                    renderManage();
-                    alert("Image Updated!");
                 }
             } catch (err) {
-                alert("Upload failed. Verify that your GAS deployment allows access to 'Anyone'.");
+                alert("Upload failed. Verify your API URL and 'Anyone' access.");
             }
         };
         reader.readAsDataURL(file);
@@ -342,23 +302,13 @@ async function fetchHistory() {
     const res = await fetch(API + "?type=transactions");
     const data = (await res.json()).slice(1).reverse();
     document.getElementById('historyList').innerHTML = data.map(r => `
-        <div onclick="showHistoryDetail('${encodeURIComponent(r[5])}')" class="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex justify-between items-center">
             <div>
-                <p class="text-[10px] text-slate-500 font-mono">${new Date(r[0]).toLocaleString()}</p>
+                <p class="text-[9px] text-slate-500 font-mono">${new Date(r[0]).toLocaleString()}</p>
                 <p class="font-black text-white">Rp${Number(r[3]).toLocaleString()}</p>
             </div>
-            <span class="text-[9px] font-bold text-teal-600 uppercase">View Items →</span>
+            <span class="text-[9px] font-bold text-teal-600 uppercase">Cash Entry</span>
         </div>`).join("");
-}
-
-function showHistoryDetail(jsonStr) {
-    const items = JSON.parse(decodeURIComponent(jsonStr));
-    document.getElementById('historyDetailContent').innerHTML = items.map(i => `
-        <div class="flex justify-between text-xs py-2 border-b border-slate-800">
-            <span>${i.name} <span class="text-slate-500">x${i.qty}</span></span>
-            <span class="font-bold text-teal-400">Rp${(i.qty * i.price).toLocaleString()}</span>
-        </div>`).join("");
-    document.getElementById('historyModal').classList.add('active');
 }
 </script>
 </body>
