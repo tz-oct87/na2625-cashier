@@ -3,112 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NA2625 | DARK POS</title>
+    <title>NA2625 | DARK POS v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         .page-content { display: none; height: 100%; overflow-y: auto; }
         .page-content.active { display: block; }
         .nav-btn.active { background: #1e293b; color: #2dd4bf; border-left: 4px solid #2dd4bf; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal.active { display: flex; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="h-full overflow-hidden font-sans">
 
-<div id="loginPage" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950">
-    <div class="w-full max-w-sm p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl">
-        <h1 class="text-3xl font-black text-teal-400 mb-8 text-center">NA2625</h1>
-        <div class="space-y-4">
-            <input id="user" type="text" placeholder="Username" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none focus:ring-2 focus:ring-teal-500">
-            <input id="pass" type="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none focus:ring-2 focus:ring-teal-500">
-            <button id="loginBtn" class="w-full bg-teal-600 hover:bg-teal-500 p-4 rounded-xl font-bold transition">SIGN IN</button>
+<div id="detailModal" class="modal">
+    <div class="bg-slate-900 w-full max-w-md rounded-3xl p-8 border border-slate-800 shadow-2xl mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-teal-400">Transaction Details</h3>
+            <span id="detDate" class="text-[10px] text-slate-500 font-mono"></span>
         </div>
+        <div id="detailContent" class="space-y-3 max-h-60 overflow-y-auto mb-6 pr-2"></div>
+        <div class="border-t border-slate-800 pt-6 space-y-2">
+            <div class="flex justify-between text-sm"><span>Total</span><span id="detTotal" class="font-bold text-white"></span></div>
+            <div class="flex justify-between text-sm text-teal-500"><span>Paid</span><span id="detPaid"></span></div>
+            <div class="flex justify-between text-sm text-red-400"><span>Change</span><span id="detChange"></span></div>
+        </div>
+        <button onclick="closeModal('detailModal')" class="w-full mt-8 bg-slate-800 hover:bg-slate-700 p-4 rounded-xl font-bold transition">Close</button>
     </div>
 </div>
 
-<div id="detailModal" class="modal">
-    <div class="bg-slate-900 w-full max-w-md rounded-3xl p-8 border border-slate-800 shadow-2xl">
-        <h3 class="text-xl font-bold mb-6 text-teal-400">Transaction Details</h3>
-        <div id="detailContent" class="space-y-4 text-sm"></div>
-        <button onclick="closeModal('detailModal')" class="w-full mt-8 bg-slate-800 p-4 rounded-xl font-bold">Close</button>
+<div id="loginPage" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950">
+    <div class="w-full max-w-sm p-10 bg-slate-900 rounded-[2.5rem] border border-slate-800 shadow-2xl text-center">
+        <h1 class="text-4xl font-black text-teal-400 mb-2">NA2625</h1>
+        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mb-10">TZ GANG POS</p>
+        <div class="space-y-4">
+            <input id="user" type="text" placeholder="Username" class="w-full p-4 rounded-2xl bg-slate-800 border border-slate-700 outline-none focus:ring-2 focus:ring-teal-500 text-center font-bold">
+            <input id="pass" type="password" placeholder="Password" class="w-full p-4 rounded-2xl bg-slate-800 border border-slate-700 outline-none focus:ring-2 focus:ring-teal-500 text-center font-bold">
+            <button id="loginBtn" class="w-full bg-teal-600 hover:bg-teal-500 p-5 rounded-2xl font-black text-lg transition shadow-lg shadow-teal-900/20">SIGN IN</button>
+        </div>
     </div>
 </div>
 
 <div id="app" class="flex h-full hidden">
-    <nav class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full">
-        <div class="p-8 text-xl font-black text-teal-400 border-b border-slate-800">NA2625</div>
-        <div class="flex-1 p-4 space-y-1">
-            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400 hover:bg-slate-800">🛒 Cashier</button>
-            <button onclick="showPage('manage')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400 hover:bg-slate-800">📦 Inventory</button>
-            <button onclick="showPage('history')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400 hover:bg-slate-800">📜 History</button>
+    <nav class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
+        <div class="p-8 border-b border-slate-800">
+            <h2 class="text-xl font-black text-white">NA2625 <span class="text-teal-400">POS</span></h2>
+        </div>
+        <div class="flex-1 p-4 space-y-2">
+            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-6 py-4 rounded-2xl font-bold text-slate-400 hover:bg-slate-800 transition">🛒 Cashier</button>
+            <button onclick="showPage('manage')" class="nav-btn w-full text-left px-6 py-4 rounded-2xl font-bold text-slate-400 hover:bg-slate-800 transition">📦 Inventory</button>
+            <button onclick="showPage('history')" class="nav-btn w-full text-left px-6 py-4 rounded-2xl font-bold text-slate-400 hover:bg-slate-800 transition">📜 History</button>
         </div>
         <div class="p-6 border-t border-slate-800">
-            <button onclick="logout()" class="text-xs font-bold text-red-400 uppercase">Logout</button>
+            <button onclick="logout()" class="text-xs font-black text-red-500/70 hover:text-red-400 uppercase tracking-widest transition">Logout</button>
         </div>
     </nav>
 
-    <main class="flex-1 bg-slate-950 p-10">
-        <div id="page-cashier" class="page-content active">
+    <main class="flex-1 relative bg-slate-950 overflow-hidden">
+        <div id="page-cashier" class="page-content active p-10">
             <div class="flex gap-8 h-full">
-                <div class="flex-1">
-                    <input id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-8 outline-none focus:border-teal-500">
-                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6"></div>
+                <div class="flex-1 flex flex-col">
+                    <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search items..." class="w-full p-5 bg-slate-900 border border-slate-800 rounded-[1.5rem] mb-8 outline-none focus:ring-2 focus:ring-teal-500/50 font-bold">
+                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6 overflow-y-auto pr-2"></div>
                 </div>
-                <div class="w-96 bg-slate-900 rounded-3xl p-8 border border-slate-800 flex flex-col shadow-xl">
-                    <h3 class="font-bold text-slate-500 uppercase text-xs tracking-widest mb-6">Current Order</h3>
-                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6"></div>
+                <div class="w-96 bg-slate-900 rounded-[2.5rem] p-8 border border-slate-800 flex flex-col shadow-2xl">
+                    <h3 class="font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-6">Cart Items</h3>
+                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6 pr-2"></div>
                     <div class="border-t border-slate-800 pt-6 space-y-4">
                         <div class="flex justify-between text-2xl font-black text-white"><span>Total</span><span>Rp<span id="total">0</span></span></div>
-                        <input type="number" id="cashInput" placeholder="Buyer's Cash" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold text-lg outline-none border border-slate-700 focus:border-teal-500">
-                        <button onclick="checkout()" class="w-full bg-teal-600 p-5 rounded-xl font-black text-lg hover:bg-teal-500 active:scale-95 transition shadow-lg shadow-teal-900/20">CHECKOUT</button>
+                        <input type="number" id="cashInput" oninput="validateCheckout()" placeholder="Buyer's Cash" class="w-full p-5 bg-slate-950 border border-slate-800 rounded-2xl text-center font-black text-xl outline-none focus:border-teal-500 transition">
+                        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-teal-600 p-5 rounded-2xl font-black text-lg opacity-50 pointer-events-none transition shadow-lg shadow-teal-900/20">CHECKOUT</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="page-manage" class="page-content">
+        <div id="page-manage" class="page-content p-10">
             <div class="flex justify-between items-center mb-10">
-                <h2 class="text-3xl font-black">Inventory</h2>
-                <button onclick="showPage('add')" class="bg-teal-600 px-6 py-3 rounded-xl font-bold">+ New Item</button>
+                <h2 class="text-3xl font-black">Inventory Management</h2>
+                <button onclick="openUploader(null)" class="bg-teal-600 px-6 py-3 rounded-xl font-bold hover:bg-teal-500 transition">+ New Product</button>
             </div>
             <div id="manageList" class="grid gap-4"></div>
         </div>
 
-        <div id="page-add" class="page-content">
-            <div class="max-w-xl mx-auto bg-slate-900 p-10 rounded-3xl border border-slate-800">
-                <h2 class="text-2xl font-bold mb-8">Add Product</h2>
-                <div class="space-y-4">
-                    <input id="pName" placeholder="Product Name" class="w-full p-4 bg-slate-800 rounded-xl border border-slate-700">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input id="pSell" type="number" placeholder="Selling Price" class="p-4 bg-slate-800 rounded-xl border border-slate-700">
-                        <input id="pCost" type="number" placeholder="Factory Cost" class="p-4 bg-slate-800 rounded-xl border border-slate-700">
-                    </div>
-                    <input id="pStock" type="number" placeholder="Stock" class="p-4 bg-slate-800 rounded-xl border border-slate-700">
-                    <div class="p-4 bg-slate-800 rounded-xl border border-slate-700 border-dashed text-center">
-                        <input type="file" id="pImgInput" onchange="handleFileUpload(this)" class="hidden">
-                        <label for="pImgInput" class="cursor-pointer text-teal-400 font-bold block" id="uploadLabel">Click to upload photo</label>
-                        <input type="hidden" id="pImgId">
-                    </div>
-                    <button onclick="saveProduct()" class="w-full bg-teal-600 p-4 rounded-xl font-bold mt-4">Save Product</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="page-history" class="page-content">
-            <h2 class="text-3xl font-black mb-8">History</h2>
-            <div id="historyList" class="space-y-4"></div>
+        <div id="page-history" class="page-content p-10">
+            <h2 class="text-3xl font-black mb-10">Transaction Logs</h2>
+            <div id="historyList" class="grid gap-4"></div>
         </div>
     </main>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyVljg8Nh46FhtVipm2qDLmO2lWstKAKrkIvt3OnwFvsF1yaHao_iCcF5aD5NrATpOr/exec";
+const API = "https://script.google.com/macros/s/AKfycbzcy18DbQolwBwZEtSn7haC_YxJA8awLejx_Q-6sumDdQATm70lW16WL_GF6i2tFnyW/exec"; // PASTE YOUR URL HERE
 let products = [], cart = [], currentUser = "";
 
-// Check Session
+// 1. LOGIN PERSISTENCE (Point 4 Fix)
 window.onload = () => {
-    const savedUser = localStorage.getItem('NA_POS_USER');
+    const savedUser = localStorage.getItem('NA2625_SESSION');
     if (savedUser) {
         currentUser = savedUser;
         document.getElementById('loginPage').style.display = 'none';
@@ -118,69 +110,65 @@ window.onload = () => {
     }
 };
 
-function logout() { localStorage.removeItem('NA_POS_USER'); location.reload(); }
+function logout() { localStorage.removeItem('NA2625_SESSION'); location.reload(); }
 
+// Navigation
 function showPage(p) {
     document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
     document.getElementById('page-'+p).classList.add('active');
+    const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.innerText.toLowerCase().includes(p));
+    if(btn) btn.classList.add('active');
     if(p === 'history') fetchHistory();
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-// File Upload to Config Sheet
-async function handleFileUpload(input) {
-    if (!input.files[0]) return;
-    document.getElementById('uploadLabel').innerText = "Uploading...";
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'uploadImage', base64: e.target.result }) });
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('pImgId').value = data.imgId;
-            document.getElementById('uploadLabel').innerText = "Photo Ready ✅";
-        }
-    };
-    reader.readAsDataURL(input.files[0]);
-}
-
-// Auth
+// 2. AUTHENTICATION
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
-    const data = await res.json();
-    if(data.success) {
-        localStorage.setItem('NA_POS_USER', u);
-        location.reload();
-    } else { alert("Login failed"); }
+    const btn = document.getElementById('loginBtn');
+    btn.innerText = "Checking..."; btn.disabled = true;
+    try {
+        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
+        const data = await res.json();
+        if(data.success) {
+            localStorage.setItem('NA2625_SESSION', u);
+            location.reload();
+        } else { alert("Access Denied"); btn.innerText = "SIGN IN"; btn.disabled = false; }
+    } catch(e) { alert("Server Error"); btn.innerText = "SIGN IN"; btn.disabled = false; }
 };
 
+// 3. PRODUCT HANDLING & PIC MODIFY (Point 2 Fix)
 async function loadProducts() {
     const res = await fetch(API + "?type=products");
     products = await res.json();
     renderProducts();
-    renderManage();
+    if(document.getElementById('page-manage').classList.contains('active')) renderManage();
 }
 
 function renderProducts() {
     const s = document.getElementById('posSearch').value.toLowerCase();
-    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
-        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-3xl p-4 border border-slate-800 hover:border-teal-500/50 cursor-pointer transition">
-            <img src="${p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150'}" class="w-full h-32 object-cover rounded-2xl mb-4">
-            <div class="text-center">
-                <p class="font-bold text-sm truncate">${p.name}</p>
-                <p class="text-teal-400 font-black">Rp${p.sell.toLocaleString()}</p>
-                <p class="text-[10px] text-slate-500 mt-1">Stock: ${p.stock}</p>
+    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => {
+        const imgSrc = p.imgId ? (API + "?type=img&id=" + p.imgId) : 'https://via.placeholder.com/200/0D1117/555?text=NO+PIC';
+        return `
+        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-[2rem] border border-slate-800 overflow-hidden hover:border-teal-500/50 transition cursor-pointer group">
+            <div class="h-32 bg-slate-950 overflow-hidden"><img src="${imgSrc}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500"></div>
+            <div class="p-5 text-center">
+                <p class="font-bold text-xs text-slate-400 uppercase truncate">${p.name}</p>
+                <p class="text-teal-400 font-black text-lg">Rp${Number(p.sell).toLocaleString('id-ID')}</p>
             </div>
-        </div>`).join("");
+        </div>`;
+    }).join("");
 }
 
+// 4. CALCULATION FIX (Point 1 Fix)
 function addToCart(name) {
     const p = products.find(x => x.name === name);
+    if(p.stock <= 0) return alert("Out of stock!");
     let item = cart.find(i => i.name === name);
-    if (item) item.qty++;
-    else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
+    if(item) item.qty++;
+    else cart.push({ name: p.name, qty: 1, price: Number(p.sell), cost: Number(p.cost) });
     renderCart();
 }
 
@@ -188,83 +176,135 @@ function renderCart() {
     let total = 0;
     document.getElementById('cartItems').innerHTML = cart.map(i => {
         total += i.qty * i.price;
-        return `<div class="flex justify-between items-center p-4 bg-slate-800 rounded-2xl">
-            <div class="text-xs font-bold">${i.name} <span class="text-teal-400">x${i.qty}</span></div>
-            <div class="text-xs font-black">Rp${(i.qty * i.price).toLocaleString()}</div>
+        return `
+        <div class="flex justify-between items-center p-4 bg-slate-950 rounded-2xl border border-slate-800">
+            <div class="text-[10px] font-bold text-teal-400 uppercase leading-tight">${i.name}<br><span class="text-slate-600">Qty: ${i.qty}</span></div>
+            <div class="flex gap-2">
+                <button onclick="updateCartQty('${i.name}', -1)" class="w-6 h-6 bg-slate-800 rounded-full font-bold">-</button>
+                <button onclick="updateCartQty('${i.name}', 1)" class="w-6 h-6 bg-slate-800 rounded-full font-bold">+</button>
+            </div>
         </div>`;
     }).join("");
-    document.getElementById('total').innerText = total.toLocaleString();
+    document.getElementById('total').innerText = total.toLocaleString('id-ID');
+    validateCheckout();
+}
+
+function updateCartQty(name, delta) {
+    let item = cart.find(i => i.name === name);
+    item.qty += delta;
+    if(item.qty <= 0) cart = cart.filter(i => i.name !== name);
+    renderCart();
+}
+
+function validateCheckout() {
+    const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
+    const paid = Number(document.getElementById('cashInput').value || 0);
+    const btn = document.getElementById('checkoutBtn');
+    if(total > 0 && paid >= total) {
+        btn.classList.remove('opacity-50', 'pointer-events-none');
+    } else {
+        btn.classList.add('opacity-50', 'pointer-events-none');
+    }
 }
 
 async function checkout() {
     const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
-    const paid = Number(document.getElementById('cashInput').value || 0);
-    if (paid < total) return alert("Cash not enough!");
-    
     const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
-    const payload = { type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total };
+    const paid = Number(document.getElementById('cashInput').value);
+    const change = paid - total;
+
+    const payload = { type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change };
     
+    document.getElementById('checkoutBtn').innerText = "Processing...";
     await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("Transaction Successful!");
+    
+    alert(`Success! Change: Rp${change.toLocaleString('id-ID')}`);
     cart = [];
     document.getElementById('cashInput').value = "";
     loadProducts();
     renderCart();
+    document.getElementById('checkoutBtn').innerText = "CHECKOUT";
 }
 
+// 5. VIEW MORE DETAILS (Point 4 Fix)
 async function fetchHistory() {
     const res = await fetch(API + "?type=transactions");
     const data = (await res.json()).slice(1).reverse();
     document.getElementById('historyList').innerHTML = data.map((r, idx) => `
-        <div onclick="viewDetail('${encodeURIComponent(r[5])}')" class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+        <div onclick="showTransDetail('${encodeURIComponent(r[5])}', '${r[0]}', ${r[3]}, ${r[6]}, ${r[7]})" class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition group">
             <div>
-                <p class="text-[10px] text-slate-500 uppercase">${new Date(r[0]).toLocaleString()}</p>
-                <p class="font-bold text-teal-400">Rp${r[3].toLocaleString()}</p>
+                <p class="text-[10px] text-slate-500 font-mono">${new Date(r[0]).toLocaleString('id-ID')}</p>
+                <p class="font-black text-white">Rp${Number(r[3]).toLocaleString('id-ID')}</p>
             </div>
-            <div class="text-right">
-                <p class="text-xs font-bold">Staff: ${r[1]}</p>
-                <p class="text-[10px] text-teal-600">View Detail →</p>
+            <div class="text-right flex items-center gap-4">
+                <span class="text-[10px] font-bold text-teal-600 uppercase">View Details</span>
+                <div class="w-8 h-8 rounded-full bg-slate-950 flex items-center justify-center group-hover:bg-teal-600 transition">→</div>
             </div>
         </div>`).join("");
 }
 
-function viewDetail(encodedItems) {
-    const items = JSON.parse(decodeURIComponent(encodedItems));
+function showTransDetail(jsonStr, date, total, paid, change) {
+    const items = JSON.parse(decodeURIComponent(jsonStr));
+    document.getElementById('detDate').innerText = new Date(date).toLocaleString('id-ID');
+    document.getElementById('detTotal').innerText = "Rp" + total.toLocaleString('id-ID');
+    document.getElementById('detPaid').innerText = "Rp" + paid.toLocaleString('id-ID');
+    document.getElementById('detChange').innerText = "Rp" + change.toLocaleString('id-ID');
+    
     document.getElementById('detailContent').innerHTML = items.map(i => `
-        <div class="flex justify-between border-b border-slate-800 pb-2">
-            <span>${i.name} x${i.qty}</span>
-            <span class="font-bold">Rp${(i.qty * i.price).toLocaleString()}</span>
+        <div class="flex justify-between items-center text-xs py-2 border-b border-slate-800">
+            <span class="font-bold">${i.name} <span class="text-slate-500">x${i.qty}</span></span>
+            <span>Rp${(i.qty * i.price).toLocaleString('id-ID')}</span>
         </div>`).join("");
+    
     document.getElementById('detailModal').classList.add('active');
 }
 
+// 6. INVENTORY PIC MODIFY (Point 2 Fix)
 function renderManage() {
-    document.getElementById('manageList').innerHTML = products.map((p, idx) => `
+    document.getElementById('manageList').innerHTML = products.map(p => `
         <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <img src="${p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-lg object-cover">
+            <div class="flex items-center gap-6">
+                <div class="relative group cursor-pointer" onclick="changeProductPic('${p.name}')">
+                    <img src="${p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150'}" class="w-16 h-16 rounded-xl object-cover bg-slate-950 border border-slate-700 group-hover:opacity-50 transition">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-[10px] font-black uppercase">Edit</div>
+                </div>
                 <div>
-                    <p class="font-bold">${p.name}</p>
-                    <p class="text-xs text-slate-500">Stock: ${p.stock}</p>
+                    <p class="font-black text-white uppercase text-sm">${p.name}</p>
+                    <p class="text-xs text-slate-500">Stock: ${p.stock} | Cost: Rp${p.cost.toLocaleString()}</p>
                 </div>
             </div>
-            <p class="font-black text-teal-400">Rp${p.sell.toLocaleString()}</p>
+            <p class="font-black text-teal-400 text-lg">Rp${p.sell.toLocaleString()}</p>
         </div>`).join("");
 }
 
-async function saveProduct() {
-    const payload = {
-        type: 'addProduct',
-        name: document.getElementById('pName').value,
-        sell: Number(document.getElementById('pSell').value),
-        cost: Number(document.getElementById('pCost').value),
-        stock: Number(document.getElementById('pStock').value),
-        imgId: document.getElementById('pImgId').value
+function changeProductPic(pName) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = async () => {
+            const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'uploadImage', base64: reader.result }) });
+            const data = await res.json();
+            if(data.success) {
+                // Update product table with new imgId
+                const product = products.find(x => x.name === pName);
+                await fetch(API, { method: 'POST', body: JSON.stringify({ 
+                    type: 'editProduct', 
+                    oldName: pName, 
+                    name: pName, 
+                    sell: product.sell, 
+                    stock: product.stock, 
+                    cost: product.cost, 
+                    imgId: data.imgId 
+                }) });
+                loadProducts();
+            }
+        };
+        reader.readAsDataURL(file);
     };
-    await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("Product Added");
-    loadProducts();
-    showPage('manage');
+    input.click();
 }
 </script>
 </body>
