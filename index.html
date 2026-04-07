@@ -2,10 +2,10 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Level 3 POS</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<title>POS Login & Register</title>
 <style>
   body, html {height:100%; margin:0; font-family:sans-serif;}
   #loginPage {display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;}
@@ -42,100 +42,105 @@
 
 <!-- APP -->
 <div id="app" style="display:none" class="p-4">
+
 <h1 class="text-xl mb-3">Cashier</h1>
 <input id="barcodeInput" placeholder="Scan barcode" class="border p-2 w-full mb-2">
 <div id="reader"></div>
-<div id="productsGrid" class="grid grid-cols-2 gap-2"></div>
+<div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2"></div>
 
 <h2 class="mt-4">Cart</h2>
-<div id="cartItems"></div>
+<div id="cartItems" class="border p-2 mb-2"></div>
 <div>Total: <b id="total">0</b></div>
 <button onclick="checkout('cash')" class="bg-green-500 text-white p-2 w-full mt-2">Cash</button>
 <button onclick="payQRIS()" class="bg-purple-500 text-white p-2 w-full mt-2">QRIS</button>
 
 <hr class="my-4">
+
 <h2>Analytics</h2>
 <canvas id="chart"></canvas>
+
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbzd2rLfQAKNcbx1k5oFv8m4xGcqeHJCM-hCMRa0VJRYn58xMjdMOdLA5o8IrKlxZhUo/exec";
+const API="https://script.google.com/macros/s/AKfycbzCabflR_EWUg2dwaUvgyhDhQvSrtPQv2UbpljSFSgaqn7Zo1uy6d8eLrrlkL63vcVV/exec"; // Replace with your Apps Script Web App URL
 let products=[], cart=[], currentUser="";
 
-/* LOGIN / REGISTER MODAL */
+// ------ LOGIN / REGISTER ------
 function openRegister(){document.getElementById("registerModal").style.display="flex";}
 function closeRegister(){document.getElementById("registerModal").style.display="none";}
 
 document.getElementById("loginBtn").addEventListener("click", async ()=>{
   const user = document.getElementById("user").value;
   const pass = document.getElementById("pass").value;
-  const res = await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({type:"login", user, pass})
-  });
+  if(!user||!pass){alert("Fill both fields"); return;}
+  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"login",user,pass})});
   const data = await res.json();
   if(data.success){
-    currentUser = user;
+    currentUser=user;
     document.getElementById("loginPage").style.display="none";
     document.getElementById("app").style.display="block";
     load();
     startScanner();
-  }else alert("Login failed");
+  } else alert("Login failed");
 });
 
 document.getElementById("registerBtn").addEventListener("click", async ()=>{
   const user = document.getElementById("rUser").value;
   const pass = document.getElementById("rPass").value;
   const role = document.getElementById("rRole").value;
-  const res = await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({type:"register", user, pass, role})
-  });
+  if(!user||!pass){alert("Fill all fields"); return;}
+  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"register",user,pass,role})});
   const data = await res.json();
   if(data.success){alert("Registered! Please login."); closeRegister();}
   else alert(data.error || "Register failed");
 });
 
-/* LOAD PRODUCTS */
+// ------ LOAD PRODUCTS ------
 async function load(){
-  let res = await fetch(API+"?type=products");
-  let data = await res.json();
-  products = data.slice(1).map(p=>({name:p[0],sell:+p[1],cost:+p[2],stock:+p[3],barcode:p[5]}));
+  const res = await fetch(API+"?type=products");
+  const data = await res.json();
+  products = data.slice(1).map(p=>({name:p[0],sell:+p[1],cost:+p[2],stock:+p[3],image:p[4],barcode:p[5]}));
   renderProducts();
   loadAnalytics();
 }
 
-/* RENDER PRODUCTS */
+// ------ RENDER PRODUCTS ------
 function renderProducts(){
   const grid = document.getElementById("productsGrid");
-  grid.innerHTML = products.map(p=>`<div onclick="addToCart('${p.name}')" class="border p-2 cursor-pointer">${p.name}<br>Rp ${p.sell}</div>`).join("");
+  grid.innerHTML = products.map(p=>`
+    <div onclick="addToCart('${p.name}')" class="border p-2 cursor-pointer rounded hover:bg-gray-100">
+      <img src="${p.image||'https://via.placeholder.com/100'}" class="w-full h-20 object-cover mb-1 rounded">
+      <div>${p.name}</div>
+      <div class="text-green-600">Rp ${p.sell}</div>
+    </div>
+  `).join("");
 }
 
-/* CART */
+// ------ CART ------
 function addToCart(name){
-  let p = products.find(x=>x.name===name);
+  const p = products.find(x=>x.name===name);
   let ex = cart.find(i=>i.name===name);
   if(ex) ex.qty++; else cart.push({name:p.name,qty:1,price:p.sell});
   renderCart();
 }
+
 function renderCart(){
   let totalAmount = 0;
-  document.getElementById("cartItems").innerHTML = cart.map(i=>{
-    let sub = i.qty*i.price;
+  const cartItemsDiv = document.getElementById("cartItems");
+  cartItemsDiv.innerHTML = cart.map(i=>{
+    const sub = i.qty*i.price;
     totalAmount += sub;
     return `${i.name} x${i.qty} = ${sub}<br>`;
   }).join("");
   document.getElementById("total").innerText = totalAmount;
 }
 
-/* CHECKOUT */
+// ------ CHECKOUT ------
 async function checkout(method){
-  if(cart.length===0) return;
+  if(cart.length===0) return alert("Cart is empty");
   const payload = {type:"addTransaction", user:currentUser, items:JSON.stringify(cart), payment:method};
   try{
-    await fetch(API,{method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+    await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     printReceipt();
     cart=[];
     renderCart();
@@ -145,50 +150,52 @@ async function checkout(method){
   }
 }
 
-/* QRIS PAYMENT */
+// ------ QRIS PAYMENT ------
 function payQRIS(){
-  let url="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-"+document.getElementById("total").innerText;
-  let w=window.open("");
+  const total = document.getElementById("total").innerText;
+  const url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-"+total;
+  const w = window.open("");
   w.document.write(`<img src="${url}">`);
 }
 
-/* RECEIPT */
+// ------ RECEIPT ------
 function printReceipt(){
-  let w=window.open("","","width=300");
-  w.document.write(`<style>body{font-family:monospace;width:80mm}</style>${cart.map(i=>`${i.name} x${i.qty}=${i.qty*i.price}`).join("<br>")}<hr>Total:${document.getElementById("total").innerText}`);
+  const w = window.open("","","width=300");
+  w.document.write(`<style>body{font-family:monospace;width:80mm}</style>${cart.map(i=>`${i.name} x${i.qty} = ${i.qty*i.price}`).join("<br>")}<hr>Total: ${document.getElementById("total").innerText}`);
   w.print();
 }
 
-/* OFFLINE SAVE */
+// ------ OFFLINE ------
 function saveOffline(d){
-  let q = JSON.parse(localStorage.getItem("q")||"[]");
+  const q = JSON.parse(localStorage.getItem("q")||"[]");
   q.push(d);
   localStorage.setItem("q",JSON.stringify(q));
 }
 
-/* BARCODE CAMERA */
+// ------ BARCODE CAMERA ------
 function startScanner(){
   const scanner = new Html5Qrcode("reader");
-  scanner.start({facingMode:"environment"},{fps:10, qrbox:250}, code=>{
-    let p = products.find(x=>x.barcode==code);
+  scanner.start({facingMode:"environment"},{fps:10,qrbox:250}, code=>{
+    const p = products.find(x=>x.barcode==code);
     if(p) addToCart(p.name);
   });
 }
 
-/* ANALYTICS */
+// ------ ANALYTICS ------
 async function loadAnalytics(){
-  let res = await fetch(API+"?type=transactions");
-  let data = await res.json();
-  let daily={};
+  const res = await fetch(API+"?type=transactions");
+  const data = await res.json();
+  const daily={};
   data.slice(1).forEach(r=>{
-    let d = new Date(r[0]).toLocaleDateString();
+    const d = new Date(r[0]).toLocaleDateString();
     daily[d] = (daily[d]||0)+Number(r[3]);
   });
   new Chart(document.getElementById("chart"),{
     type:"line",
-    data:{labels:Object.keys(daily), datasets:[{label:"Revenue", data:Object.values(daily)}]}
+    data:{labels:Object.keys(daily), datasets:[{label:"Revenue", data:Object.values(daily), borderColor:'green', fill:false}]}
   });
 }
 </script>
+
 </body>
 </html>
