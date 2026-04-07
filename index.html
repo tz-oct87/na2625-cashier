@@ -9,117 +9,121 @@
     <style>
         .page-content { display: none; height: 100%; width: 100%; overflow-y: auto; }
         .page-content.active { display: block; }
-        .nav-btn.active { background-color: #1A877E; color: white; }
+        .nav-btn.active { background-color: #1A877E; color: white; border-color: transparent; }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-overlay.active { display: flex; }
-        @media print { body * { visibility: hidden; } #invoiceContent, #invoiceContent * { visibility: visible; } #invoiceContent { position: absolute; left: 0; top: 0; width: 80mm; } .no-print { display: none; } }
+        @media print { body * { visibility: hidden; } #invoiceArea, #invoiceArea * { visibility: visible; } #invoiceArea { position: fixed; left: 0; top: 0; width: 100%; } }
     </style>
 </head>
 <body class="h-full bg-gray-50 overflow-hidden font-sans text-gray-900">
 
 <div id="invoiceModal" class="modal-overlay">
-    <div class="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl flex flex-col mx-4">
-        <div id="invoiceArea" class="p-8 bg-white text-gray-800">
-            <div id="invoiceContent">
-                <div class="text-center border-b-2 border-dashed pb-4 mb-4">
-                    <h1 class="font-black text-xl">NA2625 CREATIVEWORKS</h1>
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Order Completed</p>
-                    <p id="invDate" class="text-[9px] mt-2 font-mono text-gray-400"></p>
-                </div>
-                <div id="invItems" class="space-y-2 mb-4 text-xs"></div>
-                <div class="border-t-2 border-dashed pt-4 space-y-1 font-bold text-sm">
-                    <div class="flex justify-between"><span>Total</span><span id="invTotal"></span></div>
-                    <div class="flex justify-between text-teal-600"><span>Cash</span><span id="invPaid"></span></div>
-                    <div class="flex justify-between text-red-500"><span>Change</span><span id="invChange"></span></div>
-                </div>
-                <div class="mt-8 text-center text-[10px] text-gray-400">Thank you for your purchase!</div>
+    <div class="bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col mx-4">
+        <div id="invoiceArea" class="p-10 bg-white">
+            <div class="text-center border-b-2 border-dashed pb-6 mb-6">
+                <h1 class="font-black text-xl text-teal-800">NA2625 CREATIVEWORKS</h1>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Order Completed</p>
             </div>
+            <div id="invItems" class="space-y-3 mb-6 text-xs font-medium"></div>
+            <div class="border-t-2 border-dashed pt-6 space-y-2">
+                <div class="flex justify-between font-black text-sm"><span>Total</span><span id="invTotal"></span></div>
+                <div class="flex justify-between font-bold text-xs text-teal-600"><span>Paid</span><span id="invPaid"></span></div>
+                <div class="flex justify-between font-bold text-xs text-red-500"><span>Change</span><span id="invChange"></span></div>
+            </div>
+            <p class="text-[9px] mt-8 text-center text-gray-300 font-mono" id="invId"></p>
         </div>
         <div class="p-6 bg-gray-50 flex gap-2 border-t">
-            <button onclick="printInvoice()" class="flex-1 bg-teal-600 text-white py-3 rounded-xl font-bold text-xs">PRINT</button>
-            <button onclick="downloadInvoice()" class="flex-1 bg-gray-800 text-white py-3 rounded-xl font-bold text-xs">SAVE PNG</button>
-            <button onclick="location.reload()" class="flex-1 bg-gray-200 py-3 rounded-xl font-bold text-xs">CLOSE</button>
+            <button onclick="window.print()" class="flex-1 bg-teal-600 text-white py-4 rounded-2xl font-black text-xs active:scale-95 transition">PRINT</button>
+            <button onclick="downloadPng()" class="flex-1 bg-gray-800 text-white py-4 rounded-2xl font-black text-xs active:scale-95 transition">PNG</button>
+            <button onclick="closeInvoice()" class="flex-1 bg-gray-200 text-gray-600 py-4 rounded-2xl font-black text-xs active:scale-95 transition">CLOSE</button>
         </div>
     </div>
 </div>
 
 <div id="loginPage" class="fixed inset-0 z-[100] flex items-center justify-center bg-white px-6">
-    <div class="w-full max-w-sm p-10 border rounded-[2.5rem] shadow-2xl text-center">
-        <h1 class="text-2xl font-black text-teal-800 mb-8 leading-tight">NA2625<br>CREATIVEWORKS</h1>
+    <div class="w-full max-w-sm p-12 border rounded-[3rem] shadow-2xl text-center">
+        <h1 class="text-3xl font-black text-teal-900 mb-2">NA2625</h1>
+        <p class="text-[10px] font-black text-teal-600 uppercase tracking-[0.3em] mb-10">Creativeworks</p>
         <div class="space-y-4">
-            <input id="user" type="text" placeholder="Username" class="w-full p-4 border rounded-2xl outline-none focus:ring-2 focus:ring-teal-500 text-center">
-            <input id="pass" type="password" placeholder="Password" class="w-full p-4 border rounded-2xl outline-none focus:ring-2 focus:ring-teal-500 text-center">
-            <button id="loginBtn" class="w-full bg-teal-600 text-white p-4 rounded-2xl font-black shadow-lg">SIGN IN</button>
+            <input id="user" type="text" placeholder="Username" class="w-full p-5 border rounded-2xl bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500 text-center font-bold">
+            <input id="pass" type="password" placeholder="Password" class="w-full p-5 border rounded-2xl bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500 text-center font-bold">
+            <button id="loginBtn" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black shadow-xl hover:bg-teal-700 transition">SIGN IN</button>
         </div>
     </div>
 </div>
 
 <div id="app" class="flex h-full w-full hidden">
-    <nav class="w-64 bg-white border-r flex flex-col h-full shrink-0">
-        <div class="p-8 border-b"><h2 class="text-lg font-black text-teal-900 leading-tight">NA2625</h2></div>
-        <div class="flex-1 p-4 space-y-1">
-            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-5 py-4 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition">🛒 Cashier</button>
-            <button onclick="showPage('manage')" class="nav-btn w-full text-left px-5 py-4 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition">📦 Products</button>
-            <button onclick="showPage('inventory')" class="nav-btn w-full text-left px-5 py-4 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition">➕ Add Item</button>
-            <button onclick="showPage('history')" class="nav-btn w-full text-left px-5 py-4 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition">📜 Reports</button>
+    <nav class="w-72 bg-white border-r flex flex-col h-full shrink-0">
+        <div class="p-10 border-b"><h2 class="text-xl font-black text-teal-950">NA2625</h2></div>
+        <div class="flex-1 p-4 space-y-2">
+            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-6 py-5 rounded-3xl font-black text-gray-400 border border-transparent hover:bg-gray-50 transition">🛒 Cashier</button>
+            <button onclick="showPage('manage')" class="nav-btn w-full text-left px-6 py-5 rounded-3xl font-black text-gray-400 border border-transparent hover:bg-gray-50 transition">📦 Products</button>
+            <button onclick="showPage('inventory')" class="nav-btn w-full text-left px-6 py-5 rounded-3xl font-black text-gray-400 border border-transparent hover:bg-gray-50 transition">➕ Add New</button>
+            <button onclick="showPage('history')" class="nav-btn w-full text-left px-6 py-5 rounded-3xl font-black text-gray-400 border border-transparent hover:bg-gray-50 transition">📜 History</button>
         </div>
+        <div class="p-8"><button onclick="location.reload()" class="text-xs font-black text-red-400 uppercase tracking-widest">Logout</button></div>
     </nav>
 
     <main class="flex-1 relative bg-gray-50 overflow-hidden">
-        <div id="page-cashier" class="page-content active p-8">
-            <div class="flex gap-8 h-full">
+        <div id="page-cashier" class="page-content active p-10">
+            <div class="flex gap-10 h-full">
                 <div class="flex-1 flex flex-col">
-                    <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="p-5 rounded-3xl border mb-6 shadow-sm outline-none focus:ring-2 focus:ring-teal-500">
-                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto pr-2"></div>
+                    <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Quick Search..." class="p-6 rounded-[2rem] border-none shadow-sm mb-8 outline-none focus:ring-4 focus:ring-teal-100 font-bold">
+                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6 overflow-y-auto pr-4"></div>
                 </div>
-                <div class="w-80 bg-white rounded-[2.5rem] shadow-xl p-8 flex flex-col border">
-                    <h3 class="font-black text-gray-300 text-[10px] uppercase mb-6">Order Details</h3>
-                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-4 mb-6"></div>
-                    <div class="border-t pt-6 space-y-4">
-                        <div class="flex justify-between text-xl font-black"><span>Total</span><span>Rp <span id="total">0</span></span></div>
-                        <input type="number" id="cashInput" placeholder="Buyer Money (Rp)" class="w-full p-4 bg-gray-50 border rounded-2xl text-center font-bold outline-none focus:ring-2 focus:ring-teal-500">
-                        <button onclick="checkout()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black shadow-lg hover:bg-teal-700 transition">PAY NOW</button>
+                <div class="w-96 bg-white rounded-[3rem] shadow-2xl p-10 flex flex-col border border-gray-100">
+                    <h3 class="font-black text-gray-300 text-[10px] uppercase tracking-[0.2em] mb-8">Cart Items</h3>
+                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-4 mb-8"></div>
+                    <div class="border-t pt-8 space-y-4">
+                        <div class="flex justify-between text-3xl font-black"><span>Total</span><span>Rp<span id="total">0</span></span></div>
+                        <input type="number" id="cashInput" placeholder="Buyer's Cash" class="w-full p-6 bg-gray-50 rounded-[1.5rem] text-center font-black text-xl outline-none border-2 border-transparent focus:border-teal-500 transition">
+                        <button onclick="checkout()" class="w-full bg-teal-600 text-white p-6 rounded-[1.5rem] font-black text-lg shadow-xl hover:bg-teal-700 active:scale-95 transition">CHECKOUT</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="page-manage" class="page-content p-12">
-            <div class="flex justify-between mb-8"><h2 class="text-2xl font-black">Manage Inventory</h2></div>
-            <div class="grid grid-cols-1 gap-4" id="manageList"></div>
+            <h2 class="text-3xl font-black mb-10">Inventory List</h2>
+            <div id="manageList" class="grid gap-4"></div>
         </div>
 
         <div id="page-inventory" class="page-content p-12">
-            <div class="max-w-xl mx-auto bg-white p-12 rounded-[2.5rem] shadow-sm border">
-                <h2 class="text-2xl font-black mb-8">Register Product</h2>
-                <div class="space-y-4">
-                    <input id="pName" placeholder="Product Name" class="w-full p-4 border rounded-2xl bg-gray-50">
+            <div class="max-w-2xl mx-auto bg-white p-16 rounded-[3.5rem] shadow-sm border">
+                <h2 class="text-2xl font-black mb-10">Add Product</h2>
+                <div class="space-y-6">
+                    <input id="pName" placeholder="Item Name" class="w-full p-5 border rounded-2xl bg-gray-50 font-bold outline-none focus:ring-2 focus:ring-teal-500">
                     <div class="grid grid-cols-2 gap-4">
-                        <input id="pSell" type="number" placeholder="Sell Price" class="w-full p-4 border rounded-2xl bg-gray-50">
-                        <input id="pCost" type="number" placeholder="Cost Price" class="w-full p-4 border rounded-2xl bg-gray-50">
+                        <input id="pSell" type="number" placeholder="Selling Price" class="w-full p-5 border rounded-2xl bg-gray-50 font-bold outline-none focus:ring-2 focus:ring-teal-500">
+                        <input id="pCost" type="number" placeholder="Factory Cost" class="w-full p-5 border rounded-2xl bg-gray-50 font-bold outline-none focus:ring-2 focus:ring-teal-500">
                     </div>
-                    <input id="pStock" type="number" placeholder="Initial Stock" class="w-full p-4 border rounded-2xl bg-gray-50">
-                    <input id="pImg" placeholder="Image URL (Direct Link)" class="w-full p-4 border rounded-2xl bg-gray-50">
-                    <button onclick="saveProduct()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black">ADD TO SYSTEM</button>
+                    <input id="pStock" type="number" placeholder="Initial Stock" class="w-full p-5 border rounded-2xl bg-gray-50 font-bold outline-none focus:ring-2 focus:ring-teal-500">
+                    <input id="pImg" placeholder="Image URL (e.g. imgur link)" class="w-full p-5 border rounded-2xl bg-gray-50 font-bold outline-none focus:ring-2 focus:ring-teal-500">
+                    <button onclick="saveProduct()" class="w-full bg-teal-600 text-white p-6 rounded-2xl font-black text-lg shadow-lg">REGISTER ITEM</button>
                 </div>
             </div>
         </div>
 
-        <div id="page-history" class="page-content p-12"><h2 class="text-2xl font-black mb-6">Transactions</h2><div id="historyList" class="space-y-3"></div></div>
+        <div id="page-history" class="page-content p-12"><h2 class="text-3xl font-black mb-8">Transactions</h2><div id="historyList" class="grid gap-4"></div></div>
     </main>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwPac1qhqVt0lL136_SaDC-RXbIzn4Uc3_Ymxv6PqrpBmoyZQVHwUT0BoX8CdR3YB-U/exec"; 
+const API = "https://script.google.com/macros/s/AKfycbxzuWJyzBdY_mjr53h4wBQvWAmPvOg3AoRoNERRQpAy5sv2uVUcF-c0qo_UP-8suLym/exec"; 
 let products = [], cart = [], currentUser = "";
 
-function showPage(p) { 
+// CORE UI
+function showPage(p) {
     document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
     document.getElementById('page-'+p).classList.add('active');
+    const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.innerText.toLowerCase().includes(p));
+    if(btn) btn.classList.add('active');
     if(p === 'manage') renderManage();
-    if(p === 'history') renderHistory();
+    if(p === 'history') fetchHistory();
 }
 
+// AUTH
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
     const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
@@ -129,9 +133,10 @@ document.getElementById('loginBtn').onclick = async () => {
         document.getElementById('loginPage').style.display='none'; 
         document.getElementById('app').classList.remove('hidden'); 
         loadProducts(); showPage('cashier'); 
-    }
+    } else { alert("Wrong credentials"); }
 };
 
+// LOAD DATA
 async function loadProducts() {
     const res = await fetch(API + "?type=products");
     const data = await res.json();
@@ -142,19 +147,18 @@ async function loadProducts() {
 function renderProducts() {
     const s = document.getElementById('posSearch').value.toLowerCase();
     document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
-        <div onclick="updateQuantity('${p.name}', 1)" class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:border-teal-500 cursor-pointer active:scale-95 transition">
-            <div class="h-32 bg-gray-100 overflow-hidden">
-                <img src="${p.img || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
-            </div>
-            <div class="p-4"><div class="font-bold text-xs truncate">${p.name}</div><div class="text-teal-600 font-black">Rp ${p.sell.toLocaleString()}</div></div>
+        <div onclick="updateQuantity('${p.name}', 1)" class="bg-white rounded-[2rem] border-none shadow-sm overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer active:scale-95 group">
+            <div class="h-40 bg-gray-100 overflow-hidden"><img src="${p.img || 'https://via.placeholder.com/200'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform"></div>
+            <div class="p-6 text-center"><div class="font-black text-xs text-gray-400 uppercase tracking-widest mb-1 truncate">${p.name}</div><div class="text-teal-600 font-black text-lg">Rp${p.sell.toLocaleString()}</div></div>
         </div>`).join("");
 }
 
+// CART & CHECKOUT (Fixed Calculation)
 function updateQuantity(name, change) {
     let item = cart.find(i => i.name === name);
     if (!item && change > 0) {
         const p = products.find(x => x.name === name);
-        cart.push({ name: p.name, qty: 1, price: p.sell });
+        cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
     } else if (item) {
         item.qty += change;
         if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
@@ -166,9 +170,9 @@ function renderCart() {
     let total = 0;
     document.getElementById('cartItems').innerHTML = cart.map(i => {
         total += i.qty * i.price;
-        return `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-2xl border text-[11px] font-bold">
-            <div>${i.name} x${i.qty}</div>
-            <div class="flex gap-2"><button onclick="updateQuantity('${i.name}',-1)" class="w-5 h-5 bg-white border rounded-full">-</button><button onclick="updateQuantity('${i.name}',1)" class="w-5 h-5 bg-white border rounded-full">+</button></div>
+        return `<div class="flex justify-between items-center p-5 bg-gray-50 rounded-3xl border border-gray-100">
+            <div class="font-black text-xs text-teal-800">${i.name} <span class="text-gray-400">x${i.qty}</span></div>
+            <div class="flex gap-2"><button onclick="updateQuantity('${i.name}',-1)" class="w-8 h-8 bg-white border rounded-full font-black">-</button><button onclick="updateQuantity('${i.name}',1)" class="w-8 h-8 bg-white border rounded-full font-black">+</button></div>
         </div>`;
     }).join("");
     document.getElementById('total').innerText = total.toLocaleString();
@@ -176,44 +180,53 @@ function renderCart() {
 
 async function checkout() {
     const total = parseInt(document.getElementById('total').innerText.replace(/,/g, ''));
-    const paid = parseInt(document.getElementById('cashInput').value);
-    if (!paid || paid < total) return alert("Insufficient cash!");
+    const paid = parseInt(document.getElementById('cashInput').value || 0);
     
+    if (!cart.length) return;
+    if (paid < total) return alert("Cash is not enough!");
+
     const change = paid - total;
-    const payload = { type: 'addTransaction', user: currentUser, payment: 'Cash', items: JSON.stringify(cart), paid, change };
+    const profit = cart.reduce((sum, it) => sum + (it.qty * (it.price - it.cost)), 0);
     
-    await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    
-    // Setup Invoice
-    document.getElementById('invDate').innerText = new Date().toLocaleString();
-    document.getElementById('invTotal').innerText = "Rp " + total.toLocaleString();
-    document.getElementById('invPaid').innerText = "Rp " + paid.toLocaleString();
-    document.getElementById('invChange').innerText = "Rp " + change.toLocaleString();
+    // Prepare Modal Instantly
+    document.getElementById('invTotal').innerText = "Rp" + total.toLocaleString();
+    document.getElementById('invPaid').innerText = "Rp" + paid.toLocaleString();
+    document.getElementById('invChange').innerText = "Rp" + change.toLocaleString();
     document.getElementById('invItems').innerHTML = cart.map(i => `<div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span></div>`).join("");
-    
+    document.getElementById('invId').innerText = "TRANS-" + Date.now();
     document.getElementById('invoiceModal').classList.add('active');
-    cart = []; document.getElementById('cashInput').value = ""; renderCart(); loadProducts();
+
+    // Send to Sheet (Background)
+    const payload = { type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change };
+    fetch(API, { method: 'POST', body: JSON.stringify(payload) }).then(() => loadProducts());
 }
 
-function printInvoice() { window.print(); }
-function downloadInvoice() {
+function closeInvoice() {
+    document.getElementById('invoiceModal').classList.remove('active');
+    cart = [];
+    document.getElementById('cashInput').value = "";
+    renderCart();
+}
+
+function downloadPng() {
     html2canvas(document.querySelector("#invoiceArea")).then(canvas => {
         const link = document.createElement('a');
-        link.download = 'Invoice-' + Date.now() + '.png';
+        link.download = 'Receipt.png';
         link.href = canvas.toDataURL();
         link.click();
     });
 }
 
+// INVENTORY MANAGEMENT
 function renderManage() {
     document.getElementById('manageList').innerHTML = products.map((p, idx) => `
-        <div class="bg-white p-6 rounded-3xl border flex items-center gap-6">
-            <img src="${p.img}" class="w-16 h-16 object-cover rounded-xl bg-gray-50">
-            <div class="flex-1 grid grid-cols-4 gap-4">
-                <input class="p-2 border rounded-lg text-xs" value="${p.name}" id="editName-${idx}">
-                <input class="p-2 border rounded-lg text-xs" value="${p.sell}" id="editSell-${idx}">
-                <input class="p-2 border rounded-lg text-xs" value="${p.stock}" id="editStock-${idx}">
-                <button onclick="updateProduct(${idx})" class="bg-teal-600 text-white rounded-lg font-bold text-xs">UPDATE</button>
+        <div class="bg-white p-8 rounded-[2rem] border flex items-center gap-8 shadow-sm">
+            <img src="${p.img}" class="w-20 h-20 object-cover rounded-2xl bg-gray-50">
+            <div class="flex-1 grid grid-cols-4 gap-6 items-end">
+                <div><label class="text-[9px] font-black text-gray-400 block mb-2 uppercase">Name</label><input class="w-full p-3 border rounded-xl text-sm font-bold" value="${p.name}" id="mName-${idx}"></div>
+                <div><label class="text-[9px] font-black text-gray-400 block mb-2 uppercase">Price</label><input class="w-full p-3 border rounded-xl text-sm font-bold" value="${p.sell}" id="mPrice-${idx}"></div>
+                <div><label class="text-[9px] font-black text-gray-400 block mb-2 uppercase">Stock</label><input class="w-full p-3 border rounded-xl text-sm font-bold" value="${p.stock}" id="mStock-${idx}"></div>
+                <button onclick="updateProduct(${idx})" class="bg-teal-600 text-white h-[46px] rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition">Update</button>
             </div>
         </div>`).join("");
 }
@@ -222,14 +235,14 @@ async function updateProduct(idx) {
     const payload = {
         type: 'editProduct',
         oldName: products[idx].name,
-        name: document.getElementById(`editName-${idx}`).value,
-        sell: document.getElementById(`editSell-${idx}`).value,
-        stock: document.getElementById(`editStock-${idx}`).value,
+        name: document.getElementById(`mName-${idx}`).value,
+        sell: Number(document.getElementById(`mPrice-${idx}`).value),
+        stock: Number(document.getElementById(`mStock-${idx}`).value),
         cost: products[idx].cost,
         image: products[idx].img
     };
     await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("Updated!"); loadProducts();
+    alert("Product Updated"); loadProducts();
 }
 
 async function saveProduct() {
@@ -242,8 +255,19 @@ async function saveProduct() {
         image: document.getElementById('pImg').value
     };
     await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("Product Registered.");
+    alert("New Product Added");
+    document.querySelectorAll('#page-inventory input').forEach(i => i.value="");
     loadProducts();
+}
+
+async function fetchHistory() {
+    const res = await fetch(API + "?type=transactions");
+    const data = (await res.json()).slice(1).reverse();
+    document.getElementById('historyList').innerHTML = data.map(r => `
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 flex justify-between items-center">
+            <div><div class="text-[10px] font-black text-gray-400 uppercase">${new Date(r[0]).toLocaleString()}</div><div class="font-black text-teal-800 uppercase text-xs">Staff: ${r[1]}</div></div>
+            <div class="text-right"><div class="font-black text-lg">Rp${Number(r[3]).toLocaleString()}</div><div class="text-[10px] text-teal-500 font-bold">Paid: ${Number(r[6]).toLocaleString()}</div></div>
+        </div>`).join("");
 }
 </script>
 </body>
