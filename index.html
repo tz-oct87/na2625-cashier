@@ -5,170 +5,193 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<title>POS Level 3</title>
+<title>POS Login & Register</title>
 <style>
-.modal {display:none;position:fixed;z-index:50;left:0;top:0;width:100%;height:100%;overflow:auto;background:rgba(0,0,0,0.5);}
-.modal-content {background:white;margin:10% auto;padding:20px;border-radius:8px;width:90%;max-width:400px;}
-.card {border-radius:8px;padding:10px;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-.cursor-pointer{cursor:pointer;}
+  body, html {height:100%; margin:0; font-family:sans-serif;}
+  #loginPage {display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;}
+  #loginPage input {margin-bottom:10px;}
+  #registerModal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;}
+  #registerModal .modal-content {background:white; padding:20px; border-radius:8px; max-width:400px; width:90%;}
 </style>
 </head>
-<body class="p-4 bg-gray-100">
+<body>
 
 <!-- LOGIN -->
-<div id="loginPage" class="max-w-md mx-auto">
+<div id="loginPage">
   <h2 class="text-xl mb-2">Login</h2>
-  <input id="user" placeholder="Username" class="border p-2 w-full mb-2"><br>
-  <input id="pass" type="password" placeholder="Password" class="border p-2 w-full mb-2"><br>
-  <button onclick="login()" class="bg-green-500 text-white p-2 w-full mb-2">Login</button>
-  <button onclick="openRegister()" class="bg-blue-500 text-white p-2 w-full">Register</button>
+  <input id="user" placeholder="Username" class="border p-2 w-64"><br>
+  <input id="pass" type="password" placeholder="Password" class="border p-2 w-64"><br>
+  <button onclick="login()" class="bg-green-500 text-white p-2 w-64 mb-2">Login</button>
+  <button onclick="openRegister()" class="bg-blue-500 text-white p-2 w-64">Register</button>
 </div>
 
 <!-- REGISTER MODAL -->
-<div id="registerModal" class="modal">
+<div id="registerModal" class="flex">
   <div class="modal-content">
     <h2 class="text-xl mb-2">Register</h2>
-    <input id="rUser" placeholder="Username" class="border p-2 w-full mb-2"><br>
-    <input id="rPass" type="password" placeholder="Password" class="border p-2 w-full mb-2"><br>
-    <select id="rRole" class="border p-2 w-full mb-2"><option value="staff">Staff</option><option value="admin">Admin</option></select><br>
+    <input id="rUser" placeholder="Username" class="border p-2 w-full mb-2">
+    <input id="rPass" type="password" placeholder="Password" class="border p-2 w-full mb-2">
+    <select id="rRole" class="border p-2 w-full mb-2">
+      <option value="staff">Staff</option>
+      <option value="admin">Admin</option>
+    </select>
     <button onclick="register()" class="bg-green-500 text-white p-2 w-full mb-2">Register</button>
     <button onclick="closeRegister()" class="bg-gray-500 text-white p-2 w-full">Cancel</button>
   </div>
 </div>
 
 <!-- APP -->
-<div id="app" class="hidden">
+<div id="app" style="display:none" class="p-4">
 
 <h1 class="text-xl mb-3">Cashier</h1>
-
-<div class="mb-2">
-  <input id="barcodeInput" placeholder="Scan barcode" class="border p-2 w-full mb-2">
-</div>
-
-<div id="reader" class="mb-2"></div>
-
-<div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-2"></div>
+<input id="barcodeInput" placeholder="Scan barcode" class="border p-2 w-full mb-2">
+<div id="reader"></div>
+<div id="productsGrid" class="grid grid-cols-2 gap-2"></div>
 
 <h2 class="mt-4">Cart</h2>
-<div id="cartItems" class="mb-2"></div>
+<div id="cartItems"></div>
 <div>Total: <b id="total">0</b></div>
-
 <button onclick="checkout('cash')" class="bg-green-500 text-white p-2 w-full mt-2">Cash</button>
 <button onclick="payQRIS()" class="bg-purple-500 text-white p-2 w-full mt-2">QRIS</button>
 
 <hr class="my-4">
-
 <h2>Analytics</h2>
 <canvas id="chart"></canvas>
-
-<hr class="my-4">
-
-<h2>Products Management</h2>
-<div id="productForm" class="card mb-2">
-  <input id="pName" placeholder="Name" class="border p-1 w-full mb-1">
-  <input id="pSell" placeholder="Sell" class="border p-1 w-full mb-1">
-  <input id="pCost" placeholder="Cost" class="border p-1 w-full mb-1">
-  <input id="pStock" placeholder="Stock" class="border p-1 w-full mb-1">
-  <input id="pBarcode" placeholder="Barcode" class="border p-1 w-full mb-1">
-  <button onclick="addProduct()" class="bg-blue-500 text-white p-2 w-full mb-1">Add Product</button>
-</div>
-
-<div id="productList" class="space-y-2"></div>
 
 </div>
 
 <script>
 const API="https://script.google.com/macros/s/AKfycbzd2rLfQAKNcbx1k5oFv8m4xGcqeHJCM-hCMRa0VJRYn58xMjdMOdLA5o8IrKlxZhUo/exec";
-
 let products=[], cart=[], currentUser="";
 
 /* LOGIN / REGISTER MODAL */
-function openRegister(){document.getElementById("registerModal").style.display="block";}
+function openRegister(){document.getElementById("registerModal").style.display="flex";}
 function closeRegister(){document.getElementById("registerModal").style.display="none";}
+
 async function login(){
-  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"login",user:user.value,pass:pass.value})});
+  const res = await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({type:"login",user:document.getElementById("user").value,pass:document.getElementById("pass").value})
+  });
   const data = await res.json();
-  if(data.success){currentUser=user.value; loginPage.style.display="none"; app.classList.remove("hidden"); load(); startScanner();}
-  else alert("Login failed");
+  if(data.success){
+    currentUser = document.getElementById("user").value;
+    document.getElementById("loginPage").style.display="none";
+    document.getElementById("app").style.display="block";
+    load();
+    startScanner();
+  }else alert("Login failed");
 }
+
 async function register(){
-  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"register",user:rUser.value,pass:rPass.value,role:rRole.value})});
+  const res = await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      type:"register",
+      user:document.getElementById("rUser").value,
+      pass:document.getElementById("rPass").value,
+      role:document.getElementById("rRole").value
+    })
+  });
   const data = await res.json();
-  if(data.success){alert("Registered! Login now."); closeRegister();} else alert(data.error||"Failed");
+  if(data.success){alert("Registered! Please login."); closeRegister();}
+  else alert(data.error||"Failed");
 }
 
 /* LOAD PRODUCTS */
 async function load(){
-  let res = await fetch(API+"?type=products"); let data = await res.json();
+  let res = await fetch(API+"?type=products");
+  let data = await res.json();
   products = data.slice(1).map(p=>({name:p[0],sell:+p[1],cost:+p[2],stock:+p[3],barcode:p[5]}));
-  renderProducts(); renderProductList(); loadAnalytics();
+  renderProducts();
+  loadAnalytics();
 }
 
-/* RENDER PRODUCTS GRID */
+/* RENDER PRODUCTS */
 function renderProducts(){
-  productsGrid.innerHTML = products.map(p=>`<div onclick="addToCart('${p.name}')" class="card cursor-pointer">${p.name}<br>Rp ${p.sell}</div>`).join("");
-}
-
-/* RENDER PRODUCT LIST WITH DELETE */
-function renderProductList(){
-  productList.innerHTML = products.map(p=>`<div class="card flex justify-between">${p.name} (${p.stock}) <button onclick="deleteProduct('${p.name}')" class="text-red-500">❌</button></div>`).join("");
-}
-
-/* ADD PRODUCT */
-async function addProduct(){
-  await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"addProduct",name:pName.value,sell:pSell.value,cost:pCost.value,stock:pStock.value,barcode:pBarcode.value})});
-  pName.value="";pSell.value="";pCost.value="";pStock.value="";pBarcode.value="";
-  load();
-}
-
-/* DELETE PRODUCT */
-async function deleteProduct(name){
-  await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"deleteProduct",name})});
-  load();
+  const grid = document.getElementById("productsGrid");
+  grid.innerHTML = products.map(p=>`<div onclick="addToCart('${p.name}')" class="border p-2 cursor-pointer">${p.name}<br>Rp ${p.sell}</div>`).join("");
 }
 
 /* CART */
 function addToCart(name){
   let p = products.find(x=>x.name===name);
-  let ex = cart.find(i=>i.name===name); if(ex) ex.qty++; else cart.push({name:p.name,qty:1,price:p.sell}); renderCart();
+  let ex = cart.find(i=>i.name===name);
+  if(ex) ex.qty++; else cart.push({name:p.name,qty:1,price:p.sell});
+  renderCart();
 }
 function renderCart(){
-  let t=0; cartItems.innerHTML = cart.map(i=>{let sub=i.qty*i.price;t+=sub; return `${i.name} x${i.qty}=${sub}<br>`}).join(""); total.innerText=t;
+  let totalAmount = 0;
+  document.getElementById("cartItems").innerHTML = cart.map(i=>{
+    let sub = i.qty*i.price;
+    totalAmount += sub;
+    return `${i.name} x${i.qty} = ${sub}<br>`;
+  }).join("");
+  document.getElementById("total").innerText = totalAmount;
 }
 
 /* CHECKOUT */
 async function checkout(method){
   if(cart.length===0) return;
-  const payload = {type:"addTransaction",user:currentUser,items:JSON.stringify(cart),payment:method};
-  try{ await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-    printReceipt(); cart=[]; renderCart(); load();
-  }catch(e){saveOffline(payload);}
+  const payload = {type:"addTransaction", user:currentUser, items:JSON.stringify(cart), payment:method};
+  try{
+    await fetch(API,{method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+    printReceipt();
+    cart=[];
+    renderCart();
+    load();
+  }catch(e){
+    saveOffline(payload);
+  }
 }
 
-/* QRIS */
-function payQRIS(){ let url="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-"+total.innerText; let w=window.open(""); w.document.write(`<img src="${url}">`); }
+/* QRIS PAYMENT */
+function payQRIS(){
+  let url="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-"+document.getElementById("total").innerText;
+  let w=window.open("");
+  w.document.write(`<img src="${url}">`);
+}
 
 /* RECEIPT */
-function printReceipt(){ let w=window.open("","","width=300"); w.document.write(`<style>body{font-family:monospace;width:80mm}</style>${cart.map(i=>`${i.name} x${i.qty}=${i.qty*i.price}`).join("<br>")}<hr>Total:${total.innerText}`); w.print(); }
+function printReceipt(){
+  let w=window.open("","","width=300");
+  w.document.write(`<style>body{font-family:monospace;width:80mm}</style>${cart.map(i=>`${i.name} x${i.qty}=${i.qty*i.price}`).join("<br>")}<hr>Total:${document.getElementById("total").innerText}`);
+  w.print();
+}
 
-/* OFFLINE QUEUE */
-function saveOffline(d){ let q=JSON.parse(localStorage.getItem("q")||"[]"); q.push(d); localStorage.setItem("q",JSON.stringify(q)); }
+/* OFFLINE SAVE */
+function saveOffline(d){
+  let q = JSON.parse(localStorage.getItem("q")||"[]");
+  q.push(d);
+  localStorage.setItem("q",JSON.stringify(q));
+}
 
-/* BARCODE SCANNER */
+/* BARCODE CAMERA */
 function startScanner(){
   const scanner = new Html5Qrcode("reader");
-  scanner.start({facingMode:"environment"},{fps:10,qrbox:250}, code=>{
-    let p=products.find(x=>x.barcode==code); if(p) addToCart(p.name);
+  scanner.start({facingMode:"environment"},{fps:10, qrbox:250}, code=>{
+    let p = products.find(x=>x.barcode==code);
+    if(p) addToCart(p.name);
   });
 }
 
 /* ANALYTICS */
 async function loadAnalytics(){
-  let res = await fetch(API+"?type=transactions"); let data = await res.json();
+  let res = await fetch(API+"?type=transactions");
+  let data = await res.json();
   let daily={};
-  data.slice(1).forEach(r=>{let d=new Date(r[0]).toLocaleDateString(); daily[d]=(daily[d]||0)+Number(r[3]);});
-  new Chart(chart,{type:"line",data:{labels:Object.keys(daily),datasets:[{data:Object.values(daily),label:"Revenue"}]}});
+  data.slice(1).forEach(r=>{
+    let d = new Date(r[0]).toLocaleDateString();
+    daily[d] = (daily[d]||0)+Number(r[3]);
+  });
+  new Chart(document.getElementById("chart"),{
+    type:"line",
+    data:{labels:Object.keys(daily), datasets:[{label:"Revenue", data:Object.values(daily)}]}
+  });
 }
 </script>
+
 </body>
 </html>
