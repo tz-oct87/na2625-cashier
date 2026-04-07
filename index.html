@@ -3,99 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NA2625 CREATIVEWORKS</title>
+    <title>NA2625 POS PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         .page-content { display: none; height: 100%; width: 100%; overflow-y: auto; }
         .page-content.active { display: block; }
         .nav-btn.active { background-color: #1A877E; color: white; }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .modal-overlay.active { display: flex; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="h-full bg-gray-50 overflow-hidden font-sans text-gray-900">
 
 <div id="invoiceModal" class="modal-overlay">
     <div class="bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col mx-4">
-        <div id="invoiceArea" class="p-10 bg-white">
-            <div class="text-center border-b-2 border-dashed pb-6 mb-6">
-                <h1 class="font-black text-xl text-teal-800 uppercase">NA2625</h1>
-                <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Order Completed</p>
+        <div id="invoiceArea" class="p-8 bg-white font-mono text-sm">
+            <div class="text-center border-b border-black border-dashed pb-4 mb-4">
+                <h1 class="font-black text-lg">NA2625 CREATIVE</h1>
+                <p id="invDate" class="text-[10px]"></p>
             </div>
-            <div id="invItems" class="space-y-3 mb-6 text-xs font-medium"></div>
-            <div class="border-t-2 border-dashed pt-6 space-y-2">
-                <div class="flex justify-between font-black text-sm"><span>Total</span><span id="invTotal"></span></div>
-                <div class="flex justify-between font-bold text-xs text-teal-600"><span>Paid</span><span id="invPaid"></span></div>
-                <div class="flex justify-between font-bold text-xs text-red-500"><span>Change</span><span id="invChange"></span></div>
+            <div id="invItems" class="space-y-1 mb-4"></div>
+            <div class="border-t border-black border-dashed pt-4 space-y-1">
+                <div class="flex justify-between font-bold"><span>TOTAL</span><span id="invTotal"></span></div>
+                <div class="flex justify-between"><span>CASH</span><span id="invPaid"></span></div>
+                <div class="flex justify-between"><span>CHANGE</span><span id="invChange"></span></div>
             </div>
+            <div class="mt-6 text-center text-[10px] italic">Thank you for your purchase!</div>
         </div>
-        <div class="p-6 bg-gray-50 flex gap-2 border-t">
-            <button onclick="window.print()" class="flex-1 bg-teal-600 text-white py-4 rounded-2xl font-black text-xs">PRINT</button>
-            <button onclick="downloadPng()" class="flex-1 bg-gray-800 text-white py-4 rounded-2xl font-black text-xs">SAVE PNG</button>
-            <button onclick="closeInvoice()" class="flex-1 bg-gray-200 text-gray-600 py-4 rounded-2xl font-black text-xs">CLOSE</button>
+        <div class="p-4 bg-gray-100 grid grid-cols-2 gap-2">
+            <button onclick="printBluetooth()" class="bg-teal-600 text-white py-4 rounded-xl font-black text-xs">BT PRINT</button>
+            <button onclick="closeInvoice()" class="bg-gray-300 text-gray-700 py-4 rounded-xl font-black text-xs">CLOSE</button>
         </div>
     </div>
 </div>
 
-<div id="loginPage" class="fixed inset-0 z-[100] flex items-center justify-center bg-white px-6">
-    <div class="w-full max-w-sm p-12 border rounded-[3rem] shadow-2xl text-center">
-        <h1 class="text-3xl font-black text-teal-900 mb-10">NA2625</h1>
-        <div class="space-y-4">
-            <input id="user" type="text" placeholder="Username" class="w-full p-5 border rounded-2xl bg-gray-50 outline-none text-center font-bold">
-            <input id="pass" type="password" placeholder="Password" class="w-full p-5 border rounded-2xl bg-gray-50 outline-none text-center font-bold">
-            <button id="loginBtn" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black shadow-xl">SIGN IN</button>
+<div id="loginPage" class="fixed inset-0 z-[500] flex items-center justify-center bg-white">
+    <div class="w-full max-w-xs p-8 text-center">
+        <h1 class="text-4xl font-black text-teal-900 mb-8 tracking-tighter">NA2625</h1>
+        <div class="space-y-3">
+            <input id="user" type="text" placeholder="Username" class="w-full p-4 border rounded-2xl bg-gray-50 text-center font-bold outline-none focus:ring-2 focus:ring-teal-500">
+            <input id="pass" type="password" placeholder="Password" class="w-full p-4 border rounded-2xl bg-gray-50 text-center font-bold outline-none focus:ring-2 focus:ring-teal-500">
+            <button id="loginBtn" class="w-full bg-teal-600 text-white p-4 rounded-2xl font-black shadow-lg hover:bg-teal-700 transition">LOGIN</button>
         </div>
     </div>
 </div>
 
 <div id="app" class="flex h-full w-full hidden">
-    <nav class="w-72 bg-white border-r flex flex-col h-full shrink-0">
-        <div class="p-10 border-b"><h2 class="text-xl font-black text-teal-950">NA2625</h2></div>
-        <div class="flex-1 p-4 space-y-2">
-            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-6 py-5 rounded-3xl font-black text-gray-400">🛒 Cashier</button>
-            <button onclick="showPage('manage')" class="nav-btn w-full text-left px-6 py-5 rounded-3xl font-black text-gray-400">📦 Products</button>
-            <button onclick="showPage('inventory')" class="nav-btn w-full text-left px-6 py-5 rounded-3xl font-black text-gray-400">➕ Add Item</button>
+    <nav class="w-64 bg-white border-r flex flex-col shrink-0">
+        <div class="p-8 font-black text-teal-900 text-xl border-b">NA2625</div>
+        <div class="p-4 space-y-2 flex-1">
+            <button onclick="showPage('cashier')" class="nav-btn w-full text-left p-4 rounded-2xl font-bold text-gray-400 active">🛒 Cashier</button>
+            <button onclick="showPage('history')" class="nav-btn w-full text-left p-4 rounded-2xl font-bold text-gray-400">📜 History</button>
         </div>
-        <div class="p-8"><button onclick="logout()" class="text-xs font-black text-red-400 uppercase">Logout</button></div>
+        <div class="p-6 border-t">
+            <button onclick="logout()" class="text-xs font-bold text-red-500 uppercase tracking-widest">Sign Out</button>
+        </div>
     </nav>
 
-    <main class="flex-1 relative bg-gray-50 overflow-hidden">
-        <div id="page-cashier" class="page-content active p-10">
-            <div class="flex gap-10 h-full">
-                <div class="flex-1 flex flex-col">
-                    <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search..." class="p-6 rounded-[2rem] border-none shadow-sm mb-8 font-bold">
-                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6 overflow-y-auto"></div>
-                </div>
-                <div class="w-96 bg-white rounded-[3rem] shadow-2xl p-10 flex flex-col border border-gray-100">
-                    <h3 class="font-black text-gray-300 text-[10px] uppercase mb-8">Cart Items</h3>
-                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-4 mb-8"></div>
-                    <div class="border-t pt-8 space-y-4">
-                        <div class="flex justify-between text-3xl font-black"><span>Total</span><span>Rp <span id="total">0</span></span></div>
-                        <input type="number" id="cashInput" placeholder="Buyer Money (Rp)" class="w-full p-6 bg-gray-50 rounded-[1.5rem] text-center font-black text-xl border-2 border-transparent focus:border-teal-500 transition">
-                        <button onclick="checkout()" class="w-full bg-teal-600 text-white p-6 rounded-[1.5rem] font-black text-lg shadow-xl active:scale-95 transition">CHECKOUT</button>
-                    </div>
+    <main class="flex-1 bg-gray-50 overflow-hidden relative">
+        <div id="page-cashier" class="page-content active p-8 flex gap-8">
+            <div class="flex-1 flex flex-col">
+                <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search items..." class="w-full p-5 rounded-3xl border-none shadow-sm mb-6 font-bold outline-none focus:ring-2 focus:ring-teal-400">
+                <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto"></div>
+            </div>
+            <div class="w-80 bg-white rounded-[2.5rem] shadow-xl p-8 flex flex-col">
+                <div id="cartItems" class="flex-1 overflow-y-auto space-y-4 mb-6"></div>
+                <div class="border-t pt-6 space-y-4">
+                    <div class="flex justify-between font-black text-xl"><span>Total</span><span>Rp <span id="total">0</span></span></div>
+                    <input type="number" id="cashInput" placeholder="Enter Cash (Rp)" class="w-full p-4 bg-gray-100 rounded-2xl text-center font-black text-lg outline-none focus:bg-white border-2 border-transparent focus:border-teal-500 transition">
+                    <button onclick="checkout()" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition">PAY NOW</button>
                 </div>
             </div>
         </div>
-        <div id="page-manage" class="page-content p-12"><h2 class="text-3xl font-black mb-10">Products</h2><div id="manageList" class="grid gap-4"></div></div>
-        <div id="page-inventory" class="page-content p-12"><div id="inventoryForm">...Add logic here...</div></div>
+        <div id="page-history" class="page-content p-8">
+            <h2 class="text-2xl font-black mb-6">Recent Sales</h2>
+            <div id="historyList" class="space-y-3"></div>
+        </div>
     </main>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyQ6e1jOVihDr5A7P7FWusZT-UhYG1mM7OJR8l_Wry0SfGQn_GD5ygyTbqFhtaYL2Av/exec"; 
+const API = "https://script.google.com/macros/s/AKfycbyQ6e1jOVihDr5A7P7FWusZT-UhYG1mM7OJR8l_Wry0SfGQn_GD5ygyTbqFhtaYL2Av/exec"; // PASTE YOUR WEB APP URL HERE
 let products = [], cart = [], currentUser = "";
 
-// --- PERSISTENT LOGIN LOGIC ---
+// 1. PERSISTENT LOGIN ENGINE
 window.onload = () => {
-    const savedUser = localStorage.getItem('pos_user');
-    if(savedUser) {
-        currentUser = savedUser;
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('app').classList.remove('hidden');
-        loadProducts();
-        showPage('cashier');
+    const session = localStorage.getItem('na2625_session');
+    if (session) {
+        currentUser = session;
+        initApp();
     }
 };
 
@@ -105,18 +102,23 @@ document.getElementById('loginBtn').onclick = async () => {
     const data = await res.json();
     if(data.success) { 
         currentUser = u; 
-        localStorage.setItem('pos_user', u); // SAVE LOGIN
-        document.getElementById('loginPage').style.display='none'; 
-        document.getElementById('app').classList.remove('hidden'); 
-        loadProducts();
-    } else { alert("Login failed!"); }
+        localStorage.setItem('na2625_session', u);
+        initApp();
+    } else { alert("Access Denied"); }
 };
 
+function initApp() {
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    loadProducts();
+}
+
 function logout() {
-    localStorage.removeItem('pos_user');
+    localStorage.removeItem('na2625_session');
     location.reload();
 }
 
+// 2. PRODUCT ENGINE
 async function loadProducts() {
     const res = await fetch(API + "?type=products");
     const data = await res.json();
@@ -127,21 +129,21 @@ async function loadProducts() {
 function renderProducts() {
     const s = document.getElementById('posSearch').value.toLowerCase();
     document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => `
-        <div onclick="updateQuantity('${p.name}', 1)" class="bg-white rounded-[2rem] shadow-sm p-4 text-center cursor-pointer active:scale-95 transition-all border-2 border-transparent hover:border-teal-500">
-            <img src="${p.img || 'https://via.placeholder.com/100'}" class="w-full h-32 object-cover rounded-2xl mb-4">
-            <div class="font-black text-xs uppercase truncate">${p.name}</div>
-            <div class="text-teal-600 font-black">Rp ${p.sell.toLocaleString()}</div>
+        <div onclick="addToCart('${p.name}')" class="bg-white p-4 rounded-3xl shadow-sm hover:shadow-md cursor-pointer active:scale-95 transition-all text-center border-2 border-transparent hover:border-teal-400">
+            <div class="h-24 bg-gray-50 rounded-2xl mb-3 overflow-hidden"><img src="${p.img || 'https://via.placeholder.com/100'}" class="w-full h-full object-cover"></div>
+            <div class="text-[10px] font-black text-gray-400 uppercase truncate">${p.name}</div>
+            <div class="font-black text-teal-700">Rp ${p.sell.toLocaleString()}</div>
         </div>`).join("");
 }
 
-function updateQuantity(name, change) {
+// 3. CART & CALCULATION (ROUNDING FIX)
+function addToCart(name) {
     let item = cart.find(i => i.name === name);
-    if (!item && change > 0) {
+    if (!item) {
         const p = products.find(x => x.name === name);
         cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
-    } else if (item) {
-        item.qty += change;
-        if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
+    } else {
+        item.qty++;
     }
     renderCart();
 }
@@ -150,26 +152,40 @@ function renderCart() {
     let total = 0;
     document.getElementById('cartItems').innerHTML = cart.map(i => {
         total += (i.qty * i.price);
-        return `<div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border font-bold text-xs">
-            <div>${i.name} x${i.qty}</div>
-            <div>Rp ${(i.qty * i.price).toLocaleString()}</div>
+        return `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-2xl border text-xs font-bold">
+            <div class="truncate w-32">${i.name}</div>
+            <div class="flex gap-2">
+                <button onclick="changeQty('${i.name}', -1)" class="w-6 h-6 bg-white border rounded-lg">-</button>
+                <span>${i.qty}</span>
+                <button onclick="changeQty('${i.name}', 1)" class="w-6 h-6 bg-white border rounded-lg">+</button>
+            </div>
         </div>`;
     }).join("");
     document.getElementById('total').innerText = total.toLocaleString();
 }
 
-// --- FIXED CALCULATION LOGIC ---
+function changeQty(name, delta) {
+    let item = cart.find(i => i.name === name);
+    if(item) {
+        item.qty += delta;
+        if(item.qty <= 0) cart = cart.filter(i => i.name !== name);
+    }
+    renderCart();
+}
+
+// 4. CHECKOUT & BLUETOOTH PRINTING
 async function checkout() {
-    const total = cart.reduce((sum, item) => sum + (item.qty * item.price), 0);
-    const paidText = document.getElementById('cashInput').value.replace(/[^0-9]/g, '');
-    const paid = parseInt(paidText || 0);
+    const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
+    const paid = parseInt(document.getElementById('cashInput').value || 0);
     
+    if (!cart.length) return;
     if (paid < total) return alert("Cash not enough!");
 
     const change = paid - total;
-    const profit = cart.reduce((sum, it) => sum + (it.qty * (it.price - it.cost)), 0);
-    
-    // Display Invoice immediately
+    const profit = cart.reduce((s, i) => s + (i.qty * (i.price - i.cost)), 0);
+
+    // Modal UI
+    document.getElementById('invDate').innerText = new Date().toLocaleString();
     document.getElementById('invTotal').innerText = "Rp " + total.toLocaleString();
     document.getElementById('invPaid').innerText = "Rp " + paid.toLocaleString();
     document.getElementById('invChange').innerText = "Rp " + change.toLocaleString();
@@ -179,10 +195,37 @@ async function checkout() {
     
     document.getElementById('invoiceModal').classList.add('active');
 
-    // Background sync to Google Sheets
+    // Sync
     fetch(API, { method: 'POST', body: JSON.stringify({ 
         type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change 
     })}).then(() => loadProducts());
+}
+
+async function printBluetooth() {
+    try {
+        const device = await navigator.bluetooth.requestDevice({
+            filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'MPT' }, { namePrefix: 'TP' }],
+            optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+        });
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        const encoder = new TextEncoder();
+        let text = `\x1B\x40\x1B\x61\x01NA2625 CREATIVE\n\x1B\x61\x00`;
+        text += `--------------------------------\n`;
+        cart.forEach(i => {
+            text += `${i.name.substring(0,20)}\n${i.qty} x ${i.price} = ${(i.qty*i.price)}\n`;
+        });
+        text += `--------------------------------\n`;
+        text += `TOTAL: Rp ${document.getElementById('total').innerText}\n`;
+        text += `\n\n\n`;
+
+        await characteristic.writeValue(encoder.encode(text));
+        alert("Printed Successfully");
+    } catch (e) {
+        alert("Bluetooth Error: " + e.message);
+    }
 }
 
 function closeInvoice() {
@@ -192,18 +235,21 @@ function closeInvoice() {
     renderCart();
 }
 
-function downloadPng() {
-    html2canvas(document.querySelector("#invoiceArea")).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'Invoice.png';
-        link.href = canvas.toDataURL();
-        link.click();
-    });
-}
-
 function showPage(p) {
     document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
     document.getElementById('page-'+p).classList.add('active');
+    if(p === 'history') fetchHistory();
+}
+
+async function fetchHistory() {
+    const res = await fetch(API + "?type=transactions");
+    const data = (await res.json()).slice(1).reverse();
+    document.getElementById('historyList').innerHTML = data.slice(0,10).map(r => `
+        <div class="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center">
+            <div class="text-xs font-bold text-gray-500">${new Date(r[0]).toLocaleTimeString()}</div>
+            <div class="font-black">Rp ${Number(r[3]).toLocaleString()}</div>
+        </div>`).join("");
 }
 </script>
 </body>
