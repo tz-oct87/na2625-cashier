@@ -1,106 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html class="h-full">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS System</title>
+    <title>Professional POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pos: {
+                            teal: '#1A877E', // The exact color from your reference
+                            bg: '#F5F6F8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body, html {height:100%; margin:0; font-family:sans-serif; background:#f9fafb;}
-        #loginPage {display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;}
-        #app {display:none; padding:20px; max-width: 1200px; margin: auto;}
+        body, html {height: 100%; margin: 0; font-family: sans-serif;}
+        .app-view {height: calc(100% - 64px);} /* Adjust based on header height */
     </style>
 </head>
-<body>
+<body class="bg-pos-bg">
 
-<div id="loginPage">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-80 border-t-4 border-blue-600">
-        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">POS Login</h2>
-        <input id="user" placeholder="Username" class="border p-3 w-full mb-3 rounded outline-none focus:ring-2 focus:ring-blue-400">
-        <input id="pass" type="password" placeholder="Password" class="border p-3 w-full mb-6 rounded outline-none focus:ring-2 focus:ring-blue-400">
-        <button id="loginBtn" class="bg-blue-600 hover:bg-blue-700 text-white p-3 w-full rounded font-bold transition">LOGIN</button>
+<div id="loginPage" class="h-full flex flex-col justify-center items-center">
+    <div class="bg-white p-10 rounded-xl shadow-2xl w-96 border-t-8 border-pos-teal">
+        <h2 class="text-3xl font-bold mb-10 text-center text-gray-800">System Access</h2>
+        <input id="user" placeholder="Username" class="border border-gray-300 p-4 w-full mb-4 rounded-lg outline-none focus:ring-2 focus:ring-pos-teal/50">
+        <input id="pass" type="password" placeholder="Password" class="border border-gray-300 p-4 w-full mb-10 rounded-lg outline-none focus:ring-2 focus:ring-pos-teal/50">
+        <button id="loginBtn" class="bg-pos-teal hover:bg-pos-teal/90 text-white p-4 w-full rounded-lg font-bold text-lg transition duration-150">LOGIN</button>
     </div>
 </div>
 
-<div id="app">
-    <div id="adminPanel" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div class="bg-white p-5 rounded shadow border-l-4 border-blue-500">
-            <h3 class="font-bold text-blue-700 mb-4 uppercase text-sm">Staff Management</h3>
-            <input id="staffUser" placeholder="New Username" class="border p-2 w-full mb-2 rounded text-sm">
-            <input id="staffPass" type="password" placeholder="New Password" class="border p-2 w-full mb-2 rounded text-sm">
-            <button id="addStaffBtn" class="bg-blue-600 text-white w-full p-2 rounded text-sm font-semibold">Add Staff</button>
+<div id="app" class="h-full flex flex-col hidden">
+    <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
+        <div class="text-2xl font-black text-pos-teal">PRO POS</div>
+        <div class="flex items-center gap-4">
+            <span id="syncStatus" class="text-sm font-medium text-pos-teal flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-pos-teal"></span>ONLINE</span>
+            <div id="userNameDisp" class="font-semibold text-gray-700"></div>
+            <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">Logout</button>
         </div>
-        <div class="bg-white p-5 rounded shadow border-l-4 border-orange-500">
-            <h3 class="font-bold text-orange-700 mb-4 uppercase text-sm">Products Sheet Editor</h3>
-            <div class="grid grid-cols-2 gap-2">
-                <input id="pName" placeholder="Product Name" class="border p-2 rounded text-sm col-span-2">
-                <input id="pSell" type="number" placeholder="Sell Price" class="border p-2 rounded text-sm">
-                <input id="pCost" type="number" placeholder="Cost Price" class="border p-2 rounded text-sm">
-                <input id="pStock" type="number" placeholder="Stock" class="border p-2 rounded text-sm">
-                <input id="pBar" placeholder="Barcode" class="border p-2 rounded text-sm">
-                <button id="addProductBtn" class="bg-orange-500 text-white w-full p-2 rounded text-sm font-semibold col-span-2">Add to 'products'</button>
-            </div>
-        </div>
-    </div>
+    </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2">
-            <h3 class="text-xl font-bold text-gray-700 mb-4">Catalog</h3>
-            <input id="barcodeInput" placeholder="Scan or search..." class="border p-4 w-full mb-6 rounded-lg shadow-inner bg-white text-lg focus:ring-2 focus:ring-green-400 outline-none">
-            <div id="reader" class="mb-6 overflow-hidden rounded-lg bg-black"></div>
+    <div class="flex flex-1 app-view overflow-hidden">
+        
+        <main class="flex-1 p-6 overflow-y-auto">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-6">Menu & Scanning</h1>
+            
+            <div class="relative mb-6">
+                <input id="barcodeInput" placeholder="Scan or search..." class="border border-gray-200 p-5 pl-14 w-full text-xl rounded-xl shadow-inner bg-white focus:ring-2 focus:ring-pos-teal/30 focus:border-pos-teal outline-none">
+                <svg class="absolute left-5 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            
             <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-        </div>
+        </main>
 
-        <div class="bg-white p-6 rounded-lg shadow-lg border border-gray-100 h-fit">
-            <h3 class="text-lg font-bold border-b pb-4 mb-4 text-gray-800">Current Cart</h3>
-            <div id="cartItems" class="space-y-2 mb-6 min-h-[100px]"></div>
-            <div class="border-t pt-4">
-                <div class="flex justify-between text-2xl font-black text-gray-900 mb-6"><span>Total</span><span>Rp <span id="total">0</span></span></div>
-                <button onclick="checkout('cash')" class="bg-green-600 hover:bg-green-700 text-white p-4 w-full rounded-xl mb-3 font-bold transition">CASH</button>
-                <button onclick="payQRIS()" class="bg-purple-600 hover:bg-purple-700 text-white p-4 w-full rounded-xl font-bold transition">QRIS</button>
+        <aside class="w-[400px] bg-white border-l border-gray-200 p-6 flex flex-col shrink-0">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Current Order</h2>
+                <button onclick="clearCart()" class="text-sm text-red-600 font-medium hover:bg-red-50 p-1.5 rounded-md transition">Clear</button>
             </div>
-        </div>
+            
+            <div id="cartItems" class="flex-1 space-y-3 overflow-y-auto pr-2 min-h-0 mb-6"></div>
+            
+            <div class="border-t border-gray-100 pt-6 mt-auto">
+                <div class="flex justify-between text-2xl font-extrabold text-gray-950 mb-6"><span>Total</span><span>Rp <span id="total">0</span></span></div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="checkout('cash')" class="bg-pos-teal text-white p-4 rounded-xl font-bold hover:bg-pos-teal/90 transition text-lg shadow-sm">CASH</button>
+                    <button onclick="payQRIS()" class="bg-purple-600 text-white p-4 rounded-xl font-bold hover:bg-purple-700 transition text-lg shadow-sm">QRIS</button>
+                </div>
+            </div>
+        </aside>
     </div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwR58GxmaImIrO6mKkLcu95ym11AWFGRKz3yEHHDBNLt-lHoxcHpHMgBmQuMP31LsoR/exec";
+// IMPORTANT: Update this URL after every NEW DEPLOYMENT
+const API = "https://script.google.com/macros/s/AKfycbw2S0ktIewUClMl20y0dSYYc_IM8j_tqdHwgZRfLgPmGG8rZXvkORu60ajFi-EF8SiW/exec";
+
 let products = [], cart = [], currentUser = "", currentRole = "";
 
+// 1. Authentication
 document.getElementById("loginBtn").addEventListener("click", async () => {
     const u = document.getElementById("user").value;
     const p = document.getElementById("pass").value;
-    const res = await fetch(API, { method: "POST", body: JSON.stringify({ type: "login", user: u, pass: p }) });
-    const data = await res.json();
-    if (data.success) {
-        currentUser = u; currentRole = data.role;
-        document.getElementById("loginPage").classList.add("hidden");
-        document.getElementById("app").style.display = "block";
-        if (currentRole === "admin") document.getElementById("adminPanel").classList.remove("hidden");
-        load();
-        startScanner();
-    } else alert("Invalid Login");
+    if(!u || !p) return alert("Enter credentials");
+    
+    try {
+        const res = await fetch(API, { method: "POST", body: JSON.stringify({ type: "login", user: u, pass: p }) });
+        const data = await res.json();
+        if (data.success) {
+            currentUser = u; currentRole = data.role;
+            document.getElementById("userNameDisp").innerText = u;
+            document.getElementById("loginPage").classList.add("hidden");
+            document.getElementById("app").classList.remove("hidden");
+            load();
+            // startScanner(); // Optional: Start scanner on login
+        } else alert("Invalid Login. Please check credentials.");
+    } catch(e) { alert("Connection Error. Is the API URL correct?"); }
 });
 
+function logout() {
+    currentUser = ""; currentRole = "";
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("loginPage").classList.remove("hidden");
+}
+
+// 2. Data Load & Render
 async function load() {
-    const res = await fetch(API + "?type=products");
-    const data = await res.json();
-    products = data.slice(1).map(p => ({ name: p[0], sell: +p[1], cost: +p[2], stock: +p[3], image: p[4], barcode: p[5] }));
-    renderProducts();
+    try {
+        const res = await fetch(API + "?type=products");
+        const data = await res.json();
+        if(data.error) { alert(data.error); return; }
+        products = data.slice(1).map(p => ({ 
+            name: p[0], sell: +p[1], cost: +p[2], stock: +p[3], image: p[4], barcode: p[5] 
+        }));
+        renderProducts();
+    } catch(e) { console.error("Load failed", e); }
 }
 
 function renderProducts() {
     const grid = document.getElementById("productsGrid");
     grid.innerHTML = products.map(p => `
-        <div onclick="addToCart('${p.name}')" class="bg-white border p-4 cursor-pointer rounded-xl hover:shadow-md transition">
-            <div class="font-bold">${p.name}</div>
-            <div class="text-green-600">Rp ${p.sell}</div>
-            <div class="text-xs text-gray-400">Stock: ${p.stock}</div>
+        <div onclick="addToCart('${p.name}')" class="bg-white border border-gray-100 p-4 cursor-pointer rounded-xl shadow-sm hover:border-pos-teal hover:shadow-md transition group">
+            <div class="font-bold text-gray-900 group-hover:text-pos-teal text-lg mb-1">${p.name}</div>
+            <div class="text-pos-teal font-semibold">Rp ${p.sell}</div>
+            <div class="text-xs text-gray-400 mt-1">Stock: ${p.stock}</div>
         </div>
     `).join("");
 }
 
+// 3. Cart Management
 function addToCart(name) {
     const p = products.find(x => x.name === name);
     let ex = cart.find(i => i.name === name);
@@ -109,29 +144,58 @@ function addToCart(name) {
 }
 
 function renderCart() {
-    let total = 0;
+    let totalAmount = 0;
     const div = document.getElementById("cartItems");
     div.innerHTML = cart.map(i => {
-        total += i.qty * i.price;
-        return `<div class="flex justify-between text-sm"><span>${i.name} x${i.qty}</span><span>${i.qty * i.price}</span></div>`;
+        const sub = i.qty * i.price;
+        totalAmount += sub;
+        return `
+            <div class="flex justify-between items-center bg-pos-bg/50 p-3 rounded-lg border border-gray-100 text-sm">
+                <div class="font-medium text-gray-800">${i.name} x${i.qty}</div>
+                <div class="font-mono text-gray-950 font-bold">${sub.toLocaleString()}</div>
+            </div>`;
     }).join("");
-    document.getElementById("total").innerText = total;
+    document.getElementById("total").innerText = totalAmount.toLocaleString();
 }
 
+function clearCart() { cart = []; renderCart(); }
+
+// 4. Checkout
 async function checkout(method) {
-    if (!cart.length) return;
+    if (cart.length === 0) return alert("Cart is empty");
+    if (!confirm("Confirm " + method + " payment?")) return;
+    
     const payload = { type: "addTransaction", user: currentUser, items: JSON.stringify(cart), payment: method };
-    await fetch(API, { method: "POST", body: JSON.stringify(payload) });
-    alert("Done!");
-    cart = []; renderCart(); load();
+    
+    try {
+        const res = await fetch(API, { method: "POST", body: JSON.stringify(payload) });
+        const data = await res.json();
+        if(data.success) {
+            alert("Payment Confirmed!");
+            printReceipt(); // Optional receipt print
+            clearCart(); load(); // Refresh data
+        } else {
+            alert("Checkout failed: " + (data.error || 'Unknown Error'));
+        }
+    } catch(e) { alert("Network Error. Checkout could not complete."); }
 }
 
-function startScanner() {
-    const scanner = new Html5Qrcode("reader");
-    scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, code => {
-        const p = products.find(x => x.barcode == code);
-        if (p) { addToCart(p.name); scanner.pause(); setTimeout(() => scanner.resume(), 2000); }
-    });
+function payQRIS() { alert("Simulating QRIS Payment Window..."); checkout('qris'); }
+
+function printReceipt() {
+    const total = document.getElementById("total").innerText;
+    const w = window.open("","","width=400,height=600");
+    const content = `
+        <style>body{font-family:monospace;padding:20px;width:300px;} .header,.footer{text-align:center;margin-bottom:15px;} .item{display:flex;justify-content:space-between;} .total{font-weight:bold;font-size:1.2em;border-top:1px dashed;margin-top:10px;padding-top:5px;}</style>
+        <div class="header">** PRO POS RECEIPT **<br>${new Date().toLocaleString()}<br>User: ${currentUser}</div>
+        <hr dashed>
+        ${cart.map(i => `<div class="item"><span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span></div>`).join("")}
+        <div class="item total"><span>TOTAL</span><span>Rp ${total}</span></div>
+        <hr dashed>
+        <div class="footer">Thank you for your business!</div>`;
+    w.document.write(content);
+    w.print();
+    w.close();
 }
 </script>
 </body>
