@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NA2625 | DARK POS</title>
+    <title>NA2625 | DARK POS PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -16,35 +16,42 @@
 </head>
 <body class="h-full overflow-hidden font-sans">
 
+<div id="historyModal" class="modal">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md p-8 rounded-3xl shadow-2xl">
+        <h3 class="text-xl font-black text-teal-400 mb-6">Order Details</h3>
+        <div id="historyDetailContent" class="space-y-3 mb-8 max-h-64 overflow-y-auto pr-2"></div>
+        <button onclick="closeModal('historyModal')" class="w-full bg-slate-800 p-4 rounded-xl font-bold">Close</button>
+    </div>
+</div>
+
 <div id="invoiceModal" class="modal">
-    <div class="bg-white text-slate-900 w-80 p-6 rounded-xl shadow-2xl overflow-hidden">
+    <div class="bg-white text-slate-900 w-80 p-6 rounded-xl shadow-2xl">
         <div id="receiptArea" class="p-2">
             <div class="text-center border-b border-dashed border-slate-300 pb-4 mb-4">
                 <h2 class="font-black text-xl">NA2625</h2>
-                <p class="text-[10px] uppercase tracking-widest text-slate-500">Official Receipt</p>
+                <p class="text-[10px] uppercase text-slate-500">Official Receipt</p>
             </div>
             <div id="receiptItems" class="text-xs space-y-2 mb-4"></div>
             <div class="border-t border-dashed border-slate-300 pt-4 text-xs space-y-1">
-                <div class="flex justify-between font-bold text-sm"><span>TOTAL</span><span id="recTotal"></span></div>
+                <div class="flex justify-between font-bold"><span>TOTAL</span><span id="recTotal"></span></div>
                 <div class="flex justify-between"><span>PAID</span><span id="recPaid"></span></div>
-                <div class="flex justify-between"><span>CHANGE</span><span id="recChange"></span></div>
+                <div class="flex justify-between text-teal-600 font-bold"><span>CHANGE</span><span id="recChange"></span></div>
             </div>
-            <p class="text-center text-[9px] mt-6 text-slate-400">Thank you for your purchase!</p>
         </div>
         <div class="flex gap-2 mt-6">
-            <button onclick="downloadReceipt()" class="flex-1 bg-teal-600 text-white p-3 rounded-lg font-bold text-xs">Save Image</button>
-            <button onclick="closeModal('invoiceModal')" class="flex-1 bg-slate-200 p-3 rounded-lg font-bold text-xs text-slate-600">Close</button>
+            <button onclick="downloadReceipt()" class="flex-1 bg-teal-600 text-white p-3 rounded-lg font-bold text-xs">Save</button>
+            <button onclick="closeModal('invoiceModal')" class="flex-1 bg-slate-200 p-3 rounded-lg font-bold text-xs">Close</button>
         </div>
     </div>
 </div>
 
 <div id="loginPage" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950">
-    <div class="w-full max-w-sm p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl">
-        <h1 class="text-3xl font-black text-teal-400 mb-8 text-center">NA2625</h1>
+    <div class="w-full max-w-sm p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl text-center">
+        <h1 class="text-3xl font-black text-teal-400 mb-8">NA2625</h1>
         <div class="space-y-4">
-            <input id="user" type="text" placeholder="Username" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none focus:ring-2 focus:ring-teal-500 text-center">
-            <input id="pass" type="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none focus:ring-2 focus:ring-teal-500 text-center">
-            <button id="loginBtn" class="w-full bg-teal-600 hover:bg-teal-500 p-4 rounded-xl font-bold transition">SIGN IN</button>
+            <input id="user" type="text" placeholder="Username" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center">
+            <input id="pass" type="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-center">
+            <button id="loginBtn" class="w-full bg-teal-600 p-4 rounded-xl font-bold transition hover:bg-teal-500">SIGN IN</button>
         </div>
     </div>
 </div>
@@ -53,37 +60,44 @@
     <nav class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
         <div class="p-8 text-xl font-black text-white border-b border-slate-800">NA2625 <span class="text-teal-400">POS</span></div>
         <div class="flex-1 p-4 space-y-1">
-            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400 hover:bg-slate-800">🛒 Cashier</button>
-            <button onclick="showPage('manage')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400 hover:bg-slate-800">📦 Inventory</button>
-            <button onclick="showPage('history')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400 hover:bg-slate-800">📜 History</button>
+            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">🛒 Cashier</button>
+            <button onclick="showPage('manage')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">📦 Inventory</button>
+            <button onclick="showPage('history')" class="nav-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-400">📜 History</button>
         </div>
         <div class="p-6 border-t border-slate-800 text-center">
             <button onclick="logout()" class="text-[10px] font-bold text-red-400 uppercase tracking-widest">Logout</button>
         </div>
     </nav>
 
-    <main class="flex-1 bg-slate-950 p-10">
-        <div id="page-cashier" class="page-content active">
+    <main class="flex-1 bg-slate-950 p-10 overflow-hidden flex flex-col">
+        <div id="page-cashier" class="page-content active h-full">
             <div class="flex gap-8 h-full">
-                <div class="flex-1">
-                    <input id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-8 outline-none focus:border-teal-500">
-                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6"></div>
+                <div class="flex-1 flex flex-col">
+                    <input id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-8 outline-none">
+                    <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6 overflow-y-auto"></div>
                 </div>
-                <div class="w-80 bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col shadow-xl">
-                    <h3 class="font-bold text-slate-500 uppercase text-[10px] tracking-widest mb-6">Current Order</h3>
-                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6 pr-2"></div>
+                <div class="w-80 bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col shrink-0">
+                    <h3 class="font-bold text-slate-500 uppercase text-[10px] mb-6 tracking-widest">Order</h3>
+                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6"></div>
                     <div class="border-t border-slate-800 pt-6 space-y-4">
-                        <div class="flex justify-between text-xl font-black text-white"><span>Total</span><span>Rp<span id="total">0</span></span></div>
-                        <input type="number" id="cashInput" placeholder="Buyer's Cash" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold outline-none border border-slate-700 focus:border-teal-500">
-                        <button onclick="checkout()" class="w-full bg-teal-600 p-4 rounded-xl font-black text-lg hover:bg-teal-500 transition shadow-lg shadow-teal-900/20">CHECKOUT</button>
+                        <div class="flex justify-between text-xl font-black"><span>Total</span><span>Rp<span id="total">0</span></span></div>
+                        <input type="number" id="cashInput" placeholder="Cash Amount" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold">
+                        <button onclick="checkout()" class="w-full bg-teal-600 p-4 rounded-xl font-black text-lg">CHECKOUT</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="page-manage" class="page-content">
-            <div class="flex justify-between items-center mb-10">
-                <h2 class="text-3xl font-black">Inventory</h2>
+            <div class="mb-10 bg-slate-900 p-8 rounded-3xl border border-slate-800">
+                <h2 class="text-xl font-bold mb-6 text-teal-400">Add New Product</h2>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <input id="newPName" placeholder="Product Name" class="p-4 bg-slate-800 rounded-xl outline-none">
+                    <input id="newPStock" type="number" placeholder="Initial Stock" class="p-4 bg-slate-800 rounded-xl outline-none">
+                    <input id="newPSell" type="number" placeholder="Selling Price" class="p-4 bg-slate-800 rounded-xl outline-none">
+                    <input id="newPCost" type="number" placeholder="Factory Cost" class="p-4 bg-slate-800 rounded-xl outline-none">
+                </div>
+                <button onclick="addNewProduct()" class="w-full bg-teal-600 p-4 rounded-xl font-bold">Save New Product</button>
             </div>
             <div id="manageList" class="grid gap-4"></div>
         </div>
@@ -96,7 +110,7 @@
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzkrL3sOZ1V-gSbW_RFzqtAWLZJtV-ZibCrpPlWFvjSza-iJHkA-HBqwzIJlFQwukfG/exec"; // REPLACE THIS
+const API = "https://script.google.com/macros/s/AKfycbwsy2sHbC8bylPIyk1K9TAdOZDPZgrEK3gyJt3eBXTIT-p7VwoY5lA9coV8fPcvDsqn/exec";
 let products = [], cart = [], currentUser = "";
 
 window.onload = () => {
@@ -110,7 +124,6 @@ window.onload = () => {
 };
 
 function logout() { localStorage.removeItem('NA_POS_USER'); location.reload(); }
-
 function showPage(p) {
     document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
@@ -126,10 +139,8 @@ document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
     const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
     const data = await res.json();
-    if(data.success) {
-        localStorage.setItem('NA_POS_USER', u);
-        location.reload();
-    } else alert("Invalid Login");
+    if(data.success) { localStorage.setItem('NA_POS_USER', u); location.reload(); }
+    else alert("Login Failed");
 };
 
 async function loadProducts() {
@@ -143,11 +154,12 @@ function renderProducts() {
     document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(s)).map(p => {
         const img = p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150';
         return `
-        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hover:border-teal-500/50 cursor-pointer transition">
+        <div onclick="addToCart('${p.name}')" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hover:border-teal-500 transition cursor-pointer">
             <img src="${img}" class="w-full h-24 object-cover rounded-xl mb-4 bg-slate-950">
             <div class="text-center">
-                <p class="font-bold text-[10px] text-slate-400 uppercase truncate mb-1">${p.name}</p>
+                <p class="font-bold text-[10px] text-slate-500 uppercase truncate">${p.name}</p>
                 <p class="text-teal-400 font-black">Rp${p.sell.toLocaleString()}</p>
+                <p class="text-[9px] text-slate-600 mt-1">Stock: ${p.stock}</p>
             </div>
         </div>`;
     }).join("");
@@ -155,6 +167,7 @@ function renderProducts() {
 
 function addToCart(name) {
     const p = products.find(x => x.name === name);
+    if(p.stock <= 0) return alert("Out of stock!");
     let item = cart.find(i => i.name === name);
     if (item) item.qty++;
     else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
@@ -167,13 +180,12 @@ function renderCart() {
         total += i.qty * i.price;
         return `<div class="flex justify-between text-[10px] p-3 bg-slate-800 rounded-lg">
             <span>${i.name} x${i.qty}</span>
-            <span class="font-bold text-teal-400">Rp${(i.qty * i.price).toLocaleString()}</span>
+            <span class="font-bold">Rp${(i.qty * i.price).toLocaleString()}</span>
         </div>`;
     }).join("");
     document.getElementById('total').innerText = total.toLocaleString();
 }
 
-// CHECKOUT & INVOICE
 async function checkout() {
     const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
     const paid = Number(document.getElementById('cashInput').value || 0);
@@ -181,18 +193,16 @@ async function checkout() {
     
     const change = paid - total;
     const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
-    
-    // Show Invoice
+
+    // Show Invoice Modal
     document.getElementById('recTotal').innerText = "Rp" + total.toLocaleString();
     document.getElementById('recPaid').innerText = "Rp" + paid.toLocaleString();
     document.getElementById('recChange').innerText = "Rp" + change.toLocaleString();
     document.getElementById('receiptItems').innerHTML = cart.map(i => `
         <div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${(i.qty*i.price).toLocaleString()}</span></div>
     `).join("");
-    
     document.getElementById('invoiceModal').classList.add('active');
 
-    // Save to Sheet
     const payload = { type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change };
     await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
     
@@ -211,22 +221,55 @@ function downloadReceipt() {
     });
 }
 
-// INVENTORY IMAGE UPDATE
+// INVENTORY MANAGEMENT (NEW PRODUCT + EDIT)
 function renderManage() {
-    document.getElementById('manageList').innerHTML = products.map(p => `
-        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="relative group cursor-pointer" onclick="changeProductPic('${p.name}')">
-                    <img src="${p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-lg object-cover bg-slate-950 group-hover:opacity-40">
-                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-[8px] font-bold">CHANGE</div>
+    document.getElementById('manageList').innerHTML = products.map((p, idx) => `
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <img onclick="changeProductPic('${p.name}')" src="${p.imgId ? API + '?type=img&id=' + p.imgId : 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-lg object-cover bg-slate-950 cursor-pointer hover:opacity-50">
+                    <p class="font-black text-white uppercase">${p.name}</p>
                 </div>
-                <div>
-                    <p class="font-bold text-xs">${p.name}</p>
-                    <p class="text-[10px] text-slate-500">Stock: ${p.stock}</p>
-                </div>
+                <button onclick="updateExistingProduct('${p.name}', ${idx})" class="bg-teal-600 px-4 py-2 rounded-lg text-xs font-bold">Update Item</button>
             </div>
-            <p class="font-bold text-teal-400">Rp${p.sell.toLocaleString()}</p>
+            <div class="grid grid-cols-3 gap-4">
+                <div><label class="text-[9px] text-slate-500 uppercase">Stock</label><input id="editStock-${idx}" type="number" value="${p.stock}" class="w-full bg-slate-800 p-2 rounded-lg text-sm"></div>
+                <div><label class="text-[9px] text-slate-500 uppercase">Price</label><input id="editSell-${idx}" type="number" value="${p.sell}" class="w-full bg-slate-800 p-2 rounded-lg text-sm"></div>
+                <div><label class="text-[9px] text-slate-500 uppercase">Cost</label><input id="editCost-${idx}" type="number" value="${p.cost}" class="w-full bg-slate-800 p-2 rounded-lg text-sm"></div>
+            </div>
         </div>`).join("");
+}
+
+async function addNewProduct() {
+    const payload = {
+        type: 'addProduct',
+        name: document.getElementById('newPName').value,
+        stock: Number(document.getElementById('newPStock').value),
+        sell: Number(document.getElementById('newPSell').value),
+        cost: Number(document.getElementById('newPCost').value),
+        imgId: ""
+    };
+    if(!payload.name) return alert("Enter Name");
+    await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+    alert("New Product Added!");
+    loadProducts();
+    renderManage();
+}
+
+async function updateExistingProduct(name, idx) {
+    const prod = products.find(p => p.name === name);
+    const payload = {
+        type: 'editProduct',
+        oldName: name,
+        name: name,
+        stock: Number(document.getElementById(`editStock-${idx}`).value),
+        sell: Number(document.getElementById(`editSell-${idx}`).value),
+        cost: Number(document.getElementById(`editCost-${idx}`).value),
+        imgId: prod.imgId
+    };
+    await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+    alert("Product Updated!");
+    loadProducts();
 }
 
 async function changeProductPic(pName) {
@@ -237,23 +280,11 @@ async function changeProductPic(pName) {
         const file = e.target.files[0];
         const reader = new FileReader();
         reader.onload = async () => {
-            // 1. Upload new image
             const resImg = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'uploadImage', base64: reader.result }) });
             const dataImg = await resImg.json();
-            
             if(dataImg.success) {
-                // 2. Update product row with new ID
                 const prod = products.find(x => x.name === pName);
-                await fetch(API, { method: 'POST', body: JSON.stringify({ 
-                    type: 'editProduct', 
-                    oldName: pName, 
-                    name: pName, 
-                    sell: prod.sell, 
-                    stock: prod.stock, 
-                    cost: prod.cost, 
-                    imgId: dataImg.imgId 
-                }) });
-                alert("Photo Updated!");
+                await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'editProduct', oldName: pName, name: pName, sell: prod.sell, stock: prod.stock, cost: prod.cost, imgId: dataImg.imgId }) });
                 loadProducts();
                 renderManage();
             }
@@ -263,17 +294,28 @@ async function changeProductPic(pName) {
     input.click();
 }
 
+// HISTORY DETAIL VIEW
 async function fetchHistory() {
     const res = await fetch(API + "?type=transactions");
     const data = (await res.json()).slice(1).reverse();
     document.getElementById('historyList').innerHTML = data.map(r => `
-        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+        <div onclick="showHistoryDetail('${encodeURIComponent(r[5])}')" class="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
             <div>
-                <p class="text-[10px] text-slate-500 uppercase">${new Date(r[0]).toLocaleString()}</p>
-                <p class="font-bold text-teal-400">Rp${Number(r[3]).toLocaleString()}</p>
+                <p class="text-[10px] text-slate-500 font-mono">${new Date(r[0]).toLocaleString()}</p>
+                <p class="font-black text-white">Rp${Number(r[3]).toLocaleString()}</p>
             </div>
-            <p class="text-[10px] font-bold text-slate-600 italic">User: ${r[1]}</p>
+            <span class="text-[9px] font-bold text-teal-600 uppercase">View Items →</span>
         </div>`).join("");
+}
+
+function showHistoryDetail(jsonStr) {
+    const items = JSON.parse(decodeURIComponent(jsonStr));
+    document.getElementById('historyDetailContent').innerHTML = items.map(i => `
+        <div class="flex justify-between text-xs py-2 border-b border-slate-800">
+            <span>${i.name} <span class="text-slate-500">x${i.qty}</span></span>
+            <span class="font-bold text-teal-400">Rp${(i.qty * i.price).toLocaleString()}</span>
+        </div>`).join("");
+    document.getElementById('historyModal').classList.add('active');
 }
 </script>
 </body>
