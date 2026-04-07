@@ -3,149 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tactykz POS System</title>
+    <title>Tactykz POS - Multi-Page</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .page { display: none; height: 100%; overflow-y: auto; }
-        .page.active { display: block; }
-        .nav-item.active { background: #1A877E; color: white; }
+        /* This ensures only the 'active' page is shown */
+        .page-content { display: none; height: 100%; width: 100%; overflow-y: auto; }
+        .page-content.active { display: block; }
+        .nav-btn.active { background-color: #1A877E; color: white; }
     </style>
 </head>
-<body class="h-full bg-gray-50 font-sans overflow-hidden">
+<body class="h-full bg-gray-50 overflow-hidden">
 
-<div id="loginPage" class="fixed inset-0 z-50 flex items-center justify-center bg-white">
-    <div class="w-full max-w-md p-8">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-black text-teal-700">TACTYKZ POS</h1>
-            <p class="text-gray-500">Please sign in to continue</p>
-        </div>
+<div id="loginPage" class="fixed inset-0 z-[100] flex items-center justify-center bg-white">
+    <div class="w-full max-w-sm p-8 bg-white border rounded-2xl shadow-2xl">
+        <h1 class="text-3xl font-black text-center text-teal-700 mb-8">TACTYKZ POS</h1>
         <div class="space-y-4">
             <input id="user" type="text" placeholder="Username" class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-teal-500">
             <input id="pass" type="password" placeholder="Password" class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-teal-500">
-            <button id="loginBtn" class="w-full bg-teal-600 text-white p-4 rounded-xl font-bold hover:bg-teal-700 transition">LOGIN</button>
+            <button id="loginBtn" class="w-full bg-teal-600 text-white p-4 rounded-xl font-bold hover:bg-teal-700 transition">SIGN IN</button>
         </div>
     </div>
 </div>
 
-<div id="app" class="flex h-full hidden">
-    <nav class="w-64 bg-white border-r flex flex-col shrink-0">
-        <div class="p-6 text-xl font-black text-teal-700 border-b">MANAGEMENT</div>
-        <div class="flex-1 p-4 space-y-2">
-            <button onclick="showPage('cashier')" class="nav-item w-full text-left p-3 rounded-lg font-medium hover:bg-gray-100 transition">🛒 Cashier</button>
-            <button onclick="showPage('inventory')" class="nav-item w-full text-left p-3 rounded-lg font-medium hover:bg-gray-100 transition">📦 Add Product</button>
-            <button onclick="showPage('transactions')" class="nav-item w-full text-left p-3 rounded-lg font-medium hover:bg-gray-100 transition">📜 History</button>
-            <button onclick="showPage('dashboard')" class="nav-item w-full text-left p-3 rounded-lg font-medium hover:bg-gray-100 transition">📊 Dashboard</button>
+<div id="app" class="flex h-full w-full hidden">
+    
+    <nav class="w-72 bg-white border-r flex flex-col h-full shrink-0">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-black text-teal-700">MANAGEMENT</h2>
+            <p id="userDisplay" class="text-xs text-gray-400 mt-1 uppercase font-bold"></p>
         </div>
-        <div class="p-4 border-t">
-            <button onclick="location.reload()" class="w-full text-red-500 font-bold p-2">Logout</button>
+        
+        <div class="flex-1 p-4 space-y-2">
+            <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">🛒 Cashier</button>
+            <button onclick="showPage('inventory')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">➕ Add Product</button>
+            <button onclick="showPage('history')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">📜 Transactions</button>
+            <button onclick="showPage('reports')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">📊 Reports</button>
+        </div>
+
+        <div class="p-6 border-t">
+            <button onclick="location.reload()" class="text-red-500 font-bold hover:underline">Logout</button>
         </div>
     </nav>
 
-    <div class="flex-1 relative overflow-hidden">
+    <main class="flex-1 relative bg-gray-50 overflow-hidden">
         
-        <div id="page-cashier" class="page p-6">
-            <div class="flex gap-6 h-full">
-                <div class="flex-1">
-                    <h2 class="text-2xl font-bold mb-4">Cashier Terminal</h2>
-                    <input type="text" id="searchInput" oninput="renderProducts()" placeholder="Search products..." class="w-full p-4 mb-4 border rounded-xl shadow-sm">
-                    <div id="productsGrid" class="grid grid-cols-3 gap-4"></div>
+        <div id="page-cashier" class="page-content active p-8">
+            <div class="flex gap-8 h-full">
+                <div class="flex-1 flex flex-col">
+                    <h2 class="text-3xl font-black mb-6">Cashier</h2>
+                    <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search items..." class="p-4 rounded-xl border mb-6 shadow-sm outline-none focus:ring-2 focus:ring-teal-500">
+                    <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto pr-2"></div>
                 </div>
-                <div class="w-96 bg-white rounded-2xl shadow-xl p-6 flex flex-col border border-teal-100">
-                    <h3 class="text-lg font-bold border-b pb-4 mb-4">Current Order</h3>
-                    <div id="cartItems" class="flex-1 space-y-3 overflow-y-auto mb-4"></div>
-                    <div class="border-t pt-4">
+                <div class="w-96 bg-white rounded-3xl shadow-xl border border-gray-100 p-6 flex flex-col">
+                    <h3 class="font-black text-gray-800 mb-4 uppercase tracking-widest text-sm">Cart Items</h3>
+                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6"></div>
+                    <div class="border-t pt-6">
                         <div class="flex justify-between text-2xl font-black mb-6"><span>Total</span><span>Rp <span id="total">0</span></span></div>
-                        <button onclick="checkout('cash')" class="w-full bg-teal-600 text-white p-4 rounded-xl font-bold mb-2">CASH PAYMENT</button>
+                        <button onclick="checkout('Cash')" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black text-lg hover:bg-teal-700 shadow-lg shadow-teal-100">CHECKOUT</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="page-inventory" class="page p-10 max-w-2xl mx-auto">
-            <div class="bg-white p-8 rounded-3xl shadow-sm border">
-                <h2 class="text-2xl font-bold mb-6">Add New Product</h2>
-                <div class="grid grid-cols-1 gap-4">
-                    <div><label class="text-xs font-bold text-gray-400">PRODUCT NAME</label><input id="pName" class="w-full p-3 border rounded-lg"></div>
+        <div id="page-inventory" class="page-content p-12">
+            <div class="max-w-xl mx-auto bg-white p-10 rounded-3xl shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-black mb-8 text-teal-800">Add New Product</h2>
+                <div class="space-y-5">
+                    <div><label class="block text-xs font-black text-gray-400 mb-2">PRODUCT NAME</label><input id="pName" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-xs font-bold text-gray-400">SELL PRICE</label><input id="pSell" type="number" class="w-full p-3 border rounded-lg"></div>
-                        <div><label class="text-xs font-bold text-gray-400">COST PRICE</label><input id="pCost" type="number" class="w-full p-3 border rounded-lg"></div>
+                        <div><label class="block text-xs font-black text-gray-400 mb-2">SELL PRICE</label><input id="pSell" type="number" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
+                        <div><label class="block text-xs font-black text-gray-400 mb-2">COST PRICE</label><input id="pCost" type="number" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
                     </div>
-                    <div><label class="text-xs font-bold text-gray-400">INITIAL STOCK</label><input id="pStock" type="number" class="w-full p-3 border rounded-lg"></div>
-                    <div><label class="text-xs font-bold text-gray-400">BARCODE (OPTIONAL)</label><input id="pBar" class="w-full p-3 border rounded-lg"></div>
-                    <button onclick="saveProduct()" id="saveBtn" class="bg-teal-600 text-white p-4 rounded-xl font-bold mt-4 hover:bg-teal-700">SAVE TO CLOUD</button>
+                    <div><label class="block text-xs font-black text-gray-400 mb-2">INITIAL STOCK</label><input id="pStock" type="number" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
+                    <div><label class="block text-xs font-black text-gray-400 mb-2">BARCODE (OPTIONAL)</label><input id="pBar" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:bg-white"></div>
+                    <button onclick="saveProduct()" id="saveBtn" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black mt-4 hover:bg-teal-700 transition">SAVE PRODUCT</button>
                 </div>
             </div>
         </div>
 
-        <div id="page-transactions" class="page p-10">
-            <h2 class="text-2xl font-bold mb-6">Transaction History</h2>
-            <div class="bg-white rounded-xl shadow overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-100 text-xs font-bold uppercase text-gray-500">
-                        <tr><th class="p-4">Date</th><th class="p-4">Staff</th><th class="p-4">Total</th><th class="p-4">Method</th></tr>
-                    </thead>
-                    <tbody id="historyBody" class="divide-y"></tbody>
+        <div id="page-history" class="page-content p-12">
+            <h2 class="text-2xl font-black mb-8">Transaction Log</h2>
+            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 border-b"><tr class="text-xs font-black text-gray-400 uppercase tracking-widest"><th class="p-5">Timestamp</th><th class="p-5">User</th><th class="p-5">Total</th><th class="p-5">Method</th></tr></thead>
+                    <tbody id="historyList" class="divide-y text-sm"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="page-dashboard" class="page p-10">
-            <h2 class="text-2xl font-bold mb-6">Monthly Report</h2>
-            <div class="grid grid-cols-3 gap-6 mb-10">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-teal-500">
-                    <div class="text-gray-400 text-sm">Revenue</div>
-                    <div id="statRev" class="text-2xl font-black">Rp 0</div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-orange-500">
-                    <div class="text-gray-400 text-sm">Profit</div>
-                    <div id="statProf" class="text-2xl font-black">Rp 0</div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500">
-                    <div class="text-gray-400 text-sm">Orders</div>
-                    <div id="statCount" class="text-2xl font-black">0</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </main>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwRop177Y6JXd-LdjCg38M9Ew3f3isRQ9ngdpAVQzC_fLf7L66HbXHHvQsIHQGZr811/exec"; // PASTE NEW URL HERE
+// --- CONFIG ---
+const API = "https://script.google.com/macros/s/AKfycbwgmp89C0QIAlLGkONOt4ixiKj6JGWnqoBjzr1U1kwCz60W6mrSrpuAEcGQ-TFjDQc4/exec"; 
 let products = [], cart = [], currentUser = "";
 
-// 1. Navigation Logic
-function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('page-' + id).classList.add('active');
+// --- NAVIGATION ---
+function showPage(pageId) {
+    // Hide all pages
+    document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+    // Show selected
+    document.getElementById('page-' + pageId).classList.add('active');
     
-    // Highlight the sidebar button
-    const btns = document.querySelectorAll('.nav-item');
-    btns.forEach(btn => { if(btn.innerText.toLowerCase().includes(id)) btn.classList.add('active'); });
+    // Update Sidebar Buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if(btn.innerText.toLowerCase().includes(pageId)) btn.classList.add('active');
+    });
 
-    if(id === 'transactions') loadHistory();
-    if(id === 'dashboard') loadStats();
+    if(pageId === 'history') loadHistory();
 }
 
-// 2. Auth
+// --- AUTH ---
 document.getElementById('loginBtn').onclick = async () => {
-    const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
-    const data = await res.json();
-    if(data.success) {
-        currentUser = u;
-        document.getElementById('loginPage').classList.add('hidden');
-        document.getElementById('app').classList.remove('hidden');
-        showPage('cashier');
-        loadProducts();
-    } else alert("Invalid Login");
+    const u = document.getElementById('user').value;
+    const p = document.getElementById('pass').value;
+    if(!u || !p) return;
+
+    try {
+        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
+        const data = await res.json();
+        if(data.success) {
+            currentUser = u;
+            document.getElementById('userDisplay').innerText = "Logged in as: " + u;
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('app').classList.remove('hidden');
+            loadProducts();
+            showPage('cashier');
+        } else alert("Invalid Login");
+    } catch(e) { alert("API Connection Error"); }
 };
 
-// 3. Inventory Action
+// --- PRODUCT ACTIONS ---
 async function saveProduct() {
     const btn = document.getElementById('saveBtn');
     btn.innerText = "Saving..."; btn.disabled = true;
-    
+
     const payload = {
         type: 'addProduct',
         name: document.getElementById('pName').value,
@@ -157,35 +151,35 @@ async function saveProduct() {
 
     const res = await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
     const data = await res.json();
-    
     if(data.success) {
-        alert("Stored successfully!");
+        alert("Product saved to 'products' sheet!");
         document.querySelectorAll('#page-inventory input').forEach(i => i.value = "");
-        loadProducts(); // Refresh list
+        loadProducts();
+        showPage('cashier');
     }
-    btn.innerText = "SAVE TO CLOUD"; btn.disabled = false;
+    btn.innerText = "SAVE PRODUCT"; btn.disabled = false;
 }
 
-// 4. POS Logic
 async function loadProducts() {
     const res = await fetch(API + "?type=products");
     const data = await res.json();
-    products = data.slice(1).map(r => ({ name: r[0], sell: +r[1], cost: +r[2], stock: +r[3], bar: r[5] }));
+    products = data.slice(1).map(r => ({ name: r[0], sell: +r[1], cost: +r[2], stock: +r[3] }));
     renderProducts();
 }
 
 function renderProducts() {
-    const term = document.getElementById('searchInput').value.toLowerCase();
+    const search = document.getElementById('posSearch').value.toLowerCase();
     const grid = document.getElementById('productsGrid');
-    grid.innerHTML = products.filter(p => p.name.toLowerCase().includes(term)).map(p => `
-        <div onclick="addToCart('${p.name}')" class="bg-white p-4 rounded-xl border hover:border-teal-500 cursor-pointer shadow-sm">
-            <div class="font-bold">${p.name}</div>
-            <div class="text-teal-600 font-bold text-sm">Rp ${p.sell.toLocaleString()}</div>
-            <div class="text-[10px] text-gray-400 uppercase mt-1">Stock: ${p.stock}</div>
+    grid.innerHTML = products.filter(p => p.name.toLowerCase().includes(search)).map(p => `
+        <div onclick="addToCart('${p.name}')" class="bg-white p-5 rounded-2xl border border-gray-100 hover:border-teal-500 cursor-pointer shadow-sm transition group">
+            <div class="font-bold group-hover:text-teal-700">${p.name}</div>
+            <div class="text-teal-600 font-black mt-1">Rp ${p.sell.toLocaleString()}</div>
+            <div class="text-[10px] font-bold text-gray-300 mt-2 uppercase">Stock: ${p.stock}</div>
         </div>
     `).join("");
 }
 
+// --- CART & CHECKOUT ---
 function addToCart(name) {
     const p = products.find(x => x.name === name);
     let item = cart.find(i => i.name === name);
@@ -197,7 +191,7 @@ function renderCart() {
     let total = 0;
     document.getElementById('cartItems').innerHTML = cart.map(i => {
         total += i.qty * i.price;
-        return `<div class="flex justify-between text-sm bg-gray-50 p-2 rounded"><span>${i.name} x${i.qty}</span><b>${(i.qty*i.price).toLocaleString()}</b></div>`;
+        return `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100"><div class="text-sm font-bold">${i.name} <span class="text-teal-600">x${i.qty}</span></div><div class="font-black text-xs text-gray-800">${(i.qty*i.price).toLocaleString()}</div></div>`;
     }).join("");
     document.getElementById('total').innerText = total.toLocaleString();
 }
@@ -205,15 +199,19 @@ function renderCart() {
 async function checkout(method) {
     if(!cart.length) return;
     const payload = { type: 'addTransaction', user: currentUser, payment: method, items: JSON.stringify(cart) };
-    await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("Success!"); cart = []; renderCart(); loadProducts();
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+    const data = await res.json();
+    if(data.success) {
+        alert("Transaction Recorded!");
+        cart = []; renderCart(); loadProducts();
+    }
 }
 
 async function loadHistory() {
     const res = await fetch(API + "?type=transactions");
     const data = await res.json();
-    document.getElementById('historyBody').innerHTML = data.slice(1).reverse().map(r => `
-        <tr><td class="p-4 text-sm">${new Date(r[0]).toLocaleDateString()}</td><td class="p-4 text-sm">${r[1]}</td><td class="p-4 font-bold text-sm">Rp ${Number(r[3]).toLocaleString()}</td><td class="p-4 text-xs uppercase">${r[2]}</td></tr>
+    document.getElementById('historyList').innerHTML = data.slice(1).reverse().map(r => `
+        <tr><td class="p-5 text-gray-500 font-mono text-[10px]">${new Date(r[0]).toLocaleString()}</td><td class="p-5 font-bold">${r[1]}</td><td class="p-5 font-black text-teal-700">Rp ${Number(r[3]).toLocaleString()}</td><td class="p-5 uppercase font-bold text-xs text-gray-400">${r[2]}</td></tr>
     `).join("");
 }
 </script>
