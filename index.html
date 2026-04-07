@@ -7,11 +7,10 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  body, html {height:100%; margin:0; font-family:sans-serif;}
-  #loginPage {display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;}
-  #loginPage input {margin-bottom:10px;}
-  #registerModal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;}
-  #registerModal .modal-content {background:white; padding:20px; border-radius:8px; max-width:400px; width:90%;}
+body, html {height:100%; margin:0; font-family:sans-serif;}
+#loginPage {display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;}
+#loginPage input {margin-bottom:10px;}
+#app {display:none; padding:10px;}
 </style>
 </head>
 <body>
@@ -21,54 +20,38 @@
   <h2 class="text-xl mb-2">Login</h2>
   <input id="user" placeholder="Username" class="border p-2 w-64"><br>
   <input id="pass" type="password" placeholder="Password" class="border p-2 w-64"><br>
-  <button id="loginBtn" class="bg-green-500 text-white p-2 w-64 mb-2">Login</button>
-  <button onclick="openRegister()" class="bg-blue-500 text-white p-2 w-64">Register</button>
-</div>
-
-<!-- REGISTER MODAL -->
-<div id="registerModal" class="flex">
-  <div class="modal-content">
-    <h2 class="text-xl mb-2">Register</h2>
-    <input id="rUser" placeholder="Username" class="border p-2 w-full mb-2">
-    <input id="rPass" type="password" placeholder="Password" class="border p-2 w-full mb-2">
-    <select id="rRole" class="border p-2 w-full mb-2">
-      <option value="staff">Staff</option>
-      <option value="admin">Admin</option>
-    </select>
-    <button id="registerBtn" class="bg-green-500 text-white p-2 w-full mb-2">Register</button>
-    <button onclick="closeRegister()" class="bg-gray-500 text-white p-2 w-full">Cancel</button>
-  </div>
+  <button id="loginBtn" class="bg-green-500 text-white p-2 w-64">Login</button>
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none" class="p-4">
+<div id="app">
+<h2 class="text-xl mb-2">POS</h2>
+<div id="adminPanel" class="border p-2 mb-2 hidden">
+  <h3 class="font-bold">Staff Management</h3>
+  <input id="staffUser" placeholder="Username" class="border p-1 mb-1">
+  <input id="staffPass" type="password" placeholder="Password" class="border p-1 mb-1">
+  <button id="addStaffBtn" class="bg-blue-500 text-white p-1 w-full mb-2">Add Staff</button>
+</div>
 
-<h1 class="text-xl mb-3">Cashier</h1>
+<h3>Cashier</h3>
 <input id="barcodeInput" placeholder="Scan barcode" class="border p-2 w-full mb-2">
 <div id="reader"></div>
 <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2"></div>
-
-<h2 class="mt-4">Cart</h2>
+<h3>Cart</h3>
 <div id="cartItems" class="border p-2 mb-2"></div>
 <div>Total: <b id="total">0</b></div>
 <button onclick="checkout('cash')" class="bg-green-500 text-white p-2 w-full mt-2">Cash</button>
 <button onclick="payQRIS()" class="bg-purple-500 text-white p-2 w-full mt-2">QRIS</button>
-
 <hr class="my-4">
-
-<h2>Analytics</h2>
+<h3>Analytics</h3>
 <canvas id="chart"></canvas>
-
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbzCabflR_EWUg2dwaUvgyhDhQvSrtPQv2UbpljSFSgaqn7Zo1uy6d8eLrrlkL63vcVV/exec"; // Replace with your Apps Script Web App URL
-let products=[], cart=[], currentUser="";
+const API="https://script.google.com/macros/s/AKfycbxQKY0slxdc2oXq1gNP1L9-xu0mL_kwzoLAgsDUA-08FCP2Qavf62RNO7Qq1-Ddh0uS/exec"; // Replace with deployed Apps Script URL
+let products=[], cart=[], currentUser="", currentRole="";
 
-// ------ LOGIN / REGISTER ------
-function openRegister(){document.getElementById("registerModal").style.display="flex";}
-function closeRegister(){document.getElementById("registerModal").style.display="none";}
-
+// ------ LOGIN ------
 document.getElementById("loginBtn").addEventListener("click", async ()=>{
   const user = document.getElementById("user").value;
   const pass = document.getElementById("pass").value;
@@ -77,22 +60,24 @@ document.getElementById("loginBtn").addEventListener("click", async ()=>{
   const data = await res.json();
   if(data.success){
     currentUser=user;
+    currentRole=data.role;
     document.getElementById("loginPage").style.display="none";
     document.getElementById("app").style.display="block";
+    if(currentRole==="admin") document.getElementById("adminPanel").classList.remove("hidden");
     load();
     startScanner();
   } else alert("Login failed");
 });
 
-document.getElementById("registerBtn").addEventListener("click", async ()=>{
-  const user = document.getElementById("rUser").value;
-  const pass = document.getElementById("rPass").value;
-  const role = document.getElementById("rRole").value;
-  if(!user||!pass){alert("Fill all fields"); return;}
-  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"register",user,pass,role})});
+// ------ ADD STAFF ------
+document.getElementById("addStaffBtn").addEventListener("click", async ()=>{
+  const sUser = document.getElementById("staffUser").value;
+  const sPass = document.getElementById("staffPass").value;
+  if(!sUser||!sPass){alert("Fill both fields"); return;}
+  const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"addStaff",admin:currentUser,user:sUser,pass:sPass})});
   const data = await res.json();
-  if(data.success){alert("Registered! Please login."); closeRegister();}
-  else alert(data.error || "Register failed");
+  if(data.success){alert("Staff added"); document.getElementById("staffUser").value=""; document.getElementById("staffPass").value="";}
+  else alert(data.error||"Failed");
 });
 
 // ------ LOAD PRODUCTS ------
@@ -150,7 +135,7 @@ async function checkout(method){
   }
 }
 
-// ------ QRIS PAYMENT ------
+// ------ QRIS ------
 function payQRIS(){
   const total = document.getElementById("total").innerText;
   const url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-"+total;
