@@ -9,9 +9,12 @@
         .page-content { display: none; height: 100%; width: 100%; overflow-y: auto; }
         .page-content.active { display: block; }
         .nav-btn.active { background-color: #1A877E; color: white; }
+        /* Modal Overlay */
+        #detailModal { display: none; }
+        #detailModal.active { display: flex; }
     </style>
 </head>
-<body class="h-full bg-gray-50 overflow-hidden">
+<body class="h-full bg-gray-50 overflow-hidden font-sans">
 
 <div id="loginPage" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
     <div class="w-full max-w-sm p-8 bg-white border rounded-2xl shadow-2xl">
@@ -28,26 +31,20 @@
 </div>
 
 <div id="app" class="flex h-full w-full hidden">
-    
     <nav class="w-72 bg-white border-r flex flex-col h-full shrink-0">
         <div class="p-6 border-b bg-teal-50/30">
             <h2 class="text-lg font-black text-teal-900 leading-tight">NA2625<br>CREATIVEWORKS</h2>
             <p id="userDisplay" class="text-[10px] text-teal-600 mt-2 uppercase font-black tracking-tighter"></p>
         </div>
-        
         <div class="flex-1 p-4 space-y-2">
             <button onclick="showPage('cashier')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">🛒 Cashier</button>
             <button onclick="showPage('inventory')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">➕ Add Product</button>
             <button onclick="showPage('history')" class="nav-btn w-full text-left px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition">📜 Transactions</button>
         </div>
-
-        <div class="p-6 border-t">
-            <button onclick="location.reload()" class="text-red-500 font-bold text-sm hover:underline">Exit System</button>
-        </div>
+        <div class="p-6 border-t"><button onclick="location.reload()" class="text-red-500 font-bold text-sm">Exit System</button></div>
     </nav>
 
     <main class="flex-1 relative bg-gray-50 overflow-hidden">
-        
         <div id="page-cashier" class="page-content active p-8">
             <div class="flex gap-8 h-full">
                 <div class="flex-1 flex flex-col">
@@ -55,13 +52,12 @@
                     <input type="text" id="posSearch" oninput="renderProducts()" placeholder="Search products..." class="p-4 rounded-xl border mb-6 shadow-sm outline-none focus:ring-2 focus:ring-teal-500">
                     <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto pr-2"></div>
                 </div>
-
                 <div class="w-96 bg-white rounded-3xl shadow-xl border border-gray-100 p-6 flex flex-col">
                     <h3 class="font-black text-gray-800 mb-4 uppercase tracking-widest text-xs">Current Cart</h3>
                     <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6 pr-2"></div>
                     <div class="border-t pt-6">
                         <div class="flex justify-between text-2xl font-black mb-6"><span>Total</span><span>Rp <span id="total">0</span></span></div>
-                        <button onclick="checkout('Cash')" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black text-lg hover:bg-teal-700 shadow-lg shadow-teal-100 transition transform active:scale-95">PAY NOW</button>
+                        <button onclick="checkout('Cash')" class="w-full bg-teal-600 text-white p-5 rounded-2xl font-black text-lg hover:bg-teal-700 transition">PAY NOW</button>
                     </div>
                 </div>
             </div>
@@ -84,10 +80,20 @@
         </div>
 
         <div id="page-history" class="page-content p-12">
-            <h2 class="text-2xl font-black mb-8">Transaction History</h2>
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-black">Transaction History</h2>
+                <input type="text" id="historySearch" oninput="renderHistory()" placeholder="Search by staff or date..." class="w-64 p-3 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
             <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
                 <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-50 border-b"><tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><th class="p-5">Time</th><th class="p-5">Staff</th><th class="p-5">Total</th><th class="p-5">Method</th></tr></thead>
+                    <thead class="bg-gray-50 border-b">
+                        <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            <th class="p-5">Time</th>
+                            <th class="p-5">Staff</th>
+                            <th class="p-5">Total</th>
+                            <th class="p-5">Action</th>
+                        </tr>
+                    </thead>
                     <tbody id="historyList" class="divide-y text-sm"></tbody>
                 </table>
             </div>
@@ -95,10 +101,28 @@
     </main>
 </div>
 
+<div id="detailModal" class="fixed inset-0 z-[110] bg-black/50 items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+        <div class="p-6 bg-teal-600 text-white">
+            <div class="flex justify-between items-center">
+                <h3 class="font-black text-xl">Order Details</h3>
+                <button onclick="closeModal()" class="text-white/80 hover:text-white font-black">✕</button>
+            </div>
+            <p id="modalDate" class="text-xs text-teal-100 mt-1"></p>
+        </div>
+        <div class="p-6 flex-1 overflow-y-auto max-h-[400px]">
+            <div id="modalItems" class="space-y-4"></div>
+        </div>
+        <div class="p-6 bg-gray-50 border-t flex justify-between items-center">
+            <span class="font-bold text-gray-500">Grand Total</span>
+            <span id="modalTotal" class="text-xl font-black text-teal-800"></span>
+        </div>
+    </div>
+</div>
+
 <script>
-// --- CONFIG (Keep your API URL) ---
-const API = "https://script.google.com/macros/s/AKfycbwgmp89C0QIAlLGkONOt4ixiKj6JGWnqoBjzr1U1kwCz60W6mrSrpuAEcGQ-TFjDQc4/exec"; 
-let products = [], cart = [], currentUser = "";
+const API = "https://script.google.com/macros/s/AKfycbyw2ojd14fijTIazKB2Wb1KBGImn6zsjqabyWsU83HF76p9j2ghBH-vIxxpX1ZJYP5h/exec"; 
+let products = [], cart = [], historyData = [], currentUser = "";
 
 // --- NAVIGATION ---
 function showPage(pageId) {
@@ -108,66 +132,39 @@ function showPage(pageId) {
         btn.classList.remove('active');
         if(btn.innerText.toLowerCase().includes(pageId)) btn.classList.add('active');
     });
-    if(pageId === 'history') loadHistory();
+    if(pageId === 'history') fetchHistory();
 }
 
-// --- AUTH ---
+// --- AUTH (Simplified) ---
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    if(!u || !p) return;
-    try {
-        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
-        const data = await res.json();
-        if(data.success) {
-            currentUser = u;
-            document.getElementById('userDisplay').innerText = "Officer: " + u;
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('app').classList.remove('hidden');
-            loadProducts();
-            showPage('cashier');
-        } else alert("Access Denied");
-    } catch(e) { alert("Server Unavailable"); }
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
+    const data = await res.json();
+    if(data.success) {
+        currentUser = u;
+        document.getElementById('userDisplay').innerText = "Officer: " + u;
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('app').classList.remove('hidden');
+        loadProducts(); showPage('cashier');
+    } else alert("Access Denied");
 };
 
-// --- PRODUCT ACTIONS ---
-async function saveProduct() {
-    const btn = document.getElementById('saveBtn');
-    btn.innerText = "Processing..."; btn.disabled = true;
-    const payload = {
-        type: 'addProduct',
-        name: document.getElementById('pName').value,
-        sell: document.getElementById('pSell').value,
-        cost: document.getElementById('pCost').value,
-        stock: document.getElementById('pStock').value,
-        barcode: document.getElementById('pBar').value
-    };
-    await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("Product Registered");
-    document.querySelectorAll('#page-inventory input').forEach(i => i.value = "");
-    btn.innerText = "REGISTER PRODUCT"; btn.disabled = false;
-    loadProducts();
-}
-
+// --- POS & INVENTORY (Existing) ---
 async function loadProducts() {
     const res = await fetch(API + "?type=products");
     const data = await res.json();
-    products = data.slice(1).map(r => ({ name: r[0], sell: +r[1], cost: +r[2], stock: +r[3] }));
+    products = data.slice(1).map(r => ({ name: r[0], sell: +r[1], stock: +r[3] }));
     renderProducts();
 }
-
 function renderProducts() {
     const search = document.getElementById('posSearch').value.toLowerCase();
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = products.filter(p => p.name.toLowerCase().includes(search)).map(p => `
-        <div onclick="updateQuantity('${p.name}', 1)" class="bg-white p-5 rounded-2xl border border-gray-100 hover:border-teal-500 cursor-pointer shadow-sm transition group active:scale-95">
-            <div class="font-bold group-hover:text-teal-700">${p.name}</div>
+        <div onclick="updateQuantity('${p.name}', 1)" class="bg-white p-5 rounded-2xl border border-gray-100 hover:border-teal-500 cursor-pointer shadow-sm active:scale-95 transition">
+            <div class="font-bold">${p.name}</div>
             <div class="text-teal-600 font-black mt-1">Rp ${p.sell.toLocaleString()}</div>
-            <div class="text-[9px] font-bold text-gray-300 mt-2 uppercase tracking-tighter">Inventory: ${p.stock}</div>
-        </div>
-    `).join("");
+        </div>`).join("");
 }
-
-// --- CART LOGIC WITH +/- ---
 function updateQuantity(name, change) {
     let item = cart.find(i => i.name === name);
     if (!item && change > 0) {
@@ -175,54 +172,65 @@ function updateQuantity(name, change) {
         cart.push({ name: p.name, qty: 1, price: p.sell });
     } else if (item) {
         item.qty += change;
-        if (item.qty <= 0) {
-            cart = cart.filter(i => i.name !== name);
-        }
+        if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
     }
     renderCart();
 }
-
 function renderCart() {
     let total = 0;
-    const cartContainer = document.getElementById('cartItems');
-    
-    if (cart.length === 0) {
-        cartContainer.innerHTML = '<div class="text-center py-10 text-gray-300 text-xs italic">Cart is empty</div>';
-    } else {
-        cartContainer.innerHTML = cart.map(i => {
-            total += i.qty * i.price;
-            return `
-                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <div class="flex-1">
-                        <div class="text-xs font-black text-gray-800 truncate w-32">${i.name}</div>
-                        <div class="text-[10px] font-bold text-teal-600">@ ${i.price.toLocaleString()}</div>
-                    </div>
-                    <div class="flex items-center gap-3 bg-white border rounded-lg px-2 py-1">
-                        <button onclick="updateQuantity('${i.name}', -1)" class="w-6 h-6 flex items-center justify-center font-black text-red-500 hover:bg-red-50 rounded">-</button>
-                        <span class="text-xs font-black w-4 text-center">${i.qty}</span>
-                        <button onclick="updateQuantity('${i.name}', 1)" class="w-6 h-6 flex items-center justify-center font-black text-teal-500 hover:bg-teal-50 rounded">+</button>
-                    </div>
-                </div>`;
-        }).join("");
-    }
+    document.getElementById('cartItems').innerHTML = cart.map(i => {
+        total += i.qty * i.price;
+        return `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100"><div class="text-xs font-black">${i.name} x${i.qty}</div><div class="flex items-center gap-2"><button onclick="updateQuantity('${i.name}', -1)" class="text-red-500 font-bold px-2">-</button><button onclick="updateQuantity('${i.name}', 1)" class="text-teal-600 font-bold px-2">+</button></div></div>`;
+    }).join("");
     document.getElementById('total').innerText = total.toLocaleString();
 }
-
 async function checkout(method) {
     if(!cart.length) return;
     const payload = { type: 'addTransaction', user: currentUser, payment: method, items: JSON.stringify(cart) };
     await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-    alert("Transaction Success");
-    cart = []; renderCart(); loadProducts();
+    alert("Paid!"); cart = []; renderCart(); loadProducts();
 }
 
-async function loadHistory() {
+// --- HISTORY & MODAL LOGIC ---
+async function fetchHistory() {
     const res = await fetch(API + "?type=transactions");
     const data = await res.json();
-    document.getElementById('historyList').innerHTML = data.slice(1).reverse().map(r => `
-        <tr><td class="p-5 text-gray-400 font-mono text-[9px]">${new Date(r[0]).toLocaleDateString()}</td><td class="p-5 font-bold">${r[1]}</td><td class="p-5 font-black text-teal-700 text-xs">Rp ${Number(r[3]).toLocaleString()}</td><td class="p-5 uppercase font-black text-[9px] text-gray-300">${r[2]}</td></tr>
-    `).join("");
+    historyData = data.slice(1).reverse();
+    renderHistory();
 }
+
+function renderHistory() {
+    const search = document.getElementById('historySearch').value.toLowerCase();
+    const list = document.getElementById('historyList');
+    list.innerHTML = historyData.filter(r => r[1].toLowerCase().includes(search) || r[0].includes(search)).map((r, index) => `
+        <tr>
+            <td class="p-5 text-gray-400 font-mono text-[9px]">${new Date(r[0]).toLocaleString()}</td>
+            <td class="p-5 font-bold">${r[1]}</td>
+            <td class="p-5 font-black text-teal-700">Rp ${Number(r[3]).toLocaleString()}</td>
+            <td class="p-5"><button onclick="viewDetails(${index})" class="bg-teal-50 text-teal-600 px-4 py-1.5 rounded-lg font-black text-[10px] hover:bg-teal-600 hover:text-white transition">VIEW ITEMS</button></td>
+        </tr>`).join("");
+}
+
+function viewDetails(index) {
+    const data = historyData[index];
+    const items = JSON.parse(data[5]); // Assuming Column F contains JSON string of items
+    
+    document.getElementById('modalDate').innerText = "Officer: " + data[1] + " | " + new Date(data[0]).toLocaleString();
+    document.getElementById('modalTotal').innerText = "Rp " + Number(data[3]).toLocaleString();
+    
+    document.getElementById('modalItems').innerHTML = items.map(it => `
+        <div class="flex justify-between items-center border-b border-dashed pb-2">
+            <div>
+                <div class="text-sm font-black text-gray-800">${it.name}</div>
+                <div class="text-[10px] text-gray-400">Qty: ${it.qty} x ${it.price.toLocaleString()}</div>
+            </div>
+            <div class="font-bold text-teal-700 text-sm">Rp ${(it.qty * it.price).toLocaleString()}</div>
+        </div>`).join("");
+    
+    document.getElementById('detailModal').classList.add('active');
+}
+
+function closeModal() { document.getElementById('detailModal').classList.remove('active'); }
 </script>
 </body>
 </html>
