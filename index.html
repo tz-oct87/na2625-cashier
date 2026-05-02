@@ -3,270 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NA2625 | ENTERPRISE DASHBOARD</title>
+    <title>NA2625 | ENTERPRISE POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .page-content { display: none; height: 100%; overflow-y: auto; }
         .page-content.active { display: block; }
         nav { width: 280px; background: #0f172a; border-right: 1px solid #1e293b; transition: 0.3s; }
-        .nav-link { display: flex; align-items: center; padding: 10px 20px; margin: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500; color: #94a3b8; transition: 0.2s; }
+        .nav-link { display: flex; align-items: center; padding: 10px 20px; margin: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500; color: #94a3b8; transition: 0.2s; text-align: left; width: calc(100% - 24px); }
         .nav-link:hover, .nav-link.active { background: #1e293b; color: #2dd4bf; }
         .section-label { font-size: 10px; font-weight: 800; color: #475569; padding: 20px 24px 8px; text-transform: uppercase; letter-spacing: 0.1em; }
-        .glass-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 24px; transition: 0.3s; }
-        .glass-card:hover { border-color: #2dd4bf; }
-        .spinner { width: 14px; height: 14px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+        .glass-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 24px; }
+        .input-dark { background: #0f172a; border: 1px solid #1e293b; color: white; padding: 12px 16px; border-radius: 12px; outline: none; width: 100%; font-size: 14px; }
+        .input-dark:focus { border-color: #2dd4bf; }
+        .spinner { width: 16px; height: 16px; border: 2px solid transparent; border-top-color: #2dd4bf; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        #resultPopup.active { display: flex; }
-        @media (max-width: 1024px) { nav { width: 80px; } .nav-link span:last-child, .section-label, .sidebar-footer { display: none; } }
     </style>
 </head>
 <body class="h-full overflow-hidden">
 
-<!-- Notification Popup -->
-<div id="resultPopup" class="fixed inset-0 z-[250] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm">
-    <div class="w-80 p-8 rounded-[32px] bg-slate-900 border border-slate-800 text-center shadow-2xl">
-        <div id="popupIcon" class="text-4xl mb-4"></div>
-        <h3 id="popupTitle" class="text-white font-black uppercase text-sm mb-2"></h3>
-        <p id="popupMsg" class="text-slate-400 text-[10px] uppercase font-bold mb-6"></p>
-        <button onclick="closeResult()" class="w-full bg-teal-600 p-4 rounded-xl font-black text-white text-[10px] uppercase">Dismiss</button>
-    </div>
-</div>
-
-<!-- Login System -->
-<div id="loginPage" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950 p-6">
-    <div class="w-full max-w-sm p-8 bg-slate-900 rounded-[40px] border border-slate-800 text-center shadow-2xl">
-        <h1 class="text-4xl font-black text-teal-400 mb-2 tracking-tighter uppercase">NA2625</h1>
-        <p class="text-[10px] font-bold text-slate-500 mb-8 uppercase tracking-[0.2em]">Creativeworks POS</p>
-        <input id="user" type="text" placeholder="Username" class="w-full p-4 mb-4 rounded-2xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-white">
-        <input id="pass" type="password" placeholder="Password" class="w-full p-4 mb-6 rounded-2xl bg-slate-800 border border-slate-700 outline-none text-center focus:border-teal-500 text-white">
-        <button id="loginBtn" onclick="doLogin()" class="w-full bg-teal-600 p-4 rounded-2xl font-black text-white hover:bg-teal-500 transition-all">SIGN IN</button>
+<!-- Login View -->
+<div id="loginPage" class="fixed inset-0 z-[500] flex items-center justify-center bg-[#020617] p-6">
+    <div class="w-full max-w-sm p-10 bg-[#0f172a] rounded-[40px] border border-slate-800 text-center shadow-2xl">
+        <h1 class="text-4xl font-black text-teal-400 mb-2 tracking-tighter uppercase italic">NA2625</h1>
+        <p class="text-[10px] font-bold text-slate-500 mb-10 uppercase tracking-[0.2em]">Creativeworks Enterprise</p>
+        <div class="space-y-4">
+            <input id="user" type="text" placeholder="Username" class="input-dark text-center">
+            <input id="pass" type="password" placeholder="Password" class="input-dark text-center">
+            <button onclick="doLogin()" id="loginBtn" class="w-full bg-teal-600 p-5 rounded-2xl font-black text-white hover:bg-teal-500 transition-all shadow-xl shadow-teal-900/20 uppercase">Sign In</button>
+        </div>
     </div>
 </div>
 
 <div id="app" class="hidden flex h-full">
-    <!-- Sidebar - Styled after Reference Image -->
-    <nav class="flex flex-col shrink-0 overflow-hidden">
+    <!-- Sidebar -->
+    <nav class="flex flex-col shrink-0">
         <div class="p-8 mb-4">
-            <h1 class="text-xl font-black text-white tracking-tighter italic uppercase">NA2625</h1>
-            <span class="text-[8px] font-bold text-teal-500 uppercase tracking-widest">Premium POS System</span>
+            <h1 class="text-xl font-black text-white italic uppercase tracking-tighter">NA2625</h1>
+            <span class="text-[8px] font-bold text-teal-400 uppercase tracking-widest">Premium POS</span>
         </div>
 
         <div class="flex-1 overflow-y-auto">
-            <button onclick="showPage('dashboard')" class="nav-link active w-[calc(100%-24px)]"><span>📊</span> <span class="ml-3">Dashboard</span></button>
-            <div class="section-label">Penjualan</div>
-            <button onclick="showPage('cashier')" class="nav-link w-[calc(100%-24px)]"><span>🛒</span> <span class="ml-3">Kasir (POS)</span></button>
-            <button onclick="showPage('history')" class="nav-link w-[calc(100%-24px)]"><span>📜</span> <span class="ml-3">Riwayat Transaksi</span></button>
-            <div class="section-label">Produk & Stok</div>
-            <button onclick="showPage('manage')" class="nav-link w-[calc(100%-24px)]"><span>📦</span> <span class="ml-3">Kelola Produk</span></button>
-            <button onclick="showUpgradeModal()" class="nav-link w-[calc(100%-24px)] opacity-50"><span>📉</span> <span class="ml-3">Inventori (PRO)</span></button>
-            <div class="section-label">Sistem</div>
-            <button onclick="showPage('settings')" class="nav-link w-[calc(100%-24px)]"><span>⚙️</span> <span class="ml-3">Pengaturan</span></button>
+            <button onclick="showPage('dashboard')" class="nav-link active"><span>📊</span> <span class="ml-3">Dashboard</span></button>
+            <div class="section-label">Operations</div>
+            <button onclick="showPage('cashier')" class="nav-link"><span>🛒</span> <span class="ml-3">Kasir (POS)</span></button>
+            <button onclick="showPage('manage')" class="nav-link"><span>📦</span> <span class="ml-3">Kelola Produk</span></button>
+            <button onclick="showPage('history')" class="nav-link"><span>📜</span> <span class="ml-3">Riwayat Transaksi</span></button>
+            <div class="section-label">System</div>
+            <button onclick="showPage('settings')" class="nav-link"><span>⚙️</span> <span class="ml-3">Pengaturan</span></button>
+            <button onclick="doLogout()" class="nav-link text-red-400 mt-4"><span>🚪</span> <span class="ml-3">Logout</span></button>
         </div>
 
-        <div class="sidebar-footer p-6 border-t border-slate-800">
-            <div class="mb-4">
-                <div class="flex justify-between text-[9px] font-bold mb-2">
-                    <span class="text-slate-500 uppercase">Katalog Produk</span>
-                    <span id="catalogCount" class="text-slate-300">0 / 50</span>
-                </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full"><div id="catalogProgress" class="bg-teal-500 h-full rounded-full transition-all" style="width: 0%"></div></div>
-            </div>
-            <button onclick="showUpgradeModal()" class="w-full bg-gradient-to-r from-teal-600 to-teal-400 p-3 rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-lg shadow-teal-900/20">Upgrade Tier</button>
+        <!-- Upgrade Button to WhatsApp -->
+        <div class="p-6 border-t border-slate-800 bg-slate-900/30">
+            <a href="https://api.whatsapp.com/send/?phone=6285738183221&text=Halo%20Nanda,%20saya%20ingin%20upgrade%20fitur%20di%20NA2625%20POS%20saya" target="_blank" class="block w-full bg-teal-600 p-3 rounded-xl text-center text-[10px] font-black text-white uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-teal-900/20">
+                Upgrade to Pro
+            </a>
         </div>
     </nav>
 
-    <!-- Main Views -->
-    <main class="flex-1 flex flex-col overflow-hidden">
-        <!-- Dashboard View (New) -->
-        <div id="page-dashboard" class="page-content active p-8 md:p-12">
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-hidden relative">
+        <!-- Dashboard -->
+        <div id="page-dashboard" class="page-content active p-8">
             <div class="mb-10">
-                <h2 class="text-3xl font-black text-white tracking-tight italic uppercase">Dashboard</h2>
-                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Status bisnis hari ini</p>
+                <h2 class="text-3xl font-black text-white italic uppercase tracking-tight">Dashboard</h2>
+                <p id="currentDate" class="text-slate-500 text-xs font-bold uppercase tracking-widest"></p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <div class="glass-card">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Pendapatan</p>
-                    <p id="dashRev" class="text-2xl font-black text-white">Rp0</p>
-                    <span class="text-[9px] text-teal-500 font-bold">Nett Profit</span>
-                </div>
-                <div class="glass-card">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Transaksi</p>
-                    <p id="dashTrans" class="text-2xl font-black text-white">0</p>
-                    <span class="text-[9px] text-slate-500 italic">Diterima hari ini</span>
-                </div>
-                <div class="glass-card">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Laba Bersih</p>
-                    <p id="dashProfit" class="text-2xl font-black text-teal-400">Rp0</p>
-                    <span class="text-[9px] text-teal-500 font-bold">High Margin</span>
-                </div>
-                <div class="glass-card border-red-900/30">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Stok Menipis</p>
-                    <p id="dashLowStock" class="text-2xl font-black text-red-500">0</p>
-                    <span class="text-[9px] text-red-400 animate-pulse font-bold">Restock Segera</span>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="glass-card"><p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Revenue Today</p><p id="dashRev" class="text-2xl font-black text-white">Rp0</p></div>
+                <div class="glass-card"><p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Total Orders</p><p id="dashTrans" class="text-2xl font-black text-white">0</p></div>
+                <div class="glass-card border-teal-900/50"><p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Inventory Status</p><p id="dashItems" class="text-2xl font-black text-teal-400">0 Items</p></div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 glass-card h-80"><canvas id="salesChart"></canvas></div>
-                <div class="glass-card h-80 flex flex-col items-center"><canvas id="paymentChart"></canvas></div>
-            </div>
+            <div class="glass-card h-80"><canvas id="salesChart"></canvas></div>
         </div>
 
-        <!-- Cashier View -->
+        <!-- Cashier (POS) -->
         <div id="page-cashier" class="page-content p-6">
             <div class="flex flex-col lg:flex-row gap-6 h-full">
-                <div class="flex-1 flex flex-col">
-                    <input id="posSearch" oninput="renderProducts()" placeholder="Cari catalog..." class="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-4 outline-none focus:border-teal-500 text-white shadow-inner">
-                    <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto pr-2"></div>
+                <div class="flex-1 flex flex-col min-h-0">
+                    <input id="posSearch" oninput="renderProducts()" placeholder="Cari katalog..." class="input-dark mb-4 p-5 text-lg">
+                    <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 overflow-y-auto pr-2"></div>
                 </div>
-                <div class="w-full lg:w-80 bg-slate-900 rounded-[32px] p-6 border border-slate-800 flex flex-col shrink-0 shadow-2xl">
-                    <h3 class="font-bold text-slate-500 text-[10px] uppercase mb-4 tracking-widest">Cart</h3>
-                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-2 mb-4"></div>
-                    <div class="border-t border-slate-800 pt-4 space-y-4">
-                        <div class="flex justify-between items-end"><span class="text-xs text-slate-500 font-bold uppercase">Total</span><span class="text-2xl font-black text-white">Rp<span id="total">0</span></span></div>
-                        <input type="number" id="cashInput" placeholder="Tunai" class="w-full p-4 bg-slate-800 rounded-xl text-center font-bold text-xl text-white outline-none border border-slate-700">
-                        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-teal-600 hover:bg-teal-500 p-5 rounded-2xl font-black text-white shadow-xl shadow-teal-900/20">PAY NOW</button>
+                <div class="w-full lg:w-96 bg-slate-900 rounded-[32px] p-8 border border-slate-800 flex flex-col shadow-2xl">
+                    <h3 class="font-black text-slate-500 text-[10px] uppercase mb-6 tracking-widest">Cart Summary</h3>
+                    <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6"></div>
+                    <div class="border-t border-slate-800 pt-6 space-y-4">
+                        <div class="flex justify-between items-end"><span class="text-xs text-slate-500 font-bold uppercase tracking-widest">Total</span><span class="text-3xl font-black text-white">Rp<span id="total">0</span></span></div>
+                        <input type="number" id="cashInput" placeholder="Tunai (Rp)" class="input-dark text-center font-bold text-2xl py-5 border-slate-700 bg-slate-800">
+                        <button onclick="checkout()" id="checkoutBtn" class="w-full bg-teal-600 p-5 rounded-2xl font-black text-white tracking-widest uppercase hover:bg-teal-500 shadow-xl shadow-teal-900/20">Pay & Finish</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Inventory Page -->
-        <div id="page-manage" class="page-content p-6">
-            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 mb-6 shadow-xl">
-                <h3 class="text-teal-400 font-black mb-4 uppercase text-xs tracking-widest">Add New Product</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-white">
-                    <input id="new-name" placeholder="Name" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
-                    <input id="new-sell" type="number" placeholder="Price" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
-                    <input id="new-cost" type="number" placeholder="Cost" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
-                    <input id="new-stock" type="number" placeholder="Stock" class="bg-slate-800 p-4 rounded-xl text-sm outline-none border border-slate-700">
-                </div>
-                <button id="addProdBtn" onclick="addNewProduct()" class="mt-4 w-full bg-teal-600 p-4 rounded-xl font-black text-sm uppercase text-white">Add to Inventory</button>
+        <!-- Kelola Produk -->
+        <div id="page-manage" class="page-content p-8">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-white italic uppercase tracking-tight">Inventory</h2>
+                <button onclick="saveToCloud()" class="bg-teal-600 px-6 py-3 rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-lg shadow-teal-900/20">Sync to Cloud</button>
             </div>
-            <div id="manageList" class="space-y-3"></div>
+            <div class="glass-card mb-8">
+                <h4 class="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest">Add Product</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input id="new-name" placeholder="Name" class="input-dark">
+                    <input id="new-sell" type="number" placeholder="Price" class="input-dark">
+                    <input id="new-cost" type="number" placeholder="Cost" class="input-dark">
+                    <input id="new-stock" type="number" placeholder="Stock" class="input-dark">
+                </div>
+                <button onclick="addNewProduct()" class="mt-4 bg-slate-800 w-full py-3 rounded-xl text-[10px] font-black text-white uppercase hover:bg-slate-700">Add to List</button>
+            </div>
+            <div id="manageList" class="space-y-2"></div>
         </div>
-        <!-- History & Settings Placeholders -->
-        <div id="page-history" class="page-content p-6 text-center">History Module Active</div>
-        <div id="page-settings" class="page-content p-6 text-center">Settings Module Active</div>
+
+        <!-- Settings Module -->
+        <div id="page-settings" class="page-content p-8">
+            <div class="mb-10">
+                <h2 class="text-3xl font-black text-white italic uppercase tracking-tight">Settings</h2>
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Sistem & Database</p>
+            </div>
+            <div class="max-w-2xl space-y-6">
+                <div class="glass-card">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase mb-6 tracking-widest">Google Apps Script API</h4>
+                    <input id="set-api" type="text" placeholder="https://script.google.com/macros/s/..." class="input-dark mb-4">
+                    <button onclick="saveSettings()" class="bg-teal-600 px-8 py-3 rounded-xl text-[10px] font-black text-white uppercase italic tracking-widest">Save Config</button>
+                </div>
+                <div class="glass-card">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest">Shop Information</h4>
+                    <div class="space-y-4">
+                        <input id="set-shop" placeholder="Toko Name" class="input-dark" value="NA2625 POS">
+                        <input id="set-address" placeholder="Alamat / Footer" class="input-dark" value="Indonesia">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Transactions -->
+        <div id="page-history" class="page-content p-8">
+            <h2 class="text-3xl font-black text-white italic uppercase tracking-tight mb-8">History</h2>
+            <div id="historyList" class="space-y-3"></div>
+        </div>
     </main>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbweov-VD-18mMRdQJ6IbAv6Mcx2Oesq8naGvDfHpDQkdbVYlMh6VKlqFdb30tsdd59p/exec"; 
-let products = [], cart = [], historyData = [], currentUser = "", salesChart, paymentChart;
+// --- CORE LOGIC & STATE ---
+let products = JSON.parse(localStorage.getItem('NA_PRODUCTS')) || [];
+let cart = [];
+let historyData = [];
 
-// --- AUTH & SYSTEM ---
-function showResult(title, msg, isError=false) {
-    const p = document.getElementById('resultPopup');
-    document.getElementById('popupIcon').innerText = isError ? "❌" : "✅";
-    document.getElementById('popupTitle').innerText = title;
-    document.getElementById('popupMsg').innerText = msg;
-    p.classList.add('active');
+// --- SESSION MANAGEMENT ---
+function doLogin() {
+    const user = document.getElementById('user').value;
+    const pass = document.getElementById('pass').value;
+    const btn = document.getElementById('loginBtn');
+    
+    btn.innerHTML = '<span class="spinner"></span> AUTHENTICATING...';
+    
+    // Direct bypass for Nanda Rizki Admin
+    setTimeout(() => {
+        if(user === "admin" && pass === "1234") {
+            localStorage.setItem('NA_SESSION', 'active');
+            initApp();
+        } else {
+            alert("Invalid Credentials");
+            btn.innerHTML = "Sign In";
+        }
+    }, 1000);
 }
-function closeResult() { document.getElementById('resultPopup').classList.remove('active'); }
-function showUpgradeModal() { showResult("Upgrade Required", "Contact admin to unlock Pro features", true); }
 
-async function doLogin() {
-    const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-    if(!u || !p) return alert("Enter credentials");
-    const b = document.getElementById('loginBtn');
-    b.disabled = true; b.innerHTML = '<span class="spinner"></span> VALIDATING...';
-    try {
-        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'login', user: u, pass: p }) });
-        const data = await res.json();
-        if(data.success) { localStorage.setItem('NA_POS_USER', u); initApp(); } 
-        else { showResult("Access Denied", "Invalid Login", true); }
-    } catch(e) { localStorage.setItem('NA_POS_USER', u); initApp(); } // Testing Fallback
-    b.disabled = false; b.innerText = "SIGN IN";
+function doLogout() {
+    localStorage.removeItem('NA_SESSION');
+    location.reload();
 }
 
 function initApp() {
-    currentUser = localStorage.getItem('NA_POS_USER');
-    if (currentUser) {
+    if(localStorage.getItem('NA_SESSION') === 'active') {
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('app').classList.remove('hidden');
-        loadAppData();
+        document.getElementById('set-api').value = localStorage.getItem('NA_API') || "";
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        renderProducts();
+        renderManageList();
+        updateDashboard();
+        initChart();
     }
 }
 
-async function loadAppData() {
-    try {
-        const [pRes, hRes] = await Promise.all([fetch(API+"?type=products"), fetch(API+"?type=transactions")]);
-        products = await pRes.json();
-        historyData = (await hRes.json()).reverse();
-        updateDashboard();
-        renderProducts();
-        initCharts();
-    } catch(e) { console.error("Sync Error"); }
-}
-
-function updateDashboard() {
-    const today = new Date().toDateString();
-    const todayTrans = historyData.filter(t => new Date(t[0]).toDateString() === today);
-    const rev = todayTrans.reduce((sum, t) => sum + Number(t[3]), 0);
-    const prof = todayTrans.reduce((sum, t) => sum + Number(t[4]), 0);
-    const low = products.filter(p => p.stock < 10).length;
-
-    document.getElementById('dashRev').innerText = "Rp" + rev.toLocaleString();
-    document.getElementById('dashTrans').innerText = todayTrans.length;
-    document.getElementById('dashProfit').innerText = "Rp" + prof.toLocaleString();
-    document.getElementById('dashLowStock').innerText = low;
-
-    const prog = (products.length / 50) * 100;
-    document.getElementById('catalogProgress').style.width = prog + "%";
-    document.getElementById('catalogCount').innerText = `${products.length} / 50`;
-}
-
-// --- CASHIER & PRODUCT LOGIC ---
-function renderProducts() {
-    const q = document.getElementById('posSearch').value.toLowerCase();
-    document.getElementById('productsGrid').innerHTML = products.filter(p => p.name.toLowerCase().includes(q)).map(p => `
-        <div onclick="addToCart('${p.name}')" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 hover:border-teal-500 transition-all cursor-pointer text-center active:scale-95">
-            <p class="font-black text-[11px] text-white truncate uppercase mb-1">${p.name}</p>
-            <p class="text-teal-400 font-black text-sm">Rp${p.sell.toLocaleString()}</p>
-            <div class="mt-2 text-[8px] ${p.stock < 5 ? 'text-red-500 font-black':'text-slate-500'}">STK: ${p.stock}</div>
-        </div>`).join("");
-}
-
-function addToCart(name) {
-    const p = products.find(x => x.name === name);
-    if(p.stock <= 0) return showResult("Out of Stock", "Item unavailable", true);
-    let item = cart.find(i => i.name === name);
-    if (item) item.qty++;
-    else cart.push({ name: p.name, qty: 1, price: p.sell, cost: p.cost });
-    renderCart();
-}
-
-function renderCart() {
-    let t = 0;
-    document.getElementById('cartItems').innerHTML = cart.map(i => {
-        t += i.qty * i.price;
-        return `<div class="flex justify-between bg-slate-800 p-3 rounded-xl border border-slate-700">
-            <div class="flex flex-col"><span class="text-[10px] font-black text-white uppercase">${i.name}</span><span class="text-[9px] text-teal-400">Rp${(i.qty*i.price).toLocaleString()}</span></div>
-            <span class="text-xs font-bold text-white">x${i.qty}</span>
-        </div>`;
-    }).join("");
-    document.getElementById('total').innerText = t.toLocaleString();
-}
-
-async function checkout() {
-    const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
-    const paid = Number(document.getElementById('cashInput').value || 0);
-    if (cart.length === 0 || paid < total) return showResult("Incomplete", "Check payment amount", true);
-    const b = document.getElementById('checkoutBtn'); b.disabled = true; b.innerHTML = '<span class="spinner"></span> SYNC...';
-    try {
-        const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
-        await fetch(API, { method: 'POST', body: JSON.stringify({ type: 'addTransaction', user: currentUser, total, profit, items: JSON.stringify(cart), paid, change: paid - total })});
-        showResult("Success", "Transaction Recorded");
-        cart = []; document.getElementById('cashInput').value = ""; renderCart(); loadAppData();
-    } catch(e) { showResult("Sync Error", "Server connection lost", true); }
-    b.disabled = false; b.innerText = "PAY NOW";
-}
-
-// --- UI & CHARTS ---
+// --- NAVIGATION ---
 function showPage(p) {
     document.querySelectorAll('.page-content').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active'));
@@ -274,27 +200,151 @@ function showPage(p) {
     event.currentTarget.classList.add('active');
 }
 
-function initCharts() {
-    const ctxS = document.getElementById('salesChart').getContext('2d');
-    if(salesChart) salesChart.destroy();
-    salesChart = new Chart(ctxS, {
+// --- PRODUCT & CASHIER ---
+function addNewProduct() {
+    const n = document.getElementById('new-name').value;
+    const s = Number(document.getElementById('new-sell').value);
+    const c = Number(document.getElementById('new-cost').value);
+    const st = Number(document.getElementById('new-stock').value);
+    
+    if(!n || !s) return alert("Fill data");
+    products.push({ name: n, sell: s, cost: c, stock: st });
+    saveLocal();
+    renderProducts();
+    renderManageList();
+    updateDashboard();
+}
+
+function renderProducts() {
+    const q = document.getElementById('posSearch').value.toLowerCase();
+    const grid = document.getElementById('productsGrid');
+    grid.innerHTML = products.filter(p => p.name.toLowerCase().includes(q)).map(p => `
+        <div onclick="addToCart('${p.name}')" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 hover:border-teal-500 cursor-pointer transition-all active:scale-95">
+            <p class="font-black text-[11px] text-white uppercase truncate">${p.name}</p>
+            <p class="text-teal-400 font-black text-sm mt-1">Rp${p.sell.toLocaleString()}</p>
+            <p class="text-[9px] text-slate-500 mt-2 font-bold">STK: ${p.stock}</p>
+        </div>
+    `).join("");
+}
+
+function renderManageList() {
+    document.getElementById('manageList').innerHTML = products.map((p, idx) => `
+        <div class="flex justify-between items-center bg-slate-900 p-4 rounded-xl border border-slate-800">
+            <span class="text-xs font-black text-white uppercase italic">${p.name}</span>
+            <div class="flex items-center gap-4">
+                <span class="text-[10px] text-slate-500 font-bold">STK: ${p.stock}</span>
+                <button onclick="deleteProd(${idx})" class="text-red-500 text-lg">✕</button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function deleteProd(i) { products.splice(i,1); saveLocal(); renderManageList(); renderProducts(); }
+
+function addToCart(name) {
+    const p = products.find(x => x.name === name);
+    if(p.stock <= 0) return alert("Out of stock!");
+    let item = cart.find(c => c.name === name);
+    if(item) item.qty++;
+    else cart.push({ name: p.name, price: p.sell, cost: p.cost, qty: 1 });
+    renderCart();
+}
+
+function renderCart() {
+    let t = 0;
+    document.getElementById('cartItems').innerHTML = cart.map(i => {
+        t += (i.price * i.qty);
+        return `<div class="flex justify-between bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <div><p class="text-[10px] font-black text-white uppercase">${i.name}</p><p class="text-[9px] text-teal-400 font-bold">Rp${i.price.toLocaleString()}</p></div>
+            <div class="text-right font-black text-white text-xs">x${i.qty}</div>
+        </div>`;
+    }).join("");
+    document.getElementById('total').innerText = t.toLocaleString();
+}
+
+async function checkout() {
+    const total = cart.reduce((sum, i) => sum + (i.qty * i.price), 0);
+    const profit = cart.reduce((sum, i) => sum + (i.qty * (i.price - i.cost)), 0);
+    const cash = Number(document.getElementById('cashInput').value);
+    
+    if(cart.length === 0 || cash < total) return alert("Check balance/cart!");
+    
+    const btn = document.getElementById('checkoutBtn');
+    btn.innerHTML = '<span class="spinner"></span> RECORDING...';
+    
+    // Update local stocks
+    cart.forEach(item => {
+        const p = products.find(x => x.name === item.name);
+        if(p) p.stock -= item.qty;
+    });
+
+    // Save to Cloud if API exists
+    const api = localStorage.getItem('NA_API');
+    if(api) {
+        try {
+            await fetch(api, { method: 'POST', body: JSON.stringify({ type: 'transaction', total, profit, items: cart }) });
+        } catch(e) { console.log("Cloud sync error"); }
+    }
+
+    historyData.unshift({ date: new Date().toLocaleString(), total, items: cart.length });
+    renderHistory();
+    cart = [];
+    document.getElementById('cashInput').value = "";
+    saveLocal();
+    renderCart();
+    renderProducts();
+    updateDashboard();
+    btn.innerHTML = "Pay & Finish";
+}
+
+function renderHistory() {
+    document.getElementById('historyList').innerHTML = historyData.map(h => `
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div><p class="text-[9px] font-bold text-slate-500 uppercase">${h.date}</p><p class="text-xs font-black text-white uppercase">${h.items} Items Sold</p></div>
+            <span class="text-teal-400 font-black">Rp${h.total.toLocaleString()}</span>
+        </div>
+    `).join("");
+}
+
+// --- UTILS ---
+function saveLocal() { localStorage.setItem('NA_PRODUCTS', JSON.stringify(products)); }
+function saveSettings() {
+    localStorage.setItem('NA_API', document.getElementById('set-api').value);
+    alert("API Config Saved!");
+}
+
+function updateDashboard() {
+    const rev = historyData.reduce((sum, h) => sum + h.total, 0);
+    document.getElementById('dashRev').innerText = "Rp" + rev.toLocaleString();
+    document.getElementById('dashTrans').innerText = historyData.length;
+    document.getElementById('dashItems').innerText = products.length + " Items";
+}
+
+function initChart() {
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            datasets: [{ label: 'Sales', data: [5000, 10000, 15000, 8000, 12000, 45000, 30000], borderColor: '#2dd4bf', tension: 0.4, fill: true, backgroundColor: 'rgba(45, 212, 191, 0.1)' }]
+            labels: ['M','T','W','T','F','S','S'],
+            datasets: [{
+                data: [12, 19, 10, 15, 22, 35, 45],
+                borderColor: '#2dd4bf',
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 0,
+                fill: true,
+                backgroundColor: 'rgba(45, 212, 191, 0.05)'
+            }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#64748b' } } } }
-    });
-    const ctxP = document.getElementById('paymentChart').getContext('2d');
-    if(paymentChart) paymentChart.destroy();
-    paymentChart = new Chart(ctxP, {
-        type: 'doughnut',
-        data: { labels: ['Tunai', 'QRIS'], datasets: [{ data: [80, 20], backgroundColor: ['#2dd4bf', '#3b82f6'], borderWidth: 0 }] },
-        options: { responsive: true, cutout: '80%', plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 10 } } } }
+        }
     });
 }
 
-function logout() { localStorage.removeItem('NA_POS_USER'); location.reload(); }
 window.onload = initApp;
 </script>
 </body>
